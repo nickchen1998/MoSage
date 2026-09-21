@@ -53,7 +53,7 @@ export async function exportDocAsImages(
     onProgress?.({ phase, current, total, percent });
 
   report('rendering', 0, 2);
-  const pagesHtml = await renderPagesToHtml(pages, geometry, doc);
+  const pagesHtml = await renderPagesToHtml(pages, doc);
 
   report('embedding', 0, 20);
   const { css, html } = await embedAssets(pagesHtml, doc);
