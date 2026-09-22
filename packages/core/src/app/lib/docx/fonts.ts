@@ -35,7 +35,7 @@ const EMOJI_FACE = /emoji|symbol/i;
  * Deliberately not a bare "Gothic": Century Gothic is a Latin face.
  */
 const CJK_FACE =
-  /\b(?:TC|SC|HK|JP|KR|CJK)\b|Source Han|PingFang|Hiragino|Meiryo|JhengHei|YaHei|SimSun|SimHei|MingLiU|DFKai|BiauKai|LiGothic|LiSung|LiHei|Heiti|Songti|Kaiti|STSong|FangSong|Malgun|Batang|Gulim|Dotum|Nanum|Apple SD Gothic|Yu Gothic|Mincho|MS P?Gothic|[^ -\u024F]/i;
+  /\bCJK\b|Source Han|PingFang|Hiragino|Meiryo|JhengHei|YaHei|SimSun|SimHei|MingLiU|DFKai|BiauKai|LiGothic|LiSung|LiHei|Heiti|Songti|Kaiti|STSong|FangSong|Malgun|Batang|Gulim|Dotum|Nanum|Apple SD Gothic|Yu Gothic|Mincho|MS P?Gothic|[^ -\u024F]/i;
 
 /** Splits a computed `font-family` into names, quotes removed, order kept. */
 export function parseFontFamily(value: string): string[] {
@@ -59,8 +59,15 @@ export function parseFontFamily(value: string): string[] {
   return names;
 }
 
+/**
+ * A region cut named at the end — "Noto Sans TC", "Chiron Hei HK". Case matters,
+ * and SC counts only on a family that has CJK cuts: "Playfair Display SC" and
+ * "Alegreya Sans SC" are small caps, and "HK Grotesk" is Latin.
+ */
+const CJK_REGION = /\s(?:TC|HK|JP|KR)$|\b(?:Noto|LXGW|WenKai|Sarasa|HarmonyOS|Chiron)\b.*\sSC$/;
+
 export function isCjkFace(name: string): boolean {
-  return CJK_FACE.test(name);
+  return CJK_FACE.test(name) || CJK_REGION.test(name);
 }
 
 export type FontKind = 'sans' | 'serif' | 'mono';

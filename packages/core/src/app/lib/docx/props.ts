@@ -137,6 +137,7 @@ export function paraPropsXml(
     out.push(el('w:keepNext', keepNext ? {} : { 'w:val': '0' }));
   }
   if (opts.keepLines) out.push(el('w:keepLines'));
+  if (props.pageBreakBefore) out.push(el('w:pageBreakBefore'));
   if (opts.numPr) {
     out.push(
       `<w:numPr>${el('w:ilvl', { 'w:val': opts.numPr.level })}${el('w:numId', { 'w:val': opts.numPr.num })}</w:numPr>`,
@@ -145,6 +146,7 @@ export function paraPropsXml(
   out.push(bordersXml('w:pBdr', props.borders));
   out.push(shadingXml(props.shading));
   out.push(tabsXml(props.tabs));
+  if (props.bidi) out.push(el('w:bidi'));
 
   const spacing: Record<string, number | string | undefined> = {};
   const before = props.spaceBefore ?? 0;
@@ -157,11 +159,15 @@ export function paraPropsXml(
   }
   if (Object.keys(spacing).length > 0) out.push(el('w:spacing', spacing));
 
+  // Zero is written when it is given: a numbered paragraph's own indent is what
+  // overrides the numbering level's.
   const indent: Record<string, number | undefined> = {};
-  if (props.indentLeft) indent['w:left'] = props.indentLeft;
+  if (props.indentLeft !== undefined) indent['w:left'] = props.indentLeft;
   if (props.indentRight) indent['w:right'] = props.indentRight;
-  if (props.firstLine && props.firstLine > 0) indent['w:firstLine'] = props.firstLine;
-  if (props.firstLine && props.firstLine < 0) indent['w:hanging'] = -props.firstLine;
+  if (props.firstLine !== undefined) {
+    if (props.firstLine < 0) indent['w:hanging'] = -props.firstLine;
+    else indent['w:firstLine'] = props.firstLine;
+  }
   if (Object.keys(indent).length > 0) out.push(el('w:ind', indent));
 
   const align = props.align ?? 'left';

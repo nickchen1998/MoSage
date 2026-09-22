@@ -17,6 +17,7 @@ import {
   TOC_LEVEL_ATTR,
   TOC_PAGE_ATTR,
 } from '../../components/table-of-contents';
+import { blockHints } from '../flow-measure';
 import { LABEL_ATTR, LABEL_ID_ATTR } from '../labels';
 import { HEADING_SELECTOR, levelOf, outlineLevelOf, TOC_ATTR } from '../outline';
 import { type FontDeclaration, fontKindOf, pickFonts } from './fonts';
@@ -42,7 +43,8 @@ import type {
   TableRow,
   TabStop,
 } from './model';
-import { ParagraphBuilder } from './paragraph';
+import { capitalize, ParagraphBuilder } from './paragraph';
+import { paragraphsOf } from './styles';
 import { eighths, emu, halfPoints, points, px, twips } from './units';
 
 const MEDIA = new Set(['img', 'svg', 'canvas']);
@@ -78,12 +80,15 @@ type SourceBase = {
 /**
  * One sheet, or one flow section laid out as a column. A running header or
  * footer is read from a `sentinel` copy, drawn with sentinel page numbers; a
- * flow section's footer is also drawn with its first sheet's numbers, as
- * `real`, which the sentinel copy is checked against.
+ * flow section's footer is also drawn as its first sheet and, when it has one,
+ * its next, which the sentinel copy is checked against.
  */
 export type ExtractSource =
   | (SourceBase & { kind: 'fixed'; sentinel: HTMLElement })
-  | (SourceBase & { kind: 'flow'; footer?: { sentinel: HTMLElement; real: HTMLElement } });
+  | (SourceBase & {
+      kind: 'flow';
+      footer?: { sentinel: HTMLElement; first: HTMLElement; next?: HTMLElement };
+    });
 
 export type ExtractOptions = {
   sources: ExtractSource[];
@@ -107,6 +112,8 @@ export type Extracted = Pick<
 type Column = { left: number; right: number; top: number };
 
 type Band = 'header' | 'footer';
+
+type BandCopy = { parts: Element[]; host: HTMLElement };
 
 type InlineState = {
   underline: boolean;
@@ -151,6 +158,27 @@ const SIDES: readonly Side[] = ['top', 'right', 'bottom', 'left'];
 
 function sides(value: (side: Side) => number): Sides {
   return { top: value('top'), right: value('right'), bottom: value('bottom'), left: value('left') };
+}
+
+function applyFrame(props: ParagraphProps, frame: Box | undefined): void {
+  if (frame && Object.keys(frame.borders).length > 0) props.borders = frame.borders;
+  if (frame?.shading) props.shading = frame.shading;
+}
+
+function keepWithNext(block: Block): void {
+  if (block.type === 'paragraph') {
+    block.props.keepNext = true;
+    return;
+  }
+  // A table stays with the next paragraph through its last row's paragraphs.
+  for (const cell of block.rows[block.rows.length - 1]?.cells ?? []) {
+    for (const inner of cell.blocks) if (inner.type === 'paragraph') inner.props.keepNext = true;
+  }
+}
+
+function firstParagraphIn(blocks: Block[]): Paragraph | undefined {
+  for (const [paragraph] of paragraphsOf(blocks)) return paragraph;
+  return undefined;
 }
 
 type Spacing = 'spaceBefore' | 'spaceAfter';
@@ -225,6 +253,16 @@ class Flow {
 class Colors {
   private readonly cache = new Map<string, [number, number, number, number]>();
   private probe: CanvasRenderingContext2D | null = null;
+  private paper: [number, number, number] = [255, 255, 255];
+
+  /** What a translucent colour is seen against — the document's own paper, not white. */
+  setPaper(hex: string): void {
+    this.paper = [0, 2, 4].map((at) => Number.parseInt(hex.slice(at, at + 2), 16)) as [
+      number,
+      number,
+      number,
+    ];
+  }
 
   private rgba(css: string): [number, number, number, number] {
     const known = this.cache.get(css);
@@ -253,15 +291,16 @@ class Colors {
     return value;
   }
 
-  /** Six-digit hex over white paper; undefined when the colour is (nearly) transparent. */
+  /** Six-digit hex over the paper; undefined when the colour is (nearly) transparent. */
   hex(css: string): string | undefined {
     const [r, g, b, a] = this.rgba(css);
     if (a < 0.05) return undefined;
-    const channel = (c: number) =>
-      Math.round(c * a + 255 * (1 - a))
+    const channel = (c: number, under: number) =>
+      Math.round(c * a + under * (1 - a))
         .toString(16)
         .padStart(2, '0');
-    return `${channel(r)}${channel(g)}${channel(b)}`.toUpperCase();
+    const [pr, pg, pb] = this.paper;
+    return `${channel(r, pr)}${channel(g, pg)}${channel(b, pb)}`.toUpperCase();
   }
 }
 
@@ -445,6 +484,7 @@ class Extractor {
   async run(): Promise<Extracted> {
     const first = this.options.sources[0]?.host;
     if (first) this.paper = this.colors.hex(this.style(first).backgroundColor) ?? 'FFFFFF';
+    this.colors.setPaper(this.paper);
 
     for (const { host } of this.options.sources) {
       for (const row of Array.from(host.querySelectorAll(`[${FOOTNOTE_ROW_ATTR}]`))) {
@@ -467,6 +507,7 @@ class Extractor {
       sections.push(await this.section(source));
       await onSection?.(sections.length, sources.length);
     }
+    this.pruneAnchors(sections);
 
     return {
       sections,
@@ -476,6 +517,44 @@ class Extractor {
       fonts: [...this.declarations.values()],
       background: this.paper === 'FFFFFF' ? undefined : this.paper,
     };
+  }
+
+  /**
+   * Links and page references to a bookmark no paragraph ended up carrying — a
+   * figure that yielded none of its own — would read "Error! Bookmark not
+   * defined." in Word once fields update, so they go back to plain text.
+   */
+  private pruneAnchors(sections: Section[]): void {
+    const paragraphs: Paragraph[] = [];
+    const collect = (blocks: Block[] = []) => {
+      for (const [paragraph] of paragraphsOf(blocks)) paragraphs.push(paragraph);
+    };
+    for (const { blocks, header, footer, footerFirst } of sections) {
+      collect(blocks);
+      collect(header);
+      collect(footer);
+      collect(footerFirst);
+    }
+    for (const note of this.footnotes) collect(note.blocks);
+    const placed = new Set(paragraphs.map((paragraph) => paragraph.bookmark));
+    for (const paragraph of paragraphs) {
+      paragraph.inlines = paragraph.inlines.map((inline): Inline => {
+        if (inline.type === 'field' && inline.instr.startsWith('PAGEREF ')) {
+          const anchor = inline.instr.split(' ')[1];
+          if (!placed.has(anchor))
+            return { type: 'text', text: inline.cached, style: inline.style };
+        }
+        if (
+          'link' in inline &&
+          inline.link &&
+          'anchor' in inline.link &&
+          !placed.has(inline.link.anchor)
+        ) {
+          return { ...inline, link: undefined };
+        }
+        return inline;
+      });
+    }
   }
 
   /** Word bookmark names: 40 characters, letters, digits and underscores. */
@@ -493,7 +572,7 @@ class Extractor {
     const sheet = this.rect(host);
     const elements = Array.from(host.children);
     const pageRoot = elements.length === 1 ? elements[0] : null;
-    const margin = this.marginsOf(pageRoot, sheet);
+    const margin = this.marginsOf(pageRoot, sheet, source.kind === 'flow');
 
     const flow = new Flow({
       left: sheet.left + margin.left,
@@ -504,7 +583,10 @@ class Extractor {
       source.kind === 'fixed'
         ? { top: flow.column.top, bottom: sheet.bottom - margin.bottom }
         : undefined;
-    await this.walkChildren(pageRoot ?? host, this.root(flow, 'body', { bands }));
+    // The page's own fill and frame: a dark cover is shading behind its text in
+    // Word, not white text on white paper.
+    const box = pageRoot ? this.boxOf(this.style(pageRoot)) : undefined;
+    await this.walkChildren(pageRoot ?? host, this.root(flow, 'body', { bands, box }));
 
     const section: Section = {
       blocks: flow.blocks,
@@ -532,28 +614,45 @@ class Extractor {
       }
     } else if (source.footer) {
       const { footer } = source;
-      const partsOf = (probe: HTMLElement) =>
-        Array.from(probe.querySelector(`[${FLOW_FOOTER_ATTR}]`)?.children ?? []);
-      await this.band(section, 'footer', margin, source.page, {
-        sentinel: { parts: partsOf(footer.sentinel), host: footer.sentinel },
-        real: { parts: partsOf(footer.real), host: footer.real },
+      const copy = (probe: HTMLElement) => ({
+        parts: Array.from(probe.querySelector(`[${FLOW_FOOTER_ATTR}]`)?.children ?? []),
+        host: probe,
       });
+      const sentinel = copy(footer.sentinel);
+      const first = copy(footer.first);
+      const next = footer.next ? copy(footer.next) : undefined;
+      // The running footer is judged on the second sheet, where one hidden on
+      // the opening page shows.
+      const live = await this.band(section, 'footer', margin, source.page + (next ? 1 : 0), {
+        sentinel,
+        real: next ?? first,
+      });
+      if (next) {
+        const running = live ? this.expected(sentinel.parts, source.page) : textOf(next.parts);
+        if (running !== textOf(first.parts)) {
+          const opening = await this.bandParagraphs('footer', first, margin, false);
+          section.footerFirst = opening?.paragraphs ?? [];
+        }
+      }
     }
     return section;
   }
 
-  /** The page component's own padding is the text block; the design's margin when it sets none. */
-  private marginsOf(pageRoot: Element | null, sheet: DOMRect): Sides {
-    const fallback = this.options.margin;
-    if (!pageRoot || Math.abs(this.rect(pageRoot).width - sheet.width) > 2) {
-      return sides(() => fallback);
-    }
+  /**
+   * The page component's own padding is the text block. A page that sets none
+   * at all leaves it to the design's margin; one that sets some keeps its zeros
+   * — a band that runs to one edge. A flow section's shell always sets its own.
+   */
+  private marginsOf(pageRoot: Element | null, sheet: DOMRect, explicit: boolean): Sides {
+    const fallback = sides(() => this.options.margin);
+    if (!pageRoot || Math.abs(this.rect(pageRoot).width - sheet.width) > 2) return fallback;
     const cs = this.style(pageRoot);
-    return sides(
+    const own = sides(
       (side) =>
         px(cs.getPropertyValue(`padding-${side}`)) +
-          px(cs.getPropertyValue(`border-${side}-width`)) || fallback,
+        px(cs.getPropertyValue(`border-${side}-width`)),
     );
+    return explicit || SIDES.some((side) => own[side] > 0) ? own : fallback;
   }
 
   /** Positioned, with something to show, and wholly inside a margin band. */
@@ -596,29 +695,50 @@ class Extractor {
     which: Band,
     margin: Sides,
     page: number,
-    copies: Record<'sentinel' | 'real', { parts: Element[]; host: HTMLElement }>,
-  ): Promise<void> {
+    copies: Record<'sentinel' | 'real', BandCopy>,
+  ): Promise<boolean> {
+    const live = this.expected(copies.sentinel.parts, page) === textOf(copies.real.parts);
+    const read = await this.bandParagraphs(
+      which,
+      live ? copies.sentinel : copies.real,
+      margin,
+      live,
+    );
+    if (read) {
+      section[which] = read.paragraphs;
+      section.page[which] = read.distance;
+    }
+    return live;
+  }
+
+  /** What the sentinel copy says on `page`, with the real numbers put back. */
+  private expected(parts: Element[], page: number): string {
     const { sentinels, pageCount } = this.options;
-    const expected = textOf(copies.sentinel.parts)
+    return textOf(parts)
       .split(String(sentinels.page))
       .join(String(page))
       .split(String(sentinels.count))
       .join(String(pageCount));
-    const live = expected === textOf(copies.real.parts);
-    const { parts, host } = live ? copies.sentinel : copies.real;
-    if (parts.length === 0) return;
+  }
 
+  private async bandParagraphs(
+    which: Band,
+    { parts, host }: BandCopy,
+    margin: Sides,
+    fields: boolean,
+  ): Promise<{ paragraphs: Paragraph[]; distance: number } | undefined> {
+    if (parts.length === 0) return undefined;
     const sheet = this.rect(host);
     const flow = new Flow({
       left: sheet.left + margin.left,
       right: sheet.right - margin.right,
       top: sheet.top,
     });
-    await this.walkNodes(parts, host, this.root(flow, which, { positioned: true, fields: live }));
+    await this.walkNodes(parts, host, this.root(flow, which, { positioned: true, fields }));
     const paragraphs = flow.blocks.filter(
       (block): block is Paragraph => block.type === 'paragraph',
     );
-    if (paragraphs.length === 0) return;
+    if (paragraphs.length === 0) return undefined;
 
     const rects = parts.map((part) => this.rect(part));
     const distance =
@@ -626,8 +746,7 @@ class Extractor {
         ? sheet.bottom - Math.max(...rects.map((rect) => rect.bottom))
         : Math.min(...rects.map((rect) => rect.top)) - sheet.top;
     const edge = which === 'footer' ? margin.bottom : margin.top;
-    section[which] = paragraphs;
-    section.page[which] = twips(Math.max(0, Math.min(distance, edge)));
+    return { paragraphs, distance: twips(Math.max(0, Math.min(distance, edge))) };
   }
 
   private skipped(el: Element, cs: CSSStyleDeclaration): boolean {
@@ -695,6 +814,19 @@ class Extractor {
 
   private async block(el: Element, cs: CSSStyleDeclaration, outer: Ctx): Promise<void> {
     if (this.bandOf(el, cs, outer.bands)) return;
+    const blocks = outer.flow.blocks;
+    const start = blocks.length;
+    await this.blockContent(el, cs, outer);
+    if (blocks.length === start) return;
+    // The page-break hints the packer honours, as Word's own.
+    const hints = blockHints(el);
+    const first = blocks[start];
+    if (hints.breakBefore && first.type === 'paragraph') first.props.pageBreakBefore = true;
+    if (hints.keepWithNext) keepWithNext(blocks[blocks.length - 1]);
+    if (hints.keepWithPrevious && start > 0) keepWithNext(blocks[start - 1]);
+  }
+
+  private async blockContent(el: Element, cs: CSSStyleDeclaration, outer: Ctx): Promise<void> {
     const ctx: Ctx = {
       ...outer,
       positioned: outer.positioned || isPlaced(cs),
@@ -813,14 +945,15 @@ class Extractor {
     if (right > 1) props.indentRight = twips(right);
     const indent = px(cs.textIndent);
     if (indent) props.firstLine = twips(indent);
-    if (ctx.list?.pending && props.indentLeft) {
-      // The marker hangs in the list's own padding, as it does on the page.
+    if (ctx.list?.pending) {
+      // The marker hangs in the list's own padding, as it does on the page — and
+      // a list flush with the text stays flush, rather than taking the Word
+      // numbering level's default indent.
+      props.indentLeft ??= 0;
       props.firstLine = -Math.min(props.indentLeft, 360);
     }
-
-    const frame = own ? mergeBoxes(ctx.box, this.boxOf(cs)) : ctx.box;
-    if (frame && Object.keys(frame.borders).length > 0) props.borders = frame.borders;
-    if (frame?.shading) props.shading = frame.shading;
+    if (cs.direction === 'rtl') props.bidi = true;
+    applyFrame(props, own ? mergeBoxes(ctx.box, this.boxOf(cs)) : ctx.box);
     return props;
   }
 
@@ -882,6 +1015,7 @@ class Extractor {
     const column = ctx.flow.column;
     const props: ParagraphProps = {
       borders: { bottom: border },
+      shading: ctx.box?.shading,
       line: 20,
       lineExact: true,
       markSize: 2,
@@ -919,10 +1053,20 @@ class Extractor {
     if (flex && cs.flexDirection.startsWith('column')) return null;
     const items = this.rowItems(el);
     if (!items || items.length < 2 || items.some((item) => this.hasBlockInside(item))) return null;
+    // A heading keeps its style and bookmark as a paragraph of its own.
+    if (items.some((item) => item.matches(ANY_HEADING) || item.querySelector(ANY_HEADING))) {
+      return null;
+    }
     const line = px(cs.lineHeight) || px(cs.fontSize) * 1.4 || 20;
     const tops = items.map((item) => this.rect(item).top);
     const top = Math.min(...tops);
-    return tops.every((t) => t - top < line * 0.8) ? items : null;
+    if (!tops.every((t) => t - top < line * 0.8)) return null;
+    // One item may wrap, as a long contents entry does; columns that each run
+    // to several lines — a signature block — are a layout, not a line.
+    const tall = items.filter(
+      (item) => this.rect(item).height > line * 1.5 || item.querySelector('br') !== null,
+    );
+    return tall.length > 1 ? null : items;
   }
 
   private hasBlockInside(item: Element): boolean {
@@ -967,13 +1111,7 @@ class Extractor {
       }
       leader = undefined;
       first = false;
-      const state = this.inlineState(item, cs, ctx.inline);
-      if (MEDIA.has(item.localName)) {
-        const image = await this.image(item, column, state.link);
-        if (image) builder.push(image);
-      } else {
-        await this.inlineChildren(item, builder, state, ctx);
-      }
+      await this.inline(item, builder, ctx.inline, ctx, true);
     }
 
     const paragraph = this.emit(builder, el, this.rect(el), ctx, true);
@@ -1022,9 +1160,10 @@ class Extractor {
   }
 
   private async list(el: Element, ctx: Ctx): Promise<void> {
-    const items = Array.from(el.children).filter(
-      (child) => child.localName === 'li' && !this.skipped(child, this.style(child)),
-    );
+    const nodes = Array.from(childNodes(el, this.style));
+    const isItem = (node: Node): node is Element =>
+      node instanceof Element && node.localName === 'li' && !this.skipped(node, this.style(node));
+    const items = nodes.filter(isItem);
     const ordered = el.localName === 'ol';
     const kind = listKindOf(this.style(items[0] ?? el).listStyleType, ordered);
     if (!kind || items.length === 0) {
@@ -1035,12 +1174,24 @@ class Extractor {
     const start = ordered ? (el as HTMLOListElement).start : 1;
     const num = this.lists.length + 1;
     this.lists.push({ id: num, kind, level, start: Number.isFinite(start) ? start : 1 });
-    for (const item of items) {
-      await this.walkChildren(item, {
-        ...ctx,
-        inline: this.inlineState(item, this.style(item), ctx.inline),
-        list: { num, level, pending: true },
-      });
+    for (const node of nodes) {
+      if (!isItem(node)) {
+        // A list nested beside the items, a note between them: the page shows
+        // them, one level in.
+        await this.walkNodes([node], el, { ...ctx, list: { num, level, pending: false } });
+        continue;
+      }
+      const cs = this.style(node);
+      // Only a list item draws a marker; a flex or grid <li> is laid out as any block is.
+      if (cs.display === 'list-item') {
+        await this.walkChildren(node, {
+          ...ctx,
+          inline: this.inlineState(node, cs, ctx.inline),
+          list: { num, level, pending: true },
+        });
+      } else {
+        await this.block(node, cs, { ...ctx, list: { num, level, pending: false } });
+      }
     }
   }
 
@@ -1191,7 +1342,9 @@ class Extractor {
     }
     const id = figure.getAttribute(LABEL_ID_ATTR);
     const bookmark = id ? this.bookmarks.get(id) : undefined;
-    const target = added.find((block): block is Paragraph => block.type === 'paragraph');
+    const target =
+      added.find((block): block is Paragraph => block.type === 'paragraph') ??
+      firstParagraphIn(added);
     if (bookmark && target && !target.bookmark) target.bookmark = bookmark;
   }
 
@@ -1216,12 +1369,18 @@ class Extractor {
     const image = await this.image(el, column, ctx.inline.link);
     if (!image) return false;
 
-    const left = rect.left - column.left;
-    const right = column.right - rect.right;
+    // In a box, the picture's paragraph spans the box as its neighbours' do, so
+    // Word draws one frame around them all rather than a step at the picture.
+    const within = ctx.box && el.parentElement ? this.contentBox(el.parentElement) : column;
     const props: ParagraphProps = {};
+    if (within.left - column.left > 1) props.indentLeft = twips(within.left - column.left);
+    if (column.right - within.right > 1) props.indentRight = twips(column.right - within.right);
+    const left = rect.left - within.left;
+    const right = within.right - rect.right;
     if (centred(left, right)) props.align = 'center';
     else if (left > 2 && right < 2) props.align = 'right';
-    else if (left > 1) props.indentLeft = twips(left);
+    else if (left > 1) props.indentLeft = (props.indentLeft ?? 0) + twips(left);
+    applyFrame(props, ctx.box);
     ctx.flow.add(
       { type: 'paragraph', role: ctx.role, inlines: [image], props },
       rect,
@@ -1281,7 +1440,14 @@ class Extractor {
     const href = a.getAttribute('href');
     if (!href) return undefined;
     if (href.startsWith('#')) {
-      const anchor = this.bookmarks.get(decodeURIComponent(href.slice(1)));
+      const fragment = href.slice(1);
+      let id = fragment;
+      try {
+        id = decodeURIComponent(fragment);
+      } catch {
+        /* `#growth-50%` is not percent-encoding; the fragment is the id as written. */
+      }
+      const anchor = this.bookmarks.get(id) ?? this.bookmarks.get(fragment);
       return anchor ? { anchor } : undefined;
     }
     try {
@@ -1354,11 +1520,13 @@ class Extractor {
     }
   }
 
+  /** `item`: a row's item, laid out as a block but set on the row's one line. */
   private async inline(
     el: Element,
     builder: ParagraphBuilder,
     outer: InlineState,
     ctx: Ctx,
+    item = false,
   ): Promise<void> {
     const cs = this.style(el);
     if (this.skipped(el, cs)) return;
@@ -1385,7 +1553,7 @@ class Extractor {
       return;
     }
 
-    const block = !this.inlineLevel(el, cs);
+    const block = !item && !this.inlineLevel(el, cs);
     if (block) builder.requestBreak();
     await this.inlineChildren(el, builder, this.inlineState(el, cs, outer), ctx);
     if (block) builder.requestBreak();
@@ -1397,9 +1565,7 @@ class Extractor {
     const cs = this.style(parent);
     let value = node.data;
     if (cs.textTransform === 'lowercase') value = value.toLowerCase();
-    else if (cs.textTransform === 'capitalize') {
-      value = value.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
-    }
+    else if (cs.textTransform === 'capitalize') value = capitalize(value, builder.lastChar());
     const style = this.runStyle(parent, state);
     const { page, count } = this.options.sentinels;
     const put = (text: string, collapse: boolean) => {

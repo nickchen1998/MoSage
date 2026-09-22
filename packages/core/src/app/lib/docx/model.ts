@@ -94,6 +94,9 @@ export type ParagraphProps = {
   shading?: string;
   tabs?: TabStop[];
   keepNext?: boolean;
+  pageBreakBefore?: boolean;
+  /** Right to left. */
+  bidi?: boolean;
   /** Size of the paragraph mark, half-points — keeps an empty rule paragraph thin. */
   markSize?: number;
 };
@@ -163,6 +166,8 @@ export type Section = {
   blocks: Block[];
   header?: Paragraph[];
   footer?: Paragraph[];
+  /** The section's first page, when its footer is not the running one there — empty is hidden. */
+  footerFirst?: Paragraph[];
   page: PageSetup;
 };
 

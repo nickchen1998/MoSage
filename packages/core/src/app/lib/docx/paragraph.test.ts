@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Inline, RunStyle } from './model';
-import { ParagraphBuilder } from './paragraph';
+import { capitalize, ParagraphBuilder } from './paragraph';
 
 const style: RunStyle = {
   fonts: { ascii: 'Inter' },
@@ -61,6 +61,14 @@ describe('ParagraphBuilder', () => {
     expect(texts(p.finish())).toEqual(['first', '<break>', 'second']);
   });
 
+  it('knows the character before the next text, but not across a line break', () => {
+    const p = new ParagraphBuilder();
+    p.text('mac', style, undefined, true);
+    expect(p.lastChar()).toBe('c');
+    p.requestBreak();
+    expect(p.lastChar()).toBe('');
+  });
+
   it('counts only visible content as content', () => {
     const p = new ParagraphBuilder();
     p.text('   ', style, undefined, true);
@@ -68,5 +76,17 @@ describe('ParagraphBuilder', () => {
     expect(p.empty).toBe(true);
     p.push({ type: 'footnote', id: 1, style });
     expect(p.empty).toBe(false);
+  });
+});
+
+describe('capitalize', () => {
+  it('capitalizes each word as the browser does, accents and apostrophes included', () => {
+    expect(capitalize('naïve café élan', ' ')).toBe('Naïve Café Élan');
+    expect(capitalize("don't stop", '')).toBe("Don't Stop");
+  });
+
+  it('continues a word that began in an earlier element', () => {
+    expect(capitalize('book pro', 'c')).toBe('book Pro');
+    expect(capitalize('book', ' ')).toBe('Book');
   });
 });

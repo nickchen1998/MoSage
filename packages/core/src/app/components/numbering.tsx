@@ -187,6 +187,7 @@ export function ListOf({ kind = 'figure', showPageNumbers = true, style, classNa
       {entries.map((entry) => (
         <div
           key={entry.id}
+          {...{ [REF_ATTR]: entry.id }}
           style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}
         >
           <span style={{ flex: 'none', color: 'var(--od-muted)' }}>
@@ -203,7 +204,9 @@ export function ListOf({ kind = 'figure', showPageNumbers = true, style, classNa
                   transform: 'translateY(-3px)',
                 }}
               />
-              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{entry.page}</span>
+              <span {...{ [REF_PAGE_ATTR]: '' }} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {entry.page}
+              </span>
             </>
           )}
         </div>

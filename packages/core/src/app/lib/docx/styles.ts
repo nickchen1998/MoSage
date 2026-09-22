@@ -126,7 +126,8 @@ function textLength(paragraph: Paragraph): number {
   return length;
 }
 
-function* paragraphsOf(blocks: Block[], inCell = false): Generator<[Paragraph, boolean]> {
+/** Every paragraph in the blocks, table cells included, and whether it sits in one. */
+export function* paragraphsOf(blocks: Block[], inCell = false): Generator<[Paragraph, boolean]> {
   for (const block of blocks) {
     if (block.type === 'paragraph') {
       yield [block, inCell];
@@ -143,6 +144,7 @@ function* allParagraphs(model: DocxModel): Generator<[Paragraph, boolean]> {
     yield* paragraphsOf(section.blocks);
     yield* paragraphsOf(section.header ?? []);
     yield* paragraphsOf(section.footer ?? []);
+    yield* paragraphsOf(section.footerFirst ?? []);
   }
   for (const note of model.footnotes) yield* paragraphsOf(note.blocks);
 }
@@ -193,7 +195,7 @@ export function inferStyles(model: DocxModel): StyleSheet {
       spaceAfter: entry.after.winner() ?? 0,
       align: entry.align.winner(),
       line: entry.line.winner(),
-      keepNext: entry.key.id.startsWith('Heading') || entry.keepNext.winner(),
+      keepNext: entry.keepNext.winner(),
     },
     outlineLevel: entry.key.outlineLevel,
     keepLines: entry.key.keepLines,

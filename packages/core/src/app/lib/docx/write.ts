@@ -264,12 +264,17 @@ function blocksXml(blocks: Block[], env: Env): string {
 
 type Band = 'header' | 'footer';
 
-function sectPrXml(section: Section, refs: Partial<Record<Band, string>>): string {
+type BandRefs = { header?: string; footer?: string; footerFirst?: string };
+
+function sectPrXml(section: Section, refs: BandRefs): string {
   const { page } = section;
   return [
     '<w:sectPr>',
     refs.header ? el('w:headerReference', { 'w:type': 'default', 'r:id': refs.header }) : '',
     refs.footer ? el('w:footerReference', { 'w:type': 'default', 'r:id': refs.footer }) : '',
+    refs.footerFirst
+      ? el('w:footerReference', { 'w:type': 'first', 'r:id': refs.footerFirst })
+      : '',
     el('w:type', { 'w:val': 'nextPage' }),
     el('w:pgSz', {
       'w:w': page.width,
@@ -286,6 +291,8 @@ function sectPrXml(section: Section, refs: Partial<Record<Band, string>>): strin
       'w:gutter': 0,
     }),
     el('w:cols', { 'w:space': 720 }),
+    // Word's "different first page", which is what takes the `first` footer.
+    refs.footerFirst ? el('w:titlePg') : '',
     el('w:docGrid', { 'w:linePitch': 360 }),
     '</w:sectPr>',
   ].join('');
@@ -366,6 +373,8 @@ function settingsXml(model: DocxModel): string {
     XML_DECLARATION,
     `<w:settings xmlns:w="${W_NS}">`,
     '<w:zoom w:percent="100"/>',
+    // Without it Word keeps the page colour to itself and shows white paper.
+    model.background ? '<w:displayBackgroundShape/>' : '',
     '<w:defaultTabStop w:val="720"/>',
     '<w:characterSpacingControl w:val="doNotCompress"/>',
     footnotes,
@@ -430,13 +439,7 @@ export function writeDocx(model: DocxModel, now = new Date()): Uint8Array {
   };
   const written = { header: 0, footer: 0 };
   const previous: Partial<Record<Band, string>> = {};
-  const bandFor = (band: Band, paragraphs: Paragraph[] | undefined): string | undefined => {
-    if (!used[band]) return undefined;
-    // The same as the section before: leaving the reference out is Word's own
-    // "link to previous", so a reviewer edits one footer, not one per section.
-    const key = JSON.stringify(paragraphs ?? []);
-    if (previous[band] === key) return undefined;
-    previous[band] = key;
+  const bandPart = (band: Band, paragraphs: Paragraph[] | undefined): string => {
     const rels = new Rels();
     const content = paragraphs?.length
       ? blocksXml(paragraphs, { styles, media: model.media, rels, ids })
@@ -452,13 +455,23 @@ export function writeDocx(model: DocxModel, now = new Date()): Uint8Array {
     if (!rels.empty) files[`word/_rels/${name}.rels`] = strToU8(rels.xml());
     return documentRels.add(band, name);
   };
+  const bandFor = (band: Band, paragraphs: Paragraph[] | undefined): string | undefined => {
+    if (!used[band]) return undefined;
+    // The same as the section before: leaving the reference out is Word's own
+    // "link to previous", so a reviewer edits one footer, not one per section.
+    const key = JSON.stringify(paragraphs ?? []);
+    if (previous[band] === key) return undefined;
+    previous[band] = key;
+    return bandPart(band, paragraphs);
+  };
 
   const env: Env = { styles, media: model.media, rels: documentRels, ids };
   let body = '';
   model.sections.forEach((section, index) => {
     const header = bandFor('header', section.header);
     const footer = bandFor('footer', section.footer);
-    const sectPr = sectPrXml(section, { header, footer });
+    const footerFirst = section.footerFirst && bandPart('footer', section.footerFirst);
+    const sectPr = sectPrXml(section, { header, footer, footerFirst });
     const blocks = section.blocks;
     const last = blocks[blocks.length - 1];
 

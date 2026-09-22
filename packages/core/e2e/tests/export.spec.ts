@@ -76,6 +76,10 @@ test.describe('export', () => {
     expect(notes).toContain('Measured from the fixture data.');
     // The drawn box has no text to keep, so it travels as a picture.
     expect(Object.keys(parts).some((part) => part.startsWith('word/media/'))).toBe(true);
+    // Headings keep with what follows through their style, not cancelled one by one.
+    expect(document).not.toMatch(/<w:pStyle w:val="Heading\d"\/><w:keepNext w:val="0"\/>/);
+    // The list of figures quotes Word's own pages once fields update, as the contents do.
+    expect(document).toContain('w:instr=" PAGEREF _od_drawing \\h "');
   });
 
   test('a flow section reflows as one run, and its footer becomes a Word footer', async ({
@@ -99,6 +103,15 @@ test.describe('export', () => {
     // Cover and body are two sections on the document's own sheet.
     expect(document.match(/<w:sectPr>/g)).toHaveLength(2);
     expect(document).toContain('<w:pgSz w:w="11906" w:h="16838"/>');
+  });
+
+  test('a document without a design exports black ink, whatever the viewer theme', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await openDoc(page, 'flow-report');
+    const styles = docx((await download(page, 'DOCX')).bytes)['word/styles.xml'] ?? '';
+    expect(styles).toMatch(/<w:rPrDefault><w:rPr>(?:(?!<\/w:rPr>).)*<w:color w:val="000000"\/>/);
   });
 
   test('DOCX export honours the page range', async ({ page }) => {

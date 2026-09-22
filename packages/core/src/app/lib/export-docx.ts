@@ -8,7 +8,7 @@
  * scanned and read.
  */
 
-import { Component, createElement, type ReactNode } from 'react';
+import { createElement, type ReactNode } from 'react';
 import { FlowPage } from '../components/flow-page';
 import { defaultDesign } from './design';
 import { type ExtractSource, extractDocument } from './docx/extract';
@@ -30,26 +30,11 @@ export type DocxExportProgress = {
  */
 const SENTINELS = { page: 38271, count: 69154 };
 
-/**
- * Around the copies drawn with sentinel page numbers. Code that indexes data by
- * page — `chapters[n - 1].title` — throws on page 38271; that costs the running
- * header its fields, not the whole export.
- */
-class Sentinel extends Component<{ children?: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  render() {
-    return this.state.failed ? null : this.props.children;
-  }
-}
-
 type FlowGroup = FlowSlice & {
   kind: 'flow';
   index: number;
+  /** How many sheets the section printed on. */
+  pages: number;
   /** Block index → the sheet it printed on. */
   sheets: Map<number, number>;
 };
@@ -70,9 +55,18 @@ function groupPages(pages: ExpandedPage[]): Group[] {
     if (last?.kind === 'flow' && last.entry === slice.entry) {
       group = last;
     } else {
-      group = { ...slice, kind: 'flow', index, blockIndices: [], notes: [], sheets: new Map() };
+      group = {
+        ...slice,
+        kind: 'flow',
+        index,
+        pages: 0,
+        blockIndices: [],
+        notes: [],
+        sheets: new Map(),
+      };
       groups.push(group);
     }
+    group.pages += 1;
     group.blockIndices.push(...slice.blockIndices);
     group.notes.push(...slice.notes);
     for (const block of slice.blockIndices) group.sheets.set(block, index);
@@ -89,7 +83,7 @@ function mountCopy(doc: DocModule, pages: ExpandedPage[], onProgress: (percent: 
     // with sentinels in place of the real ones.
     const sentinel = (node: ReactNode) =>
       mount(
-        createElement(Sentinel, null, node),
+        node,
         { index: SENTINELS.page - 1, total: SENTINELS.count },
         { sheet: true, paint: true },
       );
@@ -121,9 +115,12 @@ function mountCopy(doc: DocModule, pages: ExpandedPage[], onProgress: (percent: 
           page: group.index + 1,
           // Not a frame itself: its blocks are, each as the sheet it printed on.
           host: mount(body, { index: group.index, total }, { paint: true }),
+          // Drawn for the first sheet and the next: a footer hidden or different
+          // on the opening page is Word's first-page footer, not the running one.
           footer: section.footer && {
             sentinel: sentinel(footer),
-            real: sheet(footer, group.index, false),
+            first: sheet(footer, group.index, false),
+            next: group.pages > 1 ? sheet(footer, group.index + 1, false) : undefined,
           },
         });
       }
@@ -178,6 +175,7 @@ function rasterizer(doc: DocModule): (el: Element) => Promise<Uint8Array | null>
   };
   return (el) => {
     const { width, height } = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
     const clone = el.cloneNode(true) as HTMLElement;
     Object.assign(clone.style, {
       margin: '0',
@@ -185,6 +183,40 @@ function rasterizer(doc: DocModule): (el: Element) => Promise<Uint8Array | null>
       height: `${height}px`,
       boxSizing: 'border-box',
     });
+    // The picture's box is where it was drawn; offsets and transforms would move
+    // it again inside that box, and out of the picture.
+    if (cs.position !== 'static')
+      Object.assign(clone.style, { position: 'relative', inset: 'auto' });
+    if (
+      cs.transform !== 'none' ||
+      cs.translate !== 'none' ||
+      cs.rotate !== 'none' ||
+      cs.scale !== 'none'
+    ) {
+      Object.assign(clone.style, {
+        transform: 'none',
+        translate: 'none',
+        rotate: 'none',
+        scale: 'none',
+      });
+    }
+    // A clone's canvases are blank: their pixels go along as pictures.
+    const canvases = el.querySelectorAll('canvas');
+    try {
+      clone.querySelectorAll('canvas').forEach((copy, i) => {
+        const canvas = canvases[i];
+        const box = canvas.getBoundingClientRect();
+        const picture = document.createElement('img');
+        picture.src = canvas.toDataURL();
+        picture.setAttribute('style', copy.getAttribute('style') ?? '');
+        picture.className = copy.className;
+        Object.assign(picture.style, { width: `${box.width}px`, height: `${box.height}px` });
+        copy.replaceWith(picture);
+      });
+    } catch {
+      // A canvas drawn from another origin cannot be read back.
+      return Promise.resolve(null);
+    }
     const parent = el.parentElement ? getComputedStyle(el.parentElement) : null;
     const inherited = parent
       ? [...INHERITED, ...Array.from(parent).filter((name) => name.startsWith('--'))]

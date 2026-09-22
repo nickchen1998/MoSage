@@ -48,6 +48,21 @@ describe('pickFonts', () => {
     });
   });
 
+  /* 小型大寫的拉丁字型（Playfair Display SC）和 HK Grotesk 不是中日韓字型。 */
+  it('does not take a Latin small-caps or "HK" family for a CJK face', () => {
+    for (const name of ['Playfair Display SC', 'Alegreya Sans SC', 'Amatic SC', 'HK Grotesk']) {
+      expect(isCjkFace(name)).toBe(false);
+    }
+    for (const name of ['Noto Serif SC', 'Noto Sans CJK TC', 'LXGW WenKai TC', 'Chiron Hei HK']) {
+      expect(isCjkFace(name)).toBe(true);
+    }
+    expect(pickFonts('"Playfair Display SC", serif')).toEqual({ ascii: 'Playfair Display SC' });
+    expect(pickFonts('"HK Grotesk", "Noto Sans TC", sans-serif')).toEqual({
+      ascii: 'HK Grotesk',
+      eastAsia: 'Noto Sans TC',
+    });
+  });
+
   it('leaves the East Asian face to Word when the theme names none', () => {
     expect(pickFonts('"Century Gothic", Arial, sans-serif')).toEqual({ ascii: 'Century Gothic' });
     expect(isCjkFace('Century Gothic')).toBe(false);

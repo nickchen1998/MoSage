@@ -1,5 +1,27 @@
 import type { Inline, LinkTarget, RunStyle } from './model';
 
+const WORDS = new Intl.Segmenter(undefined, { granularity: 'word' });
+
+/**
+ * `text-transform: capitalize` as the browser applies it: the first letter of
+ * each word, where "naïve" and "don't" are one word each, and a word can begin
+ * in an earlier element — `mac<b>book</b>` is one — so `before` is the text's
+ * preceding character.
+ */
+export function capitalize(text: string, before: string): string {
+  const lead = before || ' ';
+  let out = '';
+  for (const { segment, index } of WORDS.segment(lead + text)) {
+    if (index < lead.length) {
+      out += segment.slice(lead.length - index);
+      continue;
+    }
+    const first = String.fromCodePoint(segment.codePointAt(0) ?? 32);
+    out += first.toUpperCase() + segment.slice(first.length);
+  }
+  return out;
+}
+
 function meaningful(inline: Inline): boolean {
   if (inline.type === 'text') return inline.text.trim() !== '';
   return inline.type !== 'break' && inline.type !== 'tab';
@@ -35,6 +57,13 @@ export class ParagraphBuilder {
 
   get empty(): boolean {
     return !this.items.some((item) => meaningful(item.inline));
+  }
+
+  /** The last character of text so far; empty at the start of a line. */
+  lastChar(): string {
+    if (this.breakPending) return '';
+    const last = this.items[this.items.length - 1]?.inline;
+    return last?.type === 'text' ? last.text.slice(-1) : '';
   }
 
   finish(): Inline[] {

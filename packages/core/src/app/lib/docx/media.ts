@@ -11,13 +11,15 @@ function sniff(bytes: Uint8Array): Format | null {
   return null;
 }
 
+type Picture = { bytes: Uint8Array; type: Format; drawn: boolean };
+
 async function png(source: CanvasImageSource, size: { width: number; height: number }) {
   const blob = await drawToPng(source, size);
-  return { bytes: new Uint8Array(await blob.arrayBuffer()), type: 'png' as const };
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), type: 'png' as const, drawn: true };
 }
 
 /** A picture's own bytes when Word reads the format; otherwise what the browser decoded. */
-async function readImage(img: HTMLImageElement, source: string, size: DOMRect) {
+async function readImage(img: HTMLImageElement, source: string, size: DOMRect): Promise<Picture> {
   // SVG, WebP, AVIF: formats Word may not open, so their bytes would be discarded anyway.
   if (!/\.(?:svg|webp|avif)(?:[?#]|$)/i.test(source)) {
     try {
@@ -25,13 +27,24 @@ async function readImage(img: HTMLImageElement, source: string, size: DOMRect) {
       if (response.ok) {
         const bytes = new Uint8Array(await response.arrayBuffer());
         const type = sniff(bytes);
-        if (type) return { bytes, type };
+        if (type) return { bytes, type, drawn: false };
       }
     } catch {
       /* Drawn below from what the page already decoded. */
     }
   }
   return png(img, size);
+}
+
+/** Cropped, rounded, or filtered on the page: the file is not what the reader sees. */
+function reshaped(img: HTMLImageElement): boolean {
+  const cs = getComputedStyle(img);
+  return (
+    cs.objectFit !== 'fill' ||
+    cs.borderRadius !== '0px' ||
+    cs.clipPath !== 'none' ||
+    cs.filter !== 'none'
+  );
 }
 
 function same(a: Uint8Array, b: Uint8Array): boolean {
@@ -51,17 +64,18 @@ export class MediaStore {
 
   /** The index of a picture of `el`, or null when none could be made. */
   async of(el: Element, rect: DOMRect): Promise<number | null> {
-    const source = el instanceof HTMLImageElement ? el.currentSrc || el.src : '';
+    const img = el instanceof HTMLImageElement ? el : null;
+    const source = img && !reshaped(img) ? img.currentSrc || img.src : '';
     const known = source ? this.bySource.get(source) : undefined;
     if (known !== undefined) return known;
 
-    let picture: { bytes: Uint8Array; type: Format } | null = null;
+    let picture: Picture | null = null;
     try {
-      if (source) picture = await readImage(el as HTMLImageElement, source, rect);
+      if (img && source) picture = await readImage(img, source, rect);
       else if (el instanceof HTMLCanvasElement) picture = await png(el, rect);
       else {
         const bytes = await this.rasterize(el);
-        picture = bytes && { bytes, type: 'png' };
+        picture = bytes && { bytes, type: 'png', drawn: true };
       }
     } catch {
       // A cross-origin picture taints the canvas and cannot be read back.
@@ -80,7 +94,9 @@ export class MediaStore {
       this.media.push({ name: `image${index + 1}.${type}`, contentType: `image/${type}`, bytes });
       this.byLength.set(bytes.length, [...candidates, index]);
     }
-    if (source) this.bySource.set(source, index);
+    // Only the file itself stands for its URL. A drawing of it is the size it was
+    // drawn at, and the same logo larger on another page needs its own.
+    if (source && !picture.drawn) this.bySource.set(source, index);
     return index;
   }
 }

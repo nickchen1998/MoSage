@@ -418,6 +418,83 @@ describe('writeDocx', () => {
     expect(unzip(writeDocx(doc))['word/styles.xml']).toContain('<w:name w:val="toc 1"/>');
   });
 
+  it('keeps headings with what follows through their style, not cancelling it per paragraph', () => {
+    const keep = { keepNext: true };
+    const doc = model({
+      sections: [
+        section([
+          para('Findings', { role: 'heading', level: 1, props: keep }, heading),
+          para('Body.'),
+          para('Method', { role: 'heading', level: 1, props: keep }, heading),
+          para('More.'),
+        ]),
+      ],
+    });
+    const files = unzip(writeDocx(doc));
+    expect(files['word/styles.xml']).toMatch(/w:styleId="Heading1">.*?<w:keepNext\/>/);
+    expect(files['word/document.xml']).not.toContain('<w:keepNext w:val="0"/>');
+  });
+
+  it('starts a page where the document asked for one, and sets right-to-left text as such', () => {
+    const doc = model({
+      sections: [
+        section([
+          para('One'),
+          para('Two', { props: { pageBreakBefore: true } }),
+          para('שלום', { props: { bidi: true } }),
+        ]),
+      ],
+    });
+    const document = unzip(writeDocx(doc))['word/document.xml'] ?? '';
+    expect(document).toMatch(/<w:pPr><w:pageBreakBefore\/>(?:(?!<\/w:p>).)*>Two</);
+    expect(document).toMatch(/<w:pPr><w:bidi\/>(?:(?!<\/w:p>).)*>שלום</);
+  });
+
+  it('writes a list item flush with the text as flush, not at the numbering level’s indent', () => {
+    const doc = model({
+      sections: [
+        section([
+          para('one', {
+            role: 'list',
+            list: { num: 1, level: 0 },
+            props: { indentLeft: 0, firstLine: 0 },
+          }),
+        ]),
+      ],
+      lists: [{ id: 1, kind: 'disc', level: 0, start: 1 }],
+    });
+    expect(unzip(writeDocx(doc))['word/document.xml']).toContain(
+      '<w:ind w:left="0" w:firstLine="0"/>',
+    );
+  });
+
+  it('gives a section a first-page footer when its opening page shows another, or none', () => {
+    const line = (text: string): Paragraph => ({
+      type: 'paragraph',
+      role: 'footer',
+      inlines: [{ type: 'text', text, style: body }],
+      props: {},
+    });
+    const doc = model({
+      sections: [section([para('Body')], { footer: [line('Page')], footerFirst: [] })],
+    });
+    const files = unzip(writeDocx(doc));
+    const document = files['word/document.xml'] ?? '';
+    expect(document).toMatch(/<w:footerReference w:type="first" r:id="rId\d+"\/>/);
+    expect(document).toMatch(/<w:cols [^>]*\/><w:titlePg\/><w:docGrid /);
+    expect(files['word/footer1.xml']).toContain('>Page<');
+    expect(files['word/footer2.xml']).toContain('<w:p/>');
+  });
+
+  it('shows the page colour, which Word hides unless the settings ask for it', () => {
+    const files = unzip(writeDocx(model({ background: '101216' })));
+    expect(files['word/document.xml']).toContain('<w:background w:color="101216"/>');
+    expect(files['word/settings.xml']).toContain(
+      '<w:zoom w:percent="100"/><w:displayBackgroundShape/><w:defaultTabStop',
+    );
+    expect(unzip(writeDocx(model()))['word/settings.xml']).not.toContain('displayBackgroundShape');
+  });
+
   it('marks CJK runs so Word sets their punctuation in the East Asian face', () => {
     const doc = model({
       sections: [section([para('「引號」與標點'), para('Latin text only, and more of it')])],
