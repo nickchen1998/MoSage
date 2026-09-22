@@ -4,7 +4,7 @@
  * difference would only ever show up in an exported file.
  */
 
-import { createElement, type ReactNode } from 'react';
+import { Component, createElement, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 import { designToCssVars } from './design';
@@ -50,6 +50,24 @@ function offscreenContainer(): HTMLElement {
   });
   document.body.appendChild(container);
   return container;
+}
+
+/**
+ * Around every page of a copy. Rendered synchronously, a page that throws would
+ * take the whole export with it; one that only fails for the pages chosen —
+ * `chapters[n - 3]` on page 1 of a one-page export, or on the Word export's
+ * sentinel page 38271 — prints blank instead.
+ */
+class PageBoundary extends Component<{ children?: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 /**
@@ -135,12 +153,16 @@ export async function mountOffscreen<T>(
       textAlign: 'start',
     });
     for (const [name, value] of vars) el.style.setProperty(name, value);
-    if (host.paint && doc.design) {
-      el.style.background = 'var(--od-bg)';
-      el.style.color = 'var(--od-text)';
+    if (host.paint) {
+      // Paper and ink of its own, as the viewer's sheet has: the copy hangs off
+      // <body>, and a document with no design would otherwise print in the
+      // chrome's colours, which follow the viewer's dark mode.
+      el.style.background = doc.design ? 'var(--od-bg)' : '#ffffff';
+      el.style.color = doc.design ? 'var(--od-text)' : '#000000';
     }
     root.appendChild(el);
-    roots.push(renderNow(el, createElement(DocPageProvider, page, node)));
+    const content = createElement(PageBoundary, null, node);
+    roots.push(renderNow(el, createElement(DocPageProvider, page, content)));
     return el;
   };
 
@@ -148,9 +170,12 @@ export async function mountOffscreen<T>(
     const value = await draw(mount, pacer());
     await settle(root);
     // What the scan resolves — contents, numbers, references — is committed
-    // before anything reads the copy, and gets its fonts like the rest.
+    // before anything reads the copy, and gets its fonts like the rest. Images
+    // and data-waitfor were settled above; waiting on them again only doubles
+    // the timeout of one that never arrives.
     flushSync(() => scanDocument(root, doc.meta));
-    await settle(root);
+    await nextFrame();
+    await waitForFonts();
     return { root, value, dispose };
   } catch (err) {
     dispose();

@@ -24,6 +24,8 @@ type Size = { width: number; height: number };
  */
 const SCALE = 2;
 
+const FETCHES = 8;
+
 /** Every asset the markup and the stylesheet reference, fetched and inlined as a `data:` URI. */
 export async function inlineAssets(
   sourceCss: string,
@@ -33,20 +35,25 @@ export async function inlineAssets(
   const urls = new Set<string>([...findHtmlAssetUrls(joined), ...findCssAssetUrls(sourceCss)]);
 
   const replacements = new Map<string, string>();
-  await Promise.all(
-    [...urls].map(async (url) => {
+  const queue = [...urls];
+  const fetchNext = async (): Promise<void> => {
+    for (let url = queue.shift(); url !== undefined; url = queue.shift()) {
       const absolute = toAbsolute(url);
-      if (!absolute) return;
+      if (!absolute) continue;
       try {
         const res = await fetch(absolute);
-        if (!res.ok) return;
+        if (!res.ok) continue;
         replacements.set(url, await blobToDataUrl(await res.blob()));
       } catch {
         /* An asset that will not load is left as it was: a broken picture in the
            output is easier to diagnose than a silently missing one. */
       }
-    }),
-  );
+    }
+  };
+  // A few at a time. A self-hosted CJK family lists a thousand-odd subsets, and
+  // fetched all at once they exhaust Chromium's per-renderer request limit: the
+  // tail fails, and those glyphs silently fall back to another face.
+  await Promise.all(Array.from({ length: Math.min(FETCHES, queue.length) }, fetchNext));
   if (replacements.size === 0) return { css: sourceCss, html: pagesHtml };
 
   // One pass over each string. Replacing URL by URL rescans text that grows
