@@ -98,6 +98,7 @@ You design as if the viewport is literally the page in CSS pixels. The viewer on
 - Prefer inline `style={{ … }}`. Any CSS you load is global — scope classnames carefully.
 - The viewer's CSS reset strips list markers. A `<ul>`/`<ol>` needs an explicit `listStyle: 'disc outside'` / `'decimal outside'` or it renders as unindented plain lines.
 - **1pt ≈ 1.333px.** Body copy at 14px prints as ~10.5pt; anything under 12px (9pt) is uncomfortable in print, and under 10px (7.5pt) is unreadable.
+- **Every font size is an even number of px** — 10, 12, 14, 16, 18… — in the `design` type scale and in every inline `fontSize` alike. Step sizes up or down by 2. Use an odd or fractional size only when the user asks for that exact size (or a named standard requires it).
 
 ### Print type scale (start here)
 
@@ -106,10 +107,12 @@ You design as if the viewport is literally the page in CSS pixels. The viewer on
 | Cover title | 40–52px | Cover page only |
 | H1 / section opener | 26–32px | One per section |
 | H2 / subsection | 18–22px | |
-| H3 / run-in heading | 15–17px | Often bold body size |
-| Body | 13–15px | 1.5–1.65 line-height |
-| Caption / table cell | 10–12px | Tables can go to 11px |
-| Footnote / footer | 9–10px | |
+| H3 / run-in heading | 16px | Often bold body size |
+| Body | 14px (12–16) | 1.5–1.65 line-height |
+| Caption / table cell | 10–12px | Tables stay at 12px, 10px when compact |
+| Footnote / footer | 10px | |
+
+All sizes above are even; pick among the even values in each range.
 
 ### Margins
 
@@ -405,7 +408,8 @@ confirms it.
 - [ ] Every page's root fills `100% × 100%` and sets `boxSizing: 'border-box'` with the margin as padding.
 - [ ] **For every fixed page, sum (font_size × line_height × lines) + gaps + 2×margin ≤ page height.** If close, split — or move the content into the flow section. No `overflow: auto` escape hatches.
 - [ ] No block inside a `flow()` section is taller than one page (a long table has to be split by hand — the framework never splits a block).
-- [ ] Body type ≥ 13px; nothing on the page under 9px.
+- [ ] Body type 14px (12px at the least); nothing on the page under 10px.
+- [ ] Every `fontSize` and type-scale step is an even number of px, unless the user asked for a specific size.
 - [ ] Section titles are real `h1`/`h2`/`h3` elements, so the outline and TOC pick them up.
 - [ ] Contents page uses `<TableOfContents />`, not a hand-written list.
 - [ ] Page numbers come from `useDocPageNumber()` / `useDocPageCount()`.
@@ -421,7 +425,8 @@ confirms it.
 
 - ❌ Overflowing the page. Cropped content is invisible — split instead.
 - ❌ `overflow: auto` / `scroll` / `hidden` to "fit" more. The sheet doesn't scroll; you've hidden the bug.
-- ❌ Shrinking body type below 13px or margins below 60px to cram content in.
+- ❌ Shrinking body type below 12px or margins below 60px to cram content in.
+- ❌ Odd or fractional font sizes (13px, 15px, 10.5px) that the user never asked for.
 - ❌ Hand-written contents lists or hardcoded page numbers — they go stale the moment a page is added.
 - ❌ "See Figure 3 on page 12" written by hand, or a figure caption numbered `Figure 3` in the copy. Use `<Ref>` and `<Figure>`.
 - ❌ Retyping a CSV the user already has into a JSX table.

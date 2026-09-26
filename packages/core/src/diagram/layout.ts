@@ -33,7 +33,7 @@ export type LayoutOptions = {
 };
 
 const DEFAULTS = {
-  fontSize: 13,
+  fontSize: 12,
   rankGap: 48,
   nodeGap: 28,
   maxLabelWidth: 190,

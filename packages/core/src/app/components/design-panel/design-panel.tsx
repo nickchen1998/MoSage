@@ -31,8 +31,8 @@ const TYPE_KEYS: Array<{
   { key: 'h1', label: 'H1', min: 16, max: 48 },
   { key: 'h2', label: 'H2', min: 14, max: 36 },
   { key: 'h3', label: 'H3', min: 12, max: 28 },
-  { key: 'body', label: 'Body', min: 9, max: 20 },
-  { key: 'caption', label: 'Caption', min: 7, max: 16 },
+  { key: 'body', label: 'Body', min: 10, max: 20 },
+  { key: 'caption', label: 'Caption', min: 8, max: 16 },
 ];
 
 export function DesignPanel({ onClose }: { onClose: () => void }) {
@@ -153,7 +153,7 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
                   value={draft.typeScale[key]}
                   min={min}
                   max={max}
-                  step={1}
+                  step={2}
                   suffix="px"
                   onChange={(value) =>
                     update((d) => {

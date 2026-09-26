@@ -125,7 +125,7 @@ export function DataTable({
                   textAlign: align,
                   width: column.width,
                   fontFamily: 'var(--od-font-heading)',
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',
@@ -153,7 +153,7 @@ export function DataTable({
                   key={column.key}
                   style={{
                     textAlign: align,
-                    fontSize: compact ? 11 : 12,
+                    fontSize: compact ? 10 : 12,
                     padding: cellPadding,
                     borderBottom: '1px solid var(--od-rule)',
                     fontVariantNumeric: align === 'right' ? 'tabular-nums' : undefined,

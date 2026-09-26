@@ -55,7 +55,7 @@ const Th = ({ children, align = 'left' }: { children: ReactNode; align?: 'left' 
     style={{
       textAlign: align,
       fontFamily: 'var(--od-font-heading)',
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 600,
       letterSpacing: '0.04em',
       textTransform: 'uppercase',
@@ -135,7 +135,7 @@ const Cover: DocPage = () => (
         marginTop: 40,
         borderTop: '1px solid var(--od-rule)',
         paddingTop: 14,
-        fontSize: 11,
+        fontSize: 10,
         color: 'var(--od-muted)',
       }}
     >

@@ -169,7 +169,7 @@ Rules for the demo:
 - [ ] Frontmatter has `name`, `description`, `pageSize`, `mode`.
 - [ ] The `design` const in the `.md` and in the demo are identical.
 - [ ] The palette background is white or near-white (see `references/design-system.md` — dark documents print badly).
-- [ ] Body type ≥ 13px; caption ≥ 9px.
+- [ ] Body type ≥ 14px; caption ≥ 10px; every size in the type scale is an even number of px.
 - [ ] The footer pulls page numbers from the hooks.
 - [ ] Every "paste-ready" component actually compiles as written — no `…` left in the code blocks.
 - [ ] The demo fits its pages.

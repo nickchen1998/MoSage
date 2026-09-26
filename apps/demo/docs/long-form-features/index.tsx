@@ -206,7 +206,7 @@ const Body = flow(
                 borderRadius: 2,
               }}
             />
-            <div style={{ fontSize: 9, color: 'var(--od-muted)', marginTop: 6 }}>
+            <div style={{ fontSize: 10, color: 'var(--od-muted)', marginTop: 6 }}>
               {String(row.service).replace('-api', '')}
             </div>
           </div>
