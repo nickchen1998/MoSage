@@ -24,7 +24,7 @@ declare module 'virtual:mosage/folders' {
 declare module 'virtual:mosage/config' {
   import type { MoSageConfig } from '../config';
 
-  type ResolvedBuild = { showDocBrowser: boolean; allowHtmlExport: boolean };
+  type ResolvedBuild = { showDocBrowser: boolean };
   const config: MoSageConfig & { build: ResolvedBuild; version: string };
   export default config;
 }

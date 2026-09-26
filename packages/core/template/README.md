@@ -1,6 +1,6 @@
 # 我的文件
 
-這個資料夾是一個 [MoSage](https://github.com/nickchen1998/MoSage) 專案：用 AI 寫文件，在瀏覽器裡預覽成真實的紙張，最後匯出 PDF、Word 或 HTML。
+這個資料夾是一個 [MoSage](https://github.com/nickchen1998/MoSage) 專案：用 AI 寫文件，在瀏覽器裡預覽成真實的紙張，最後匯出 PDF 或 Word。
 
 ## 開始
 
@@ -29,7 +29,7 @@ mosage.config.ts   專案設定
 | --- | --- |
 | `npm run dev` | 開啟檢視器，檔案一改就即時更新 |
 | `npx mosage check` | 找出超出紙張的內容、空白頁、落在頁尾的標題等問題 |
-| `npx mosage export <文件> --format docx` | 匯出 Word；也可以用 `pdf`、`html`、`png` |
+| `npx mosage export <文件> --format docx` | 匯出 Word；`--format pdf`（預設）匯出 PDF |
 | `npx mosage import notes.md` | 把 Markdown 轉成一份文件 |
 | `npm run build` | 輸出靜態網站 |
 

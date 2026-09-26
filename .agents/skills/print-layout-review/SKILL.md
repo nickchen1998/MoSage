@@ -29,7 +29,7 @@ Screen conventions do not transfer. Hover states, scroll affordances, viewport u
 
 7. **Deterministic rendering.** Exports serialize whatever the DOM says at that moment. Fonts must be awaited (`waitForFonts`), images must be complete (`waitForImages`), and anything that paints asynchronously — a chart, a map, a canvas — must expose `data-waitfor` so `waitForDataWaitfor` can block on it. Async paint without a `data-waitfor` handle is a block: it produces a blank rectangle in the PDF and nowhere else.
 
-8. **Two render paths, one result.** The viewer, the thumbnails, and both exporters all consume the page list from `useDocPages`. A fix applied to the viewer that doesn't hold in `export-pdf.ts` / `export-html.ts` is half a fix. Any change to page composition must state how it was verified in an actual export.
+8. **Two render paths, one result.** The viewer, the thumbnails, and both exporters all consume the page list from `useDocPages`. A fix applied to the viewer that doesn't hold in `export-pdf.ts` / `export-docx.ts` is half a fix. Any change to page composition must state how it was verified in an actual export.
 
 9. **Print CSS lives with the page, not in overrides.** `@media print` hacks that undo layout are a smell — the sheet *is* the layout. Legitimate print-only concerns are `break-inside`, `break-after`, running headers/footers, and link URL expansion. Anything else is compensating for a screen-first layout.
 

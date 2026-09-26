@@ -8,7 +8,7 @@
 pnpm + Turbo 的 monorepo。
 
 - **`packages/core`**（npm 名稱 `mosage`，唯一發佈的套件）
-  - `src/app/`：瀏覽器端——文件列表、檢視器、大綱、主題、素材、Design 面板、PDF／HTML／Word 匯出
+  - `src/app/`：瀏覽器端——文件列表、檢視器、大綱、主題、素材、Design 面板、PDF／Word 匯出
   - `src/vite/`：Vite 設定與外掛——文件探索、開發 API、Design、資料檔、圖表、主題
   - `src/cli/`：`mosage` 指令（`init`、`dev`、`build`、`preview`、`check`、`export`、`import`、`sync:skills`）
   - `src/ops/`：文件操作，CLI 與開發伺服器路由共用

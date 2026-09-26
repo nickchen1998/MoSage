@@ -57,6 +57,15 @@ test.describe('mosage CLI', () => {
     await expect(fs.access(path.join(dir, 'docs', 'plan'))).rejects.toThrow();
   });
 
+  test('export only knows PDF and DOCX', async () => {
+    const dir = prepareScratchProject('cli-formats');
+    for (const format of ['html', 'png', 'svg']) {
+      const res = await runCli(['export', 'alpha', '--format', format], dir);
+      expect(res.code, format).not.toBe(0);
+      expect(res.stderr).toContain('pdf, docx');
+    }
+  });
+
   test('export writes a PDF and a DOCX, and check passes the fixture documents', async () => {
     const dir = prepareScratchProject('cli-render');
 

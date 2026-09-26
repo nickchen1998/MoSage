@@ -32,7 +32,7 @@ The viewer imports `src/app/**` directly. A user's document imports the built `d
 | Measurement | `app/lib/flow-measure.ts` | Owns offscreen DOM measurement. Batches reads; never interleaves read/write. |
 | Composition | `app/lib/use-doc-pages.ts` | Joins fixed pages + flow output into the rendered page list. |
 
-Everything downstream — viewer, thumbnails, `export-pdf.ts`, `export-html.ts` — consumes `useDocPages`. **Reading `doc.default` directly is a bug**, because it skips flow expansion and yields a different page count than the exporters.
+Everything downstream — viewer, thumbnails, `export-pdf.ts`, `export-docx.ts` — consumes `useDocPages`. **Reading `doc.default` directly is a bug**, because it skips flow expansion and yields a different page count than the exporters.
 
 Adding a break rule means: extend `paginateBlocks`, add a case to `flow.test.ts`, done. If the rule needs a measured value it doesn't have, add it to `BlockMetrics` — don't reach into the DOM from the packer.
 
@@ -89,5 +89,5 @@ Both exporters build their own offscreen copy, scan the outline there, serialize
 - [ ] Mutations in `ops/`, `OpsError` for status, both transports reach the same function
 - [ ] `validateMutationRequest` on every mutating handler; user-named paths via `files/assets.ts`
 - [ ] No read/write interleaving in measurement; no components defined inside components
-- [ ] Export path re-verified (PDF and HTML) for anything affecting page composition
+- [ ] Export path re-verified (PDF and DOCX) for anything affecting page composition
 - [ ] No new dependency in `core` without a reason that outweighs install size

@@ -43,5 +43,5 @@ import { ImagePlaceholder } from 'mosage';
 ## Export behavior
 
 - **PDF**: images are embedded. The exporter waits for every `<img>` to finish loading before printing, so a slow asset delays the export rather than producing a blank frame.
-- **HTML**: same-origin assets are collected and rewritten to a local `assets/` folder; the download becomes a `.zip` when the document references any. A document with no assets downloads as a single `.html`.
+- **DOCX**: images are embedded in the Word file as pictures at their laid-out size.
 - Remote images (a URL on another origin) are left as-is — they render only while that host is reachable, and they may be missing from the PDF if the fetch is slow. Import files into the project instead.

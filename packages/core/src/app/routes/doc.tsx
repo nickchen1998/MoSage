@@ -4,12 +4,9 @@ import {
   BookOpen,
   Check,
   Download,
-  FileCode2,
-  FileImage,
   FilePen,
   FileText,
   GalleryVertical,
-  Image,
   LayoutGrid,
   Loader2,
   type LucideIcon,
@@ -34,8 +31,6 @@ import { PageFrame } from '../components/page-frame';
 import { ThemeToggle } from '../components/theme-toggle';
 import { Menu, MenuItem } from '../components/ui/menu';
 import { useAgentBridge } from '../lib/agent-bridge';
-import { exportDocAsHtml } from '../lib/export-html';
-import { exportDocAsImages } from '../lib/export-image';
 import { exportDocAsPdf } from '../lib/export-pdf';
 import { type OutlineEntry, useDocOutline } from '../lib/outline';
 import { describeSelection, type PageSelection, resolveSelection } from '../lib/page-range';
@@ -54,14 +49,11 @@ import {
   type ViewMode,
 } from '../lib/view-mode';
 
-type DownloadFormat = 'pdf' | 'html' | 'docx' | 'png' | 'svg';
+type DownloadFormat = 'pdf' | 'docx';
 
 const DOWNLOAD_FORMATS = [
   { format: 'pdf' as const, label: 'PDF', hint: 'True page size, print-ready', icon: FileText },
-  { format: 'html' as const, label: 'HTML', hint: 'Self-contained, printable', icon: FileCode2 },
   { format: 'docx' as const, label: 'DOCX', hint: 'Editable in Word, reflows', icon: FilePen },
-  { format: 'png' as const, label: 'PNG', hint: 'Pixels, 2x — for slides and chat', icon: Image },
-  { format: 'svg' as const, label: 'SVG', hint: 'Vector, keeps text as text', icon: FileImage },
 ];
 
 const GUTTER = 48;
@@ -346,15 +338,9 @@ export function Doc() {
         await exportDocAsPdf(doc, docId, chosen, (progress) =>
           setDownload({ format, percent: progress.percent }),
         );
-      } else if (format === 'html') {
-        await exportDocAsHtml(doc, docId, chosen);
-      } else if (format === 'docx') {
+      } else {
         const { exportDocAsDocx } = await import('../lib/export-docx');
         await exportDocAsDocx(doc, docId, chosen, (progress) =>
-          setDownload({ format, percent: progress.percent }),
-        );
-      } else {
-        await exportDocAsImages(doc, docId, chosen, format, (progress) =>
           setDownload({ format, percent: progress.percent }),
         );
       }

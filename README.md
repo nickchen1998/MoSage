@@ -10,7 +10,7 @@
 
 **讓 AI 幫你做出「要印出來、要交出去」的文件。**
 報告、企劃書、白皮書、操作手冊、研究成果——用說的描述你要什麼，Claude Code 或 Codex 會把內容寫成頁面；
-MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁碼，最後輸出成 PDF、可編輯的 Word，或單一 HTML 檔。
+MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁碼，最後輸出成 PDF 或可編輯的 Word。
 
 一切都是專案資料夾裡的檔案：不需要帳號，也沒有資料庫，可以直接用 git 管理。
 
@@ -67,8 +67,6 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | --- | --- |
 | PDF | 最終成品，版面與瀏覽器看到的完全一致 |
 | Word（.docx） | 要在 Word 裡審閱或交給別人修改：標題、清單、表格、註腳、目錄、頁首頁尾都轉成 Word 原生格式 |
-| HTML | 單一檔案，直接開啟或列印 |
-| PNG | 每一頁一張圖，可指定頁碼範圍 |
 
 在瀏覽器右上角的 **Download** 選單匯出，或用指令 `mosage export <文件> --format docx`（指令匯出需要另外安裝 `playwright`）。
 
@@ -99,7 +97,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `npx mosage init [資料夾]` | 建立新專案（可加 `--no-install`、`--no-git`、`--use-pnpm` 等選項） |
 | `mosage dev` | 開啟開發伺服器與檢視器 |
 | `mosage check [文件…]` | 檢查版面問題 |
-| `mosage export [文件…]` | 匯出 PDF／Word／HTML／PNG（`--format`、`--all`、`--out-dir`） |
+| `mosage export [文件…]` | 匯出 PDF 或 Word（`--format pdf\|docx`、`--all`、`--out-dir`） |
 | `mosage import <檔案.md>` | 把 Markdown 轉成文件 |
 | `mosage build` / `mosage preview` | 輸出與預覽靜態網站 |
 | `mosage sync:skills` | 更新專案裡的 AI skills |

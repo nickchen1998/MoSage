@@ -100,7 +100,7 @@ Tell the user:
 - The doc id and file path.
 - That the dev server hot-reloads — open `http://localhost:5273/d/<id>` (or refresh the home page).
 - **Every placeholder and `TODO:` you left**, and what data each one needs.
-- That "Export PDF" in the toolbar prints at the true page size, and "HTML" downloads a self-contained copy — or `mosage export <id>` for the same files without a browser.
+- That the **Download** menu exports a PDF at the true page size or a Word file (DOCX) to review in Word — or `mosage export <id> --format pdf|docx` for the same files without a browser.
 - That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images they want to drop in go through the **Assets** page.
 
 Don't run the dev server yourself unless asked.

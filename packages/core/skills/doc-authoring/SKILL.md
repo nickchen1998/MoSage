@@ -59,7 +59,7 @@ export default [Cover, Body] satisfies DocPage[];
 
 - `export default` is a **non-empty array of entries**. An entry is either a zero-prop React component (one fixed page) or a `flow(<>…</>)` section the framework paginates by measuring. Mix them freely — the usual shape is a fixed cover, a fixed contents page, then one flow section for the body.
 - **Default to `flow()` for body content.** Hand-splitting prose into fixed pages produces documents where every heading starts a half-empty page. Read `references/pagination.md` before writing either kind.
-- Every document is **A4**: `meta.pageSize` only accepts `'A4'` (the default, so it can be left out) and `meta.orientation` is `'portrait' | 'landscape'` (default portrait). **Those two are the only sheets there are** — there is no B4, A3, Letter, or custom size, and no way to set a page's dimensions by hand. The same value drives the on-screen page, the `@page` size when printing, and the HTML export.
+- Every document is **A4**: `meta.pageSize` only accepts `'A4'` (the default, so it can be left out) and `meta.orientation` is `'portrait' | 'landscape'` (default portrait). **Those two are the only sheets there are** — there is no B4, A3, Letter, or custom size, and no way to set a page's dimensions by hand. The same value drives the on-screen page and the `@page` size when printing.
 - `meta.createdAt` is an **ISO 8601 string literal** set once when the doc is scaffolded — the home page sorts on it. **Immediately before writing the file, run `node -e "console.log(new Date().toISOString())"` and paste the exact output.** It must stay a plain string literal (no `new Date(...)`): the framework reads it with a regex at build time, it never evaluates the module.
 
 ## Two ways to fill pages
@@ -205,7 +205,7 @@ const Contents: DocPage = () => (
 );
 ```
 
-Page numbers come from the scan, so they are always correct — **never hand-write a contents list**. The outline fills in after the first render pass; that is expected and it is resolved before PDF/HTML export serializes the pages.
+Page numbers come from the scan, so they are always correct — **never hand-write a contents list**. The outline fills in after the first render pass; that is expected and it is resolved before a PDF or Word export reads the pages.
 
 ## Page numbers, headers, footers
 
@@ -354,13 +354,12 @@ A document is not a slide deck. Long-form copy is the point — but it still has
 
 - Home page lists every folder under `docs/` with a live thumbnail of page 1.
 - Document view: vertical scroll of real-size pages, a left rail that switches between page thumbnails, the outline, and the document's assets, zoom (actual size / fit width / fit page), page counter, and fullscreen reading (`F`).
-- Export PDF (print pipeline, correct `@page` size) and export HTML (self-contained, printable).
 - Hot reload: edit `index.tsx` and the pages update live.
 - **Assets panel** (`/assets` in the dev UI): upload, rename, and delete files in the global `assets/` folder or any document's `assets/` folder, with an "unused" badge and a copy-ready import line. Files you reference in source are what it scans, so an import you write by hand shows up there immediately.
 - **Inspect mode** (the "Inspect" button, dev only): click any element on a page to edit its text in place — the change is written straight back into `docs/<id>/index.tsx` — or leave a note for the agent, which is stored as a `@doc-comment` marker and processed by the `apply-comments` skill.
-- **Download menu** — PDF (true page size), self-contained HTML, and DOCX for review in Word.
+- **Download menu** — PDF (true page size) and DOCX for review in Word. Those are the only two formats.
 - **Word export** — DOCX reflows the text instead of copying the sheets, so write structure, not position: real `h1`–`h3` become Word headings, `<Footnote>` a Word footnote, `<TableOfContents />` a contents field, a flow `footer` a running footer with live page numbers, and tables, lists, and links their Word equivalents. Inside a `<Figure>`, anything that is not an image or a table — a chart drawn with divs — is exported as a picture of itself.
-- **Headless render** — `mosage export <id> --format pdf|html|docx|png` produces the same output from a script, and `mosage check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
+- **Headless render** — `mosage export <id> --format pdf|docx` produces the same output from a script, and `mosage check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
 - **Design panel** (the "Design" button in the document view, dev only): live-tweaks the `design` const — palette, fonts, type scale, margin, leading, radius — previewing on the real pages and writing the values back into `docs/<id>/index.tsx` on save.
 
 ### Writing for the inspector

@@ -59,7 +59,7 @@ async function acquire(ctx: ApiContext): Promise<RenderSession> {
   if (shared && shared.origin === ctx.serverOrigin) return shared.session;
   if (!pending) {
     const origin = ctx.serverOrigin;
-    pending = createRenderSession({ userCwd: ctx.userCwd, origin, deviceScaleFactor: 2 })
+    pending = createRenderSession({ userCwd: ctx.userCwd, origin })
       .then((session) => {
         shared = { session, origin };
         return session;
@@ -128,23 +128,6 @@ export async function checkLayout(ctx: ApiContext, docId: string): Promise<Layou
   });
 }
 
-export async function renderDocPage(
-  ctx: ApiContext,
-  docId: string,
-  page: number,
-): Promise<{ docId: string; page: number; pageCount: number; mimeType: string; base64: string }> {
-  return withDoc(ctx, docId, async (renderer) => {
-    const bytes = await renderer.screenshot(page);
-    return {
-      docId,
-      page,
-      pageCount: renderer.status.pageCount,
-      mimeType: 'image/png',
-      base64: Buffer.from(bytes).toString('base64'),
-    };
-  });
-}
-
 function resolveOutDir(ctx: ApiContext, outDir: string): string {
   const resolved = path.resolve(ctx.userCwd, outDir);
   if (resolved !== ctx.userCwd && !resolved.startsWith(ctx.userCwd + path.sep)) {
@@ -173,18 +156,10 @@ export async function exportDocument(
 
     if (format === 'pdf') {
       await write(`${docId}.pdf`, await renderer.pdf());
-    } else if (format === 'html' || format === 'docx') {
-      const bundle = await renderer[format]();
+    } else {
+      const bundle = await renderer.docx();
       if (!bundle) throw new OpsError(422, `document has no pages: ${docId}`);
       await write(bundle.filename, Buffer.from(bundle.base64, 'base64'));
-    } else {
-      const width = String(renderer.status.pageCount).length;
-      for (let page = 1; page <= renderer.status.pageCount; page++) {
-        await write(
-          `${docId}-${String(page).padStart(width, '0')}.png`,
-          await renderer.screenshot(page),
-        );
-      }
     }
 
     return { docId, format, pageCount: renderer.status.pageCount, files: written };

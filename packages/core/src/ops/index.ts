@@ -38,7 +38,6 @@ export {
   exportDocument,
   type LayoutFinding,
   type LayoutReport,
-  renderDocPage,
 } from './layout.ts';
 export {
   type AssetSummary,

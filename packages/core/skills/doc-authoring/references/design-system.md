@@ -1,6 +1,6 @@
 # Design system
 
-Every document declares typed design tokens at the top of `index.tsx` and consumes them through CSS variables. The framework injects the variables at the page root, so both the on-screen page and the exported PDF/HTML read the same values.
+Every document declares typed design tokens at the top of `index.tsx` and consumes them through CSS variables. The framework injects the variables at the page root, so both the on-screen page and the exported PDF read the same values.
 
 ## The shape
 

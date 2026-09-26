@@ -13,7 +13,6 @@ import { DocPageProvider } from './page-context';
 import { nextFrame, waitForDataWaitfor, waitForFonts, waitForImages } from './print-ready';
 import { captureScan, restoreScan, scanDocument } from './scan';
 import { type DocModule, resolvePageGeometry } from './sdk';
-import type { ExpandedPage } from './use-doc-pages';
 
 export const ASSET_EXT_RE =
   /\.(?:png|jpe?g|gif|svg|webp|avif|woff2?|ttf|otf)(?:\?[^#]*)?(?:#.*)?$/i;
@@ -183,24 +182,6 @@ export async function mountOffscreen<T>(
   }
 }
 
-/** Every sheet as it would print, serialized. */
-export async function renderPagesToHtml(pages: ExpandedPage[], doc: DocModule): Promise<string[]> {
-  const total = pages.length;
-  const copy = await mountOffscreen(doc, async (mount, pace) => {
-    const hosts: HTMLElement[] = [];
-    for (const [index, page] of pages.entries()) {
-      hosts.push(mount(page.content, { index, total }, { frame: index, sheet: true }));
-      await pace();
-    }
-    return hosts;
-  });
-  try {
-    return copy.value.map((host) => host.innerHTML);
-  } finally {
-    copy.dispose();
-  }
-}
-
 export function collectCss(): string {
   const chunks: string[] = [];
   for (const sheet of Array.from(document.styleSheets)) {
@@ -214,17 +195,6 @@ export function collectCss(): string {
     for (const rule of Array.from(rules)) chunks.push(rule.cssText);
   }
   return chunks.join('\n');
-}
-export function collectExternalStylesheetLinks(): string {
-  const links: string[] = [];
-  for (const sheet of Array.from(document.styleSheets)) {
-    try {
-      void sheet.cssRules;
-    } catch {
-      if (sheet.href) links.push(`<link rel="stylesheet" href="${escapeAttr(sheet.href)}">`);
-    }
-  }
-  return links.join('\n');
 }
 export function findHtmlAssetUrls(html: string): string[] {
   const out: string[] = [];
@@ -267,29 +237,6 @@ export function toAbsolute(url: string): string | null {
     return null;
   }
 }
-export function uniqueAssetName(absoluteUrl: string, used: Set<string>): string {
-  let base = 'asset';
-  try {
-    base = new URL(absoluteUrl).pathname.split('/').pop() || 'asset';
-  } catch {}
-  if (!used.has(base)) {
-    used.add(base);
-    return base;
-  }
-  const hash = shortHash(absoluteUrl);
-  const dot = base.lastIndexOf('.');
-  const name = dot > 0 ? `${base.slice(0, dot)}-${hash}${base.slice(dot)}` : `${base}-${hash}`;
-  used.add(name);
-  return name;
-}
-export function shortHash(input: string): string {
-  let h = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(36).slice(0, 6);
-}
 export function downloadBundle(bundle: FileBundle): void {
   downloadBlob(new Blob([bundle.bytes as BlobPart], { type: bundle.mimeType }), bundle.filename);
 }
@@ -304,15 +251,4 @@ export function downloadBlob(blob: Blob, filename: string): void {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
-}
-export function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-export function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
