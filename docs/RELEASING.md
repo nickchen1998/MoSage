@@ -35,13 +35,17 @@ MoSage 用 GitHub Actions 自動測試與發佈：
 
 ### 4. 發佈第一個版本
 
-把開發分支合併進 `main` 之後：
+把開發分支合併進 `main` 之後，任選一種：
 
-```bash
-git checkout main && git pull
-git tag v0.1.0            # package.json 已經是 0.1.0
-git push origin v0.1.0
-```
+- **在 GitHub 上按按鈕**：Actions → **Release** → **Run workflow**，分支選 `main`，
+  **取消勾選 dry-run** 後執行。會發佈 `package.json` 裡的版本，並自動建立 `v0.1.0` tag 與 GitHub Release。
+- **推送 tag**：
+
+  ```bash
+  git checkout main && git pull
+  git tag v0.1.0            # package.json 已經是 0.1.0
+  git push origin v0.1.0
+  ```
 
 到 <https://github.com/nickchen1998/MoSage/actions> 看 **Release** 流程，完成後：
 
@@ -74,4 +78,5 @@ git push --follow-tags
 ```
 
 `npm version` 會修改 `package.json`、建立 commit 與 tag；推上去後 GitHub Actions 自動完成其餘步驟。
-想先演練不發佈：到 Actions → **Release** → **Run workflow**（預設 dry-run）。
+也可以只把 `package.json` 的版本改好合併進 `main`，再用 Actions → **Release** → **Run workflow**（取消 dry-run）發佈。
+保留 dry-run 勾選則只演練、不發佈。

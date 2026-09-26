@@ -1,8 +1,12 @@
 name: Release
 
-# Publish to npm when a version tag is pushed:
-#   npm version patch        # or minor / major — bumps package.json and tags
-#   git push --follow-tags
+# Publish to npm in either of two ways:
+#   1. Push a version tag:
+#        npm version patch        # or minor / major — bumps package.json and tags
+#        git push --follow-tags
+#   2. Actions → Release → Run workflow on main with "dry-run" unchecked:
+#      publishes the version in package.json, then creates its v* tag and
+#      GitHub release.
 #
 # Authentication: npm trusted publishing (OIDC, no secret needed) once it is
 # configured on npmjs.com; until then the NPM_TOKEN repository secret.
@@ -50,6 +54,16 @@ jobs:
       - run: npm run build
       - run: npm run test:e2e
 
+      - name: Version not published yet (manual run)
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry-run
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "::error::$NAME@$VERSION is already on npm — bump the version first (npm version patch)"
+            exit 1
+          fi
+
       - name: Publish to npm
         if: github.event_name == 'push' || !inputs.dry-run
         run: npm publish --provenance --access public
@@ -60,8 +74,16 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.dry-run
         run: npm publish --dry-run --access public
 
-      - name: GitHub release
+      - name: GitHub release (tag push)
         if: github.event_name == 'push'
         run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: GitHub release and tag (manual run)
+        if: github.event_name == 'workflow_dispatch' && !inputs.dry-run
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          gh release create "$VERSION" --target "$GITHUB_SHA" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
