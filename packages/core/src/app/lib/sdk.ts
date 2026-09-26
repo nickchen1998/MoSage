@@ -2,8 +2,8 @@ import type { ComponentType, ReactNode } from 'react';
 import type { DesignSystem } from './design.ts';
 import type { LabelVocabulary } from './labels.ts';
 
-/** The only sheets a document may be laid out on. */
-export const PAGE_SIZE_NAMES = ['A4', 'B4', 'A3'] as const;
+/** MoSage lays out A4 sheets only; orientation is the one choice left. */
+export const PAGE_SIZE_NAMES = ['A4'] as const;
 
 export type PageSizeName = (typeof PAGE_SIZE_NAMES)[number];
 
@@ -21,10 +21,6 @@ export const PAGE_SIZES: Record<
   { width: number; height: number; mm: readonly [number, number] }
 > = {
   A4: { width: 794, height: 1123, mm: [210, 297] },
-  // JIS B4, not the ISO B4 (250×353mm) that the CSS `size: B4` keyword means —
-  // which is why the descriptor is written in millimetres rather than by name.
-  B4: { width: 971, height: 1376, mm: [257, 364] },
-  A3: { width: 1123, height: 1587, mm: [297, 420] },
 };
 
 export const DEFAULT_PAGE_SIZE: PageSizeName = 'A4';

@@ -3,7 +3,7 @@ import * as readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command, Option } from 'commander';
-import { ORIENTATIONS, PAGE_SIZE_NAMES } from '../app/lib/sdk.ts';
+import { ORIENTATIONS } from '../app/lib/sdk.ts';
 import { EXPORT_FORMATS } from '../ops/formats.ts';
 import type { runInit as runInitType } from './init.ts';
 import { readCoreVersion } from './package-version.ts';
@@ -51,7 +51,6 @@ interface ImportFlags {
   subtitle?: string;
   author?: string;
   theme?: string;
-  pageSize?: string;
   orientation?: string;
   cover?: boolean;
   contents?: boolean;
@@ -195,7 +194,6 @@ export async function run(argv: string[]): Promise<void> {
     .option('--subtitle <subtitle>', 'subtitle, also used as the cover eyebrow')
     .option('--author <author>', 'author line on the cover')
     .option('--theme <theme>', 'theme id to back-link from meta.theme')
-    .addOption(new Option('--page-size <size>', 'page size').choices(PAGE_SIZE_NAMES))
     .addOption(new Option('--orientation <orientation>', 'page orientation').choices(ORIENTATIONS))
     .option('--no-cover', 'skip the title page')
     .option('--contents', 'add a self-filling contents page')

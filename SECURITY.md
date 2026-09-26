@@ -1,32 +1,31 @@
-# Security Policy
+# 安全性政策
 
-## Supported versions
+## 支援的版本
 
-MoSage is pre-1.0. Only the latest published version receives security fixes:
+MoSage 還在 1.0 之前，安全性修正只會發佈在最新版的 `mosage`。回報之前，請先確認問題在最新版仍然存在。
 
-| Package | Supported |
-| --- | --- |
-| `mosage` | latest release |
-| older versions | :x: |
+## 如何回報
 
-## Reporting a vulnerability
+請**不要**用公開的 issue 回報安全性問題，改用 GitHub 的[私下回報弱點](https://github.com/nickchen1998/MoSage/security/advisories/new)功能，並附上：
 
-**Please do not open a public issue for a security problem.**
+- 受影響的版本；
+- 攻擊者能做到什麼；
+- 重現方式——最理想的是一個用 `npx mosage init` 建立的專案，加上觸發問題的請求或檔案。
 
-Report it privately through [GitHub Security Advisories](https://github.com/nickchen1998/MoSage/security/advisories/new).
+維護者會在 7 天內回覆收到，14 天內給出評估。
+確認是弱點之後，會和你約定公開時間、發佈修正版本，並在安全公告中感謝你（如果你希望匿名也可以）。
+如果判斷不屬於弱點，也會說明理由，之後你可以自行公開。
 
-Include:
+## 回報前可以先了解的設計前提
 
-- the affected package and version,
-- what an attacker can do,
-- a minimal reproduction (a scaffolded project plus the request or file that triggers it is ideal).
-
-You can expect an acknowledgement within 7 days and an assessment within 14 days. If the report is accepted, we'll agree on a disclosure timeline with you, ship a patch release, and credit you in the advisory unless you'd rather stay anonymous. If it's declined, you'll get the reasoning — and you're free to disclose publicly after that.
-
-## Threat model
-
-Worth knowing before you file:
-
-- **The dev server is a local authoring tool, not a hardened service.** `mosage dev` mounts endpoints that read and write files under the project directory (`/__assets/*`, `/__design`, `/__edit/*`, `/__folders`) and are dev-only (`apply: 'serve'`). They are meant to be bound to localhost and are not exposed by `mosage build` / `preview`. Bugs that let a request **escape the project directory**, bypass `validateMutationRequest`, or be triggered cross-origin from a page the user merely visits **are in scope**.
-- **Document sources are code.** A document is a React component that the framework executes and the scaffolder's template is authored by you. "A malicious `docs/<id>/index.tsx` can run code" is expected behaviour, not a vulnerability.
-- **Exports run in the browser.** PDF/HTML export serializes the rendered DOM. Report anything that lets an exported artifact reach outside the project or leak files that weren't part of the document.
+- **`mosage dev` 是本機的寫作工具，不是對外服務。**
+  開發伺服器提供 `/__docs`、`/__edit`、`/__comments`、`/__design`、`/__assets`、`/__folders` 等端點，用來讀寫專案資料夾裡的檔案。
+  它們只在 `mosage dev` 時存在，`mosage build` 與 `mosage preview` 的輸出不會包含。以下情況屬於弱點，歡迎回報：
+  - 請求能讀寫專案資料夾以外的檔案；
+  - 能繞過寫入請求的來源檢查（`validateMutationRequest`）；
+  - 使用者只是瀏覽了某個網頁，那個網頁就能跨來源呼叫這些端點。
+- **文件本身就是程式碼。**
+  每份文件都是會被執行的 React 元件，所以「惡意的 `docs/<代號>/index.tsx` 能執行程式」是預期行為，不是弱點。
+  從不信任的來源取得專案時，請像對待任何程式碼一樣先檢查過。
+- **匯出在瀏覽器裡進行。**
+  PDF、Word、HTML 匯出會把畫面上的內容序列化。如果匯出檔能存取專案以外的資源，或夾帶了不屬於該文件的檔案，請回報。

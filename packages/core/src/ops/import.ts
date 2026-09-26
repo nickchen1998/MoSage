@@ -97,7 +97,7 @@ export async function importMarkdown(
   if (pageSize !== undefined && !isPageSizeName(pageSize)) {
     throw new OpsError(
       422,
-      `unsupported pageSize \`${pageSize}\` — use ${PAGE_SIZE_NAMES.join(', ')}`,
+      `unsupported pageSize \`${pageSize}\` — MoSage lays out ${PAGE_SIZE_NAMES.join(', ')} only`,
     );
   }
   const orientation = opts.orientation ?? parsed.frontmatter.orientation;
