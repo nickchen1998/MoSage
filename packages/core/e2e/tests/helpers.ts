@@ -3,7 +3,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type APIRequestContext, expect, type Locator, type Page } from '@playwright/test';
-import { DEV_SERVER_PORT } from '../../playwright.config.ts';
+import { DEV_SERVER_PORT, E2E_ENV } from '../../playwright.config.ts';
+
+export { E2E_ENV };
+
+/** The only key the mock OpenAI server (e2e/mock-openai.mjs) accepts. */
+export const MOCK_OPENAI_KEY = 'sk-e2e-0123456789abcdefghij';
 
 export { fixtureDir, prepareScratchProject } from '../scratch.mjs';
 
@@ -108,7 +113,7 @@ export function runCli(args: string[], cwd: string, timeoutMs = 180_000): Promis
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [coreBin, ...args], {
       cwd,
-      env: { ...process.env, OPEN_DOC_SKIP_SKILLS_CHECK: '1' },
+      env: { ...process.env, ...E2E_ENV, OPEN_DOC_SKIP_SKILLS_CHECK: '1' },
     });
     let stdout = '';
     let stderr = '';
@@ -137,7 +142,7 @@ export function startCliServer(args: string[], cwd: string): ChildProcess {
   return spawn(process.execPath, [coreBin, ...args], {
     cwd,
     stdio: 'ignore',
-    env: { ...process.env, OPEN_DOC_SKIP_SKILLS_CHECK: '1' },
+    env: { ...process.env, ...E2E_ENV, OPEN_DOC_SKIP_SKILLS_CHECK: '1' },
   });
 }
 

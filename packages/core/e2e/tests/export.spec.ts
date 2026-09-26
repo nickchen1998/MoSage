@@ -31,26 +31,21 @@ function textOf(xml = ''): string {
 }
 
 test.describe('export', () => {
-  test('HTML export downloads a self-contained document', async ({ page }) => {
+  test('the Download menu offers PDF and Word, nothing else', async ({ page }) => {
     await openDoc(page, 'alpha');
-    const { name, bytes } = await download(page, 'HTML');
-    expect(name).toBe('alpha.html');
-    const html = strFromU8(bytes);
-
-    // Every sheet is serialized, and nothing points back at the dev server.
-    expect(html).toContain('Alpha page one');
-    expect(html).toContain('Alpha page three');
-    expect(html).not.toContain('/@vite/client');
+    await page.getByRole('button', { name: 'Download' }).click();
+    const items = page.getByRole('menuitem');
+    await expect(items).toHaveCount(2);
+    await expect(items.nth(0)).toContainText('PDF');
+    await expect(items.nth(1)).toContainText('DOCX');
   });
 
   test('a flow document exports every packed page', async ({ page }) => {
     await openDoc(page, 'flow-report');
-    const html = strFromU8((await download(page, 'HTML')).bytes);
+    const body = textOf(docx((await download(page, 'DOCX')).bytes)['word/document.xml']);
 
-    expect(html).toContain('Flow paragraph 1.');
-    expect(html).toContain('Flow paragraph 40.');
-    // The running footer is resolved at export time, not left as a placeholder.
-    expect(html).toMatch(/Flow Report — page \d+ of \d+/);
+    expect(body).toContain('Flow paragraph 1.');
+    expect(body).toContain('Flow paragraph 40.');
   });
 
   test('DOCX export is a Word document with real headings, footnotes, and tables', async ({

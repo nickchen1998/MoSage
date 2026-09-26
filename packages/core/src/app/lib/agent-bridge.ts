@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { diagnosePages, type LayoutFinding } from './diagnostics';
 import type { FileBundle } from './export-dom';
-import { buildDocHtmlBundle } from './export-html';
 import { mountPrintCopy } from './export-pdf';
 import type { DocModule, PageGeometry } from './sdk';
 import type { ExpandedPage } from './use-doc-pages';
@@ -26,10 +25,9 @@ export type MoSageBridge = {
   status(): BridgeStatus;
   /** Mounts the print copy and reads the layout back from it. */
   diagnose(): Promise<BridgeReport>;
-  /** Mounts the print copy and leaves it up, for `page.pdf()` or a screenshot. */
+  /** Mounts the print copy and leaves it up, for `page.pdf()`. */
   preparePrint(): Promise<{ pageCount: number }>;
   releasePrint(): void;
-  htmlBundle(): Promise<BridgeBundle | null>;
   docxBundle(): Promise<BridgeBundle | null>;
 };
 
@@ -119,11 +117,6 @@ export function useAgentBridge(input: BridgeInput): void {
         return { pageCount: pages.length };
       },
       releasePrint: release,
-      async htmlBundle() {
-        const { docId, doc, pages } = latest.current;
-        if (!doc) return null;
-        return toBridge(await buildDocHtmlBundle(doc, docId, pages));
-      },
       async docxBundle() {
         const { docId, doc, pages } = latest.current;
         if (!doc) return null;

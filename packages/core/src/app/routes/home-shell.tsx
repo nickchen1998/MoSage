@@ -5,6 +5,7 @@ import {
   ALL_DOCS_ID,
   ASSETS_ID,
   DRAFT_ID,
+  SETTINGS_ID,
   Sidebar,
   THEMES_ID,
 } from '../components/sidebar/sidebar';
@@ -34,6 +35,7 @@ export type HomeOutletContext = {
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/themes' || pathname.startsWith('/themes/')) return THEMES_ID;
   if (pathname === '/assets') return ASSETS_ID;
+  if (pathname === '/settings') return SETTINGS_ID;
   return search.get('f') ?? ALL_DOCS_ID;
 }
 
@@ -61,6 +63,7 @@ export function HomeShell() {
     (id: string) => {
       if (id === THEMES_ID) navigate('/themes');
       else if (id === ASSETS_ID) navigate('/assets');
+      else if (id === SETTINGS_ID) navigate('/settings');
       else if (id === ALL_DOCS_ID) navigate('/');
       else navigate(`/?f=${encodeURIComponent(id)}`);
     },
@@ -145,7 +148,11 @@ export function HomeShell() {
               {(close) => (
                 <>
                   <MenuItem
-                    active={selectedId !== THEMES_ID && selectedId !== ASSETS_ID}
+                    active={
+                      selectedId !== THEMES_ID &&
+                      selectedId !== ASSETS_ID &&
+                      selectedId !== SETTINGS_ID
+                    }
                     onClick={() => {
                       selectFolder(ALL_DOCS_ID);
                       close();
@@ -182,6 +189,15 @@ export function HomeShell() {
                       Assets
                     </MenuItem>
                   )}
+                  <MenuItem
+                    active={selectedId === SETTINGS_ID}
+                    onClick={() => {
+                      selectFolder(SETTINGS_ID);
+                      close();
+                    }}
+                  >
+                    Settings
+                  </MenuItem>
                 </>
               )}
             </Menu>

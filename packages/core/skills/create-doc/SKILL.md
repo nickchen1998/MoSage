@@ -24,7 +24,7 @@ A document is judged on content, not layout. Before anything else, establish:
 
 - **Topic and purpose** — what decision or action should this document produce?
 - **Audience** — executives (lead with the recommendation), engineers (lead with the mechanism), clients (lead with the outcome and the price).
-- **Source material** — does the user have data, a draft, notes, a repo, an existing doc? Ask for it. **Never fabricate figures, quotes, citations, or customer names.**
+- **Source material** — does the user have data, a draft, notes, a repo, an existing doc? Look in the 參考文獻 (references) folders first — `assets/references/` and, for an existing document, `docs/<id>/assets/references/` — and read what is there before asking. Ask for anything still missing; the user can upload it on the Assets page. **Never fabricate figures, quotes, citations, or customer names.**
 
 If the request is thin ("write me a report"), make a **separate** `AskUserQuestion` call for topic, audience, and source material before the style questions below. If the topic is already clear, restate your reading of it in the next call so the user can correct course.
 
@@ -86,6 +86,7 @@ While writing:
 - `useDocPageNumber()` / `useDocPageCount()` for the footer. Never hardcode.
 - Put body content in one `flow(<>…</>, { footer: Footer })` section; mark captions `data-od-keep-with-previous`. Only run budget math for fixed pages.
 - Where the user must supply data, leave `<ImagePlaceholder hint="…">` or an explicit `TODO:` in the copy — never invent numbers.
+- **Generated images.** Run `npx mosage images --json --doc <id>` (for a brand-new document, check `mode` and whether `documents` lists the id as `false`). When `mode` is `codex` or `openai` and the document is not switched off, leave an `<ImagePrompt>` wherever an illustration, photo, or cover image would strengthen the page — with its `chapter`, a careful `prompt`, and a real px size (see `references/assets.md` in `doc-authoring`). When `mode` is `off`, leave none.
 
 ## Step 7 — Self-review
 
@@ -100,7 +101,8 @@ Tell the user:
 - The doc id and file path.
 - That the dev server hot-reloads — open `http://localhost:5273/d/<id>` (or refresh the home page).
 - **Every placeholder and `TODO:` you left**, and what data each one needs.
-- That "Export PDF" in the toolbar prints at the true page size, and "HTML" downloads a self-contained copy — or `mosage export <id>` for the same files without a browser.
-- That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images they want to drop in go through the **Assets** page.
+- **Every `<ImagePrompt>` you left**, and how they get drawn: in Codex mode, open Codex in this project and ask it to generate the images (the `generate-images` skill); in OpenAI mode, the **Generate** buttons in the document's Assets tab, or `npx mosage images generate`.
+- That the **Download** menu exports a PDF at the true page size or a Word file (DOCX) to review in Word — or `mosage export <id> --format pdf|docx` for the same files without a browser.
+- That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images (filed by chapter) and reference files (參考文獻) go through the **Assets** page, where uploads are copied into the project.
 
 Don't run the dev server yourself unless asked.

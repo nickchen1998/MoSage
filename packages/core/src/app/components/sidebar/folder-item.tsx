@@ -23,7 +23,7 @@ export type FolderRow =
 export function FolderIconChip({ icon }: { icon: FolderIcon }) {
   if (icon.type === 'emoji') {
     return (
-      <span className="grid size-5 shrink-0 place-items-center text-[13px] leading-none">
+      <span className="grid size-5 shrink-0 place-items-center text-[0.8125rem] leading-none">
         {icon.value}
       </span>
     );
@@ -149,19 +149,19 @@ export function FolderItem({
             if (e.key === 'Escape') setRenaming(false);
           }}
           maxLength={40}
-          className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+          className="min-w-0 flex-1 bg-transparent text-[0.8125rem] outline-none"
         />
       ) : (
         <button
           type="button"
           onClick={onSelect}
-          className="min-w-0 flex-1 truncate text-left text-[13px]"
+          className="min-w-0 flex-1 truncate text-left text-[0.8125rem]"
         >
           {label}
         </button>
       )}
 
-      <span className="font-mono text-[10px] text-muted-foreground tabular-nums group-hover:opacity-0">
+      <span className="font-mono text-[0.625rem] text-muted-foreground tabular-nums group-hover:opacity-0">
         {String(count).padStart(2, '0')}
       </span>
 

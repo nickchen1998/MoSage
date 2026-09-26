@@ -122,11 +122,11 @@ const Cover: DocPage = () => (
     >
       Getting started
     </h1>
-    <p style={{ ...p, fontSize: 15, color: 'var(--od-muted)', maxWidth: 460 }}>
+    <p style={{ ...p, fontSize: 16, color: 'var(--od-muted)', maxWidth: 460 }}>
       Documents written as React. One component per printed page — the framework handles the sheet,
       the outline, and the export.
     </p>
-    <p style={{ ...p, marginTop: 40, fontSize: 11, color: 'var(--od-muted)' }}>
+    <p style={{ ...p, marginTop: 40, fontSize: 12, color: 'var(--od-muted)' }}>
       Delete this document once you've read it — it's just a starting point.
     </p>
   </div>

@@ -1,8 +1,6 @@
 export type MoSageBuildConfig = {
   /** Ship the document browser (`/`) in the static build. Defaults to true. */
   showDocBrowser?: boolean;
-  /** Offer the "Export HTML" button in the static build. Defaults to true. */
-  allowHtmlExport?: boolean;
 };
 
 export type MoSageConfig = {

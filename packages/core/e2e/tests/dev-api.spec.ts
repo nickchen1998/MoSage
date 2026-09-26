@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { deleteDoc, devServerUrl, duplicateDoc, readDocSource, TINY_PNG } from './helpers.ts';
+import {
+  deleteDoc,
+  devServerUrl,
+  duplicateDoc,
+  readDocSource,
+  TINY_PNG,
+  writeDocSource,
+} from './helpers.ts';
 
 test.describe('dev API — documents', () => {
   test('duplicate copies a document to a fresh id', async ({ request }) => {
@@ -101,6 +108,95 @@ test.describe('dev API — assets', () => {
   test('a traversing asset name is refused', async ({ request }) => {
     const res = await request.get(`/__assets/${scope}/${encodeURIComponent('../../secret.txt')}`);
     expect(res.status()).toBeGreaterThanOrEqual(400);
+  });
+});
+
+test.describe('dev API — images and references', () => {
+  test.describe.configure({ mode: 'serial' });
+  const at = (p: string) => `/__assets/alpha/${p.split('/').map(encodeURIComponent).join('/')}`;
+  let original = '';
+
+  test.beforeAll(async () => {
+    original = await readDocSource('alpha');
+  });
+
+  test.afterEach(async ({ request }) => {
+    await writeDocSource('alpha', original);
+    for (const p of [
+      'images/舊章/e2e-move.png',
+      'images/新章/e2e-move.png',
+      'images/改名後/e2e-move.png',
+      'references/e2e.html',
+    ]) {
+      await request.delete(at(p));
+    }
+    for (const chapter of ['舊章', '新章', '改名後']) {
+      await request.delete(`${at(`images/${chapter}`)}?folder=1`);
+    }
+  });
+
+  test('images live under chapters and everything else under references', async ({ request }) => {
+    expect((await request.post(at('images/舊章/e2e-move.png'), { data: TINY_PNG })).ok()).toBe(
+      true,
+    );
+    expect((await request.post(at('images/e2e.pdf'), { data: 'x' })).status()).toBe(400);
+    expect((await request.post(at('images/a/b/e2e.png'), { data: TINY_PNG })).status()).toBe(400);
+
+    const list = await (await request.get('/__assets/alpha')).json();
+    expect(list.chapters).toContain('舊章');
+    expect(list.assets).toContainEqual(
+      expect.objectContaining({
+        path: 'images/舊章/e2e-move.png',
+        kind: 'image',
+        chapter: '舊章',
+        importPath: './assets/images/舊章/e2e-move.png',
+      }),
+    );
+  });
+
+  test('moving an image to another chapter rewrites the import that uses it', async ({
+    request,
+  }) => {
+    await request.post(at('images/舊章/e2e-move.png'), { data: TINY_PNG });
+    await writeDocSource(
+      'alpha',
+      `import pixel from './assets/images/舊章/e2e-move.png';\n${original}`,
+    );
+
+    const moved = await request.patch(at('images/舊章/e2e-move.png'), {
+      data: { path: 'images/新章/e2e-move.png' },
+    });
+    expect(moved.ok()).toBe(true);
+    expect((await moved.json()).updated).toBe(1);
+    expect(await readDocSource('alpha')).toContain("from './assets/images/新章/e2e-move.png'");
+    expect((await request.get(at('images/新章/e2e-move.png'))).status()).toBe(200);
+  });
+
+  test('renaming a chapter rewrites every import inside it; a full chapter cannot be deleted', async ({
+    request,
+  }) => {
+    await request.post(at('images/新章/e2e-move.png'), { data: TINY_PNG });
+    await writeDocSource(
+      'alpha',
+      `import pixel from './assets/images/新章/e2e-move.png';\n${original}`,
+    );
+
+    const full = await request.delete(`${at('images/新章')}?folder=1`);
+    expect(full.status()).toBe(409);
+
+    const renamed = await request.patch(`${at('images/新章')}?folder=1`, {
+      data: { name: '改名後' },
+    });
+    expect((await renamed.json()).updated).toBe(1);
+    expect(await readDocSource('alpha')).toContain("from './assets/images/改名後/e2e-move.png'");
+  });
+
+  test('an uploaded HTML file is served as a download, never rendered', async ({ request }) => {
+    await request.post(at('references/e2e.html'), { data: '<script>alert(1)</script>' });
+    const res = await request.get(at('references/e2e.html'));
+    expect(res.headers()['content-type']).toBe('application/octet-stream');
+    expect(res.headers()['content-disposition']).toMatch(/^attachment/);
+    expect(res.headers()['x-content-type-options']).toBe('nosniff');
   });
 });
 

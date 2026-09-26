@@ -7,8 +7,9 @@ const SERIF_TIMES = '"Times New Roman", Times, serif';
 const MONO_SF = 'ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace';
 
 /**
- * Print-safe presets: white or near-white sheets, body type at or above 13px,
- * one accent each. A document that prints is not the place for a dark canvas.
+ * Print-safe presets: white or near-white sheets, body type at or above 14px,
+ * one accent each, and every size an even number of px. A document that prints
+ * is not the place for a dark canvas.
  */
 export const designPresets: DesignSystem[] = [
   defaultDesign,
@@ -21,7 +22,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#e5e7eb',
     },
     fonts: { heading: SERIF_GEORGIA, body: SANS_SYSTEM, mono: MONO_SF },
-    typeScale: { title: 46, h1: 27, h2: 20, h3: 16, body: 14, caption: 10 },
+    typeScale: { title: 46, h1: 28, h2: 20, h3: 16, body: 14, caption: 10 },
     margin: 84,
     leading: 1.6,
     radius: 4,
@@ -35,7 +36,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#e7e2d6',
     },
     fonts: { heading: SERIF_TIMES, body: SERIF_GEORGIA, mono: MONO_SF },
-    typeScale: { title: 44, h1: 26, h2: 19, h3: 15, body: 14, caption: 10 },
+    typeScale: { title: 44, h1: 26, h2: 18, h3: 16, body: 14, caption: 10 },
     margin: 90,
     leading: 1.65,
     radius: 2,
@@ -49,7 +50,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#e5e5e5',
     },
     fonts: { heading: SANS_HELV, body: SANS_HELV, mono: MONO_SF },
-    typeScale: { title: 52, h1: 30, h2: 21, h3: 16, body: 14, caption: 10 },
+    typeScale: { title: 52, h1: 30, h2: 22, h3: 16, body: 14, caption: 10 },
     margin: 72,
     leading: 1.5,
     radius: 0,
@@ -63,7 +64,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#dbe2ea',
     },
     fonts: { heading: SANS_SYSTEM, body: SANS_SYSTEM, mono: MONO_SF },
-    typeScale: { title: 42, h1: 26, h2: 19, h3: 15, body: 13, caption: 10 },
+    typeScale: { title: 42, h1: 26, h2: 18, h3: 16, body: 14, caption: 10 },
     margin: 76,
     leading: 1.55,
     radius: 8,
@@ -77,7 +78,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#e4e4e7',
     },
     fonts: { heading: SANS_SYSTEM, body: SANS_SYSTEM, mono: MONO_SF },
-    typeScale: { title: 48, h1: 28, h2: 20, h3: 16, body: 15, caption: 11 },
+    typeScale: { title: 48, h1: 28, h2: 20, h3: 18, body: 16, caption: 12 },
     margin: 96,
     leading: 1.62,
     radius: 12,
@@ -91,7 +92,7 @@ export const designPresets: DesignSystem[] = [
       rule: '#e6e8eb',
     },
     fonts: { heading: MONO_SF, body: SANS_SYSTEM, mono: MONO_SF },
-    typeScale: { title: 40, h1: 25, h2: 18, h3: 15, body: 13, caption: 10 },
+    typeScale: { title: 40, h1: 24, h2: 18, h3: 16, body: 14, caption: 10 },
     margin: 70,
     leading: 1.5,
     radius: 3,

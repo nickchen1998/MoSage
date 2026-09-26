@@ -252,7 +252,7 @@ const rule = { border: 0, borderTop: '1px solid var(--od-rule)', margin: '20px 0
 
 const codeInline = {
   fontFamily: 'var(--od-font-mono)',
-  fontSize: '0.92em',
+  fontSize: 'calc(1em - 2px)',
   background: 'var(--od-rule)',
   borderRadius: 3,
   padding: '1px 4px',
@@ -260,7 +260,7 @@ const codeInline = {
 
 const pre = {
   fontFamily: 'var(--od-font-mono)',
-  fontSize: 11,
+  fontSize: 12,
   lineHeight: 1.5,
   background: 'var(--od-rule)',
   borderRadius: 'var(--od-radius)',
@@ -294,7 +294,7 @@ const Th = ({ children, align = 'left' }: { children?: ReactNode; align?: 'left'
     style={{
       textAlign: align,
       fontFamily: 'var(--od-font-heading)',
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 600,
       letterSpacing: '0.04em',
       textTransform: 'uppercase',

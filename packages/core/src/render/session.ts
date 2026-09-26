@@ -8,30 +8,21 @@ import { createViteConfig } from '../vite/config.ts';
  * from the Download menu. Structural types keep the published `.d.ts` free of
  * it too, so a consumer without playwright still typechecks.
  */
-type HeadlessElement = {
-  screenshot(opts?: { type?: 'png' | 'jpeg'; scale?: 'css' | 'device' }): Promise<Uint8Array>;
-};
-
 type HeadlessPage = {
   goto(url: string, opts?: { waitUntil?: string; timeout?: number }): Promise<unknown>;
   evaluate<T>(fn: string, arg?: unknown): Promise<T>;
   waitForFunction(fn: string, arg?: unknown, opts?: { timeout?: number }): Promise<unknown>;
-  emulateMedia(opts: { media?: 'screen' | 'print' | null }): Promise<void>;
   pdf(opts?: {
     printBackground?: boolean;
     preferCSSPageSize?: boolean;
     scale?: number;
   }): Promise<Uint8Array>;
-  $(selector: string): Promise<HeadlessElement | null>;
   close(): Promise<void>;
   on(event: 'pageerror' | 'console', handler: (arg: unknown) => void): void;
 };
 
 type HeadlessBrowser = {
-  newPage(opts?: {
-    viewport?: { width: number; height: number };
-    deviceScaleFactor?: number;
-  }): Promise<HeadlessPage>;
+  newPage(opts?: { viewport?: { width: number; height: number } }): Promise<HeadlessPage>;
   close(): Promise<void>;
 };
 
@@ -65,8 +56,6 @@ export type RenderSessionOptions = {
   userCwd: string;
   /** Reuse a dev server that is already running instead of booting a private one. */
   origin?: string;
-  /** Raise for crisper page screenshots; 2 is retina. */
-  deviceScaleFactor?: number;
   /** How long a document may take to load and finish measuring. */
   timeoutMs?: number;
 };
@@ -75,9 +64,6 @@ export type DocRenderer = {
   status: BridgeStatus;
   diagnose(): Promise<BridgeReport>;
   pdf(): Promise<Uint8Array>;
-  /** PNG of one sheet at true page size, 1-based. */
-  screenshot(page: number): Promise<Uint8Array>;
-  html(): Promise<BridgeBundle | null>;
   docx(): Promise<BridgeBundle | null>;
   close(): Promise<void>;
 };
@@ -89,7 +75,6 @@ export type RenderSession = {
 };
 
 const DEFAULT_TIMEOUT = 60_000;
-const PRINT_PAGE_SELECTOR = '#od-print-root .od-print-page';
 
 async function bootServer(userCwd: string): Promise<{ server: ViteDevServer; origin: string }> {
   const base = await createViteConfig({ userCwd, headless: true });
@@ -136,9 +121,6 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
     async open(docId: string): Promise<DocRenderer> {
       const page = await browser.newPage({
         viewport: { width: 1280, height: 1024 },
-        ...(opts.deviceScaleFactor !== undefined
-          ? { deviceScaleFactor: opts.deviceScaleFactor }
-          : {}),
       });
 
       const errors: string[] = [];
@@ -174,26 +156,6 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
             await page.evaluate('globalThis.__mosage.releasePrint()');
           }
         },
-        async screenshot(pageNumber: number) {
-          if (pageNumber < 1 || pageNumber > status.pageCount) {
-            throw new Error(
-              `page ${pageNumber} is out of range — "${docId}" has ${status.pageCount}`,
-            );
-          }
-          await page.evaluate('globalThis.__mosage.preparePrint()');
-          // Print media is what lays the copy out at true sheet size and hides
-          // the viewer chrome, so the shot matches the PDF rather than the app.
-          await page.emulateMedia({ media: 'print' });
-          try {
-            const sheet = await page.$(`${PRINT_PAGE_SELECTOR}:nth-child(${pageNumber})`);
-            if (!sheet) throw new Error(`page ${pageNumber} did not render`);
-            return await sheet.screenshot({ type: 'png' });
-          } finally {
-            await page.emulateMedia({ media: null });
-            await page.evaluate('globalThis.__mosage.releasePrint()');
-          }
-        },
-        html: () => page.evaluate<BridgeBundle | null>('globalThis.__mosage.htmlBundle()'),
         docx: () => page.evaluate<BridgeBundle | null>('globalThis.__mosage.docxBundle()'),
         close: () => page.close(),
       };

@@ -10,7 +10,7 @@ const Th = ({ children, align = 'left' }: { children: ReactNode; align?: 'left' 
     style={{
       textAlign: align,
       fontFamily: 'var(--od-font-heading)',
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 600,
       letterSpacing: '0.04em',
       textTransform: 'uppercase',

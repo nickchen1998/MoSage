@@ -10,7 +10,7 @@
 
 **讓 AI 幫你做出「要印出來、要交出去」的文件。**
 報告、企劃書、白皮書、操作手冊、研究成果——用說的描述你要什麼，Claude Code 或 Codex 會把內容寫成頁面；
-MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁碼，最後輸出成 PDF、可編輯的 Word，或單一 HTML 檔。
+MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁碼，最後輸出成 PDF 或可編輯的 Word。
 
 一切都是專案資料夾裡的檔案：不需要帳號，也沒有資料庫，可以直接用 git 管理。
 
@@ -55,6 +55,28 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 - **自動分頁**：用 `flow()` 包住連續的內文，框架會實際量測後排進頁面——標題不會孤零零留在頁尾、圖說跟著圖走、表格整張移到下一頁。封面、章節分隔頁則可以用固定頁面自己排。
 - **自己維護的目錄與編號**：目錄頁碼、頁首頁尾的頁碼、註腳、圖表編號與交互參照都由框架計算。中間插入一張圖，後面的編號會自動更新。
 - **資料驅動的表格**：`DataTable` 直接讀取 CSV／TSV 檔，更新資料檔，報告就跟著更新。
+- **偶數字級**：字級一律以 12、14、16… 這樣的偶數 px 為級距，Design 面板每次調整 2px，AI 也照這個規則寫（除非你指定其他字級）。
+
+### 素材：圖片按章節，其他檔案歸入參考文獻
+
+- **圖片**依章節存放在 `assets/images/<章節>/`，在素材頁與文件左側的 Assets 分頁以樹狀瀏覽；章節名稱直接取自文件的標題。把圖片移到其他章節或改名時，文件裡的 import 會自動跟著更新。
+- **參考文獻**：圖片以外的檔案（PDF、Word、試算表、文字、音訊、影片…）都放在 `assets/references/`，PDF、文字、CSV／TSV、音訊與影片可以直接預覽。AI 撰寫前會先讀這裡的資料，數字與引文以此為準。
+- 上傳的檔案一律複製進專案資料夾，跟著專案一起用 git 管理。
+
+### AI 生圖
+
+在 **Settings → AI images** 選擇生圖方式，每份文件也可以各自決定要不要使用：
+
+| 方式 | 做法 |
+| --- | --- |
+| 預留 prompt 給 Codex | 撰寫時 AI 會在需要圖片的地方放一個 `<ImagePrompt>`（含 prompt 與版面尺寸）。之後在專案裡開啟 Codex，請它「產生圖片」（`generate-images` skill），用你的 Codex 訂閱畫圖並放回頁面 |
+| OpenAI API | 在設定頁輸入 `OPENAI_API_KEY`（只存在本機的 `~/.mosage/credentials.json`，不會進 git），直接在文件的 Assets 分頁按 **Generate**。每次生圖都會記錄 input／output token 與預估花費（USD） |
+
+生成的圖片會存進對應章節的資料夾，並自動換掉原本的 `<ImagePrompt>`。
+
+### 設定
+
+**Settings** 頁可以調整介面文字大小（只影響操作介面，不影響頁面與匯出）、AI 生圖，並顯示目前版本。
 
 ### 交件前先檢查
 
@@ -67,16 +89,15 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | --- | --- |
 | PDF | 最終成品，版面與瀏覽器看到的完全一致 |
 | Word（.docx） | 要在 Word 裡審閱或交給別人修改：標題、清單、表格、註腳、目錄、頁首頁尾都轉成 Word 原生格式 |
-| HTML | 單一檔案，直接開啟或列印 |
-| PNG | 每一頁一張圖，可指定頁碼範圍 |
 
 在瀏覽器右上角的 **Download** 選單匯出，或用指令 `mosage export <文件> --format docx`（指令匯出需要另外安裝 `playwright`）。
 
 ### 其他
 
-- 主題（themes）與素材（assets）管理，文件可以用資料夾分類。
+- 主題（themes）管理，文件可以用資料夾分類。
 - `mosage import notes.md`：把既有的 Markdown 轉成一份文件。
 - `mosage build`：輸出靜態網站，可以直接部署。
+- **自動檢查更新**：`npm run dev` 啟動時會檢查 npm 上有沒有新版；有的話，在終端機輸入 `u` 再按 Enter 就會更新並重新啟動（也可以執行 `npx mosage upgrade`）。
 
 ## 內建的 AI skills
 
@@ -89,8 +110,9 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `current-doc` | 解讀「這一頁」「這個元素」——你在瀏覽器裡正在看的位置 |
 | `apply-comments` | 處理你在 Inspect 模式留給 AI 的留言 |
 | `create-theme` | 建立可重複使用的主題（配色、字型、元件樣式） |
+| `generate-images` | 把文件裡的 `<ImagePrompt>` 畫成圖片並放回頁面（給 Codex 用；OpenAI API 模式也適用） |
 
-升級 MoSage 後執行 `npx mosage sync:skills` 更新專案裡的 skills。
+`mosage upgrade` 會一併更新 skills；手動更新可以執行 `npx mosage sync:skills`。
 
 ## 指令
 
@@ -99,8 +121,12 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `npx mosage init [資料夾]` | 建立新專案（可加 `--no-install`、`--no-git`、`--use-pnpm` 等選項） |
 | `mosage dev` | 開啟開發伺服器與檢視器 |
 | `mosage check [文件…]` | 檢查版面問題 |
-| `mosage export [文件…]` | 匯出 PDF／Word／HTML／PNG（`--format`、`--all`、`--out-dir`） |
+| `mosage export [文件…]` | 匯出 PDF 或 Word（`--format pdf\|docx`、`--all`、`--out-dir`） |
 | `mosage import <檔案.md>` | 把 Markdown 轉成文件 |
+| `mosage images` | 列出等待生成的 `<ImagePrompt>`（`--json` 給 AI 讀） |
+| `mosage images generate` | 用 OpenAI API 生成圖片（`--doc`、`--id`） |
+| `mosage images place <文件> [id]` | 把已存好的圖片換進頁面（Codex 畫完圖後使用） |
+| `mosage upgrade` | 更新到最新版，並同步 React 版本與 skills |
 | `mosage build` / `mosage preview` | 輸出與預覽靜態網站 |
 | `mosage sync:skills` | 更新專案裡的 AI skills |
 

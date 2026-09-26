@@ -1,7 +1,7 @@
 // Boots `mosage dev` for the e2e suite against a throwaway copy of the
 // fixture project (see scratch.mjs).
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fixtureDir, prepareScratchProject } from './scratch.mjs';
@@ -19,6 +19,11 @@ if (!existsSync(path.join(fixtureDir, 'node_modules'))) {
 }
 
 const scratchDir = prepareScratchProject('dev');
+// A fresh MOSAGE_HOME per run — but only ever the throwaway one under .scratch.
+const home = process.env.MOSAGE_HOME;
+if (home && path.resolve(home).startsWith(path.join(here, '.scratch') + path.sep)) {
+  rmSync(home, { recursive: true, force: true });
+}
 
 // Bind to 127.0.0.1 explicitly. Vite's default host resolves to `localhost`,
 // which on CI runners can bind to IPv6 `::1` only, leaving Playwright's IPv4

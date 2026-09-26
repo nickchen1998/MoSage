@@ -79,8 +79,8 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /**
- * The design variables live on the page host, and renderPagesToHtml returns the
- * host's innerHTML, so they are not in the markup and have to be put back.
+ * The design variables live on the page host, not in the page's own markup, so
+ * a serialized copy of that markup has to have them put back.
  */
 export function designDeclarations(doc: DocModule): string {
   const vars = doc.design ? designToCssVars(doc.design) : null;

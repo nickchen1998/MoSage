@@ -4,6 +4,7 @@ import { AssetsPage } from './routes/assets';
 import { Doc } from './routes/doc';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
+import { SettingsPage } from './routes/settings';
 import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
 
 export function App() {
@@ -16,6 +17,7 @@ export function App() {
             <Route path="/themes" element={<ThemesGalleryPage />} />
             <Route path="/themes/:themeId" element={<ThemeDetailPage />} />
             <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         ) : (
           <Route path="/" element={<NotFound />} />

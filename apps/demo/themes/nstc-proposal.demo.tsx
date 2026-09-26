@@ -79,7 +79,7 @@ const Th = ({ children }: { children: ReactNode }) => (
     style={{
       textAlign: 'left',
       fontFamily: 'var(--od-font-heading)',
-      fontSize: 13,
+      fontSize: 14,
       fontWeight: 600,
       color: 'var(--od-accent)',
       borderBottom: '1.5px solid var(--od-accent)',
@@ -158,7 +158,7 @@ const Cover: DocPage = () => (
     <div
       style={{
         fontFamily: 'var(--od-font-heading)',
-        fontSize: 15,
+        fontSize: 16,
         color: 'var(--od-muted)',
         textAlign: 'center',
         letterSpacing: '0.1em',
@@ -216,7 +216,7 @@ const Cover: DocPage = () => (
         bottom: 84,
         textAlign: 'center',
         fontFamily: 'var(--od-font-heading)',
-        fontSize: 15,
+        fontSize: 16,
       }}
     >
       中華民國 115 年 8 月 16 日

@@ -20,7 +20,7 @@ Read the matching reference **before** using a primitive:
 | `flow()` auto-pagination | any body content (the default) | `references/pagination.md` |
 | Vertical budget (fixed pages) | laying out a cover or divider by hand | `references/pagination.md` |
 | Tables, stat rows, inline charts | rendering data of any kind | `references/tables-and-charts.md` |
-| Assets + `<ImagePlaceholder>` | importing images or leaving a placeholder | `references/assets.md` |
+| Assets, references, `<ImagePrompt>`, `<ImagePlaceholder>` | importing images, reading the user's reference files, leaving an image to be generated or supplied | `references/assets.md` |
 | Footnotes, `<Figure>`, `<Ref>`, `<DataTable>` | any note, numbered figure, cross-reference, or `.csv` | `references/long-form.md` |
 
 ## Themes
@@ -32,7 +32,7 @@ Themes are produced by the `create-theme` skill and are pure documentation: copy
 ## Hard rules
 
 - Put the document under `docs/<kebab-case-id>/`.
-- Entry is `docs/<id>/index.tsx`. Images/fonts go under `docs/<id>/assets/`.
+- Entry is `docs/<id>/index.tsx`. Images go under `docs/<id>/assets/images/<chapter>/`; the user's source files (PDFs, data, notes) are in `docs/<id>/assets/references/` — read them before writing.
 - Do **not** touch `package.json`, `mosage.config.ts`, or other documents.
 - Do not add dependencies. Only `react`, `mosage`, and standard web APIs are available.
 - A document is **one `index.tsx` plus `assets/`** — nothing else. Helper components and constants live inside `index.tsx`; no sibling `.tsx` files, no `README.md`.
@@ -59,7 +59,7 @@ export default [Cover, Body] satisfies DocPage[];
 
 - `export default` is a **non-empty array of entries**. An entry is either a zero-prop React component (one fixed page) or a `flow(<>…</>)` section the framework paginates by measuring. Mix them freely — the usual shape is a fixed cover, a fixed contents page, then one flow section for the body.
 - **Default to `flow()` for body content.** Hand-splitting prose into fixed pages produces documents where every heading starts a half-empty page. Read `references/pagination.md` before writing either kind.
-- Every document is **A4**: `meta.pageSize` only accepts `'A4'` (the default, so it can be left out) and `meta.orientation` is `'portrait' | 'landscape'` (default portrait). **Those two are the only sheets there are** — there is no B4, A3, Letter, or custom size, and no way to set a page's dimensions by hand. The same value drives the on-screen page, the `@page` size when printing, and the HTML export.
+- Every document is **A4**: `meta.pageSize` only accepts `'A4'` (the default, so it can be left out) and `meta.orientation` is `'portrait' | 'landscape'` (default portrait). **Those two are the only sheets there are** — there is no B4, A3, Letter, or custom size, and no way to set a page's dimensions by hand. The same value drives the on-screen page and the `@page` size when printing.
 - `meta.createdAt` is an **ISO 8601 string literal** set once when the doc is scaffolded — the home page sorts on it. **Immediately before writing the file, run `node -e "console.log(new Date().toISOString())"` and paste the exact output.** It must stay a plain string literal (no `new Date(...)`): the framework reads it with a regex at build time, it never evaluates the module.
 
 ## Two ways to fill pages
@@ -98,6 +98,7 @@ You design as if the viewport is literally the page in CSS pixels. The viewer on
 - Prefer inline `style={{ … }}`. Any CSS you load is global — scope classnames carefully.
 - The viewer's CSS reset strips list markers. A `<ul>`/`<ol>` needs an explicit `listStyle: 'disc outside'` / `'decimal outside'` or it renders as unindented plain lines.
 - **1pt ≈ 1.333px.** Body copy at 14px prints as ~10.5pt; anything under 12px (9pt) is uncomfortable in print, and under 10px (7.5pt) is unreadable.
+- **Every font size is an even number of px** — 10, 12, 14, 16, 18… — in the `design` type scale and in every inline `fontSize` alike. Step sizes up or down by 2. Use an odd or fractional size only when the user asks for that exact size (or a named standard requires it).
 
 ### Print type scale (start here)
 
@@ -106,10 +107,12 @@ You design as if the viewport is literally the page in CSS pixels. The viewer on
 | Cover title | 40–52px | Cover page only |
 | H1 / section opener | 26–32px | One per section |
 | H2 / subsection | 18–22px | |
-| H3 / run-in heading | 15–17px | Often bold body size |
-| Body | 13–15px | 1.5–1.65 line-height |
-| Caption / table cell | 10–12px | Tables can go to 11px |
-| Footnote / footer | 9–10px | |
+| H3 / run-in heading | 16px | Often bold body size |
+| Body | 14px (12–16) | 1.5–1.65 line-height |
+| Caption / table cell | 10–12px | Tables stay at 12px, 10px when compact |
+| Footnote / footer | 10px | |
+
+All sizes above are even; pick among the even values in each range.
 
 ### Margins
 
@@ -202,7 +205,7 @@ const Contents: DocPage = () => (
 );
 ```
 
-Page numbers come from the scan, so they are always correct — **never hand-write a contents list**. The outline fills in after the first render pass; that is expected and it is resolved before PDF/HTML export serializes the pages.
+Page numbers come from the scan, so they are always correct — **never hand-write a contents list**. The outline fills in after the first render pass; that is expected and it is resolved before a PDF or Word export reads the pages.
 
 ## Page numbers, headers, footers
 
@@ -351,13 +354,13 @@ A document is not a slide deck. Long-form copy is the point — but it still has
 
 - Home page lists every folder under `docs/` with a live thumbnail of page 1.
 - Document view: vertical scroll of real-size pages, a left rail that switches between page thumbnails, the outline, and the document's assets, zoom (actual size / fit width / fit page), page counter, and fullscreen reading (`F`).
-- Export PDF (print pipeline, correct `@page` size) and export HTML (self-contained, printable).
 - Hot reload: edit `index.tsx` and the pages update live.
-- **Assets panel** (`/assets` in the dev UI): upload, rename, and delete files in the global `assets/` folder or any document's `assets/` folder, with an "unused" badge and a copy-ready import line. Files you reference in source are what it scans, so an import you write by hand shows up there immediately.
+- **Assets** (`/assets` in the dev UI, and the Assets tab of each document): images filed by chapter in a tree, and 參考文獻 (references) with a preview for PDFs, text, tables, audio, and video. Uploads are copied into the project; moving an image to another chapter or renaming it rewrites the imports that use it. An "unused" badge and a copy-ready import line come from scanning the sources, so an import you write by hand shows up there immediately.
+- **Settings** (`/settings`): the app's text size, and AI images — off, prompts left for Codex, or drawn through the OpenAI API with a key saved on this machine and the token cost recorded. Each document can switch generated images off.
 - **Inspect mode** (the "Inspect" button, dev only): click any element on a page to edit its text in place — the change is written straight back into `docs/<id>/index.tsx` — or leave a note for the agent, which is stored as a `@doc-comment` marker and processed by the `apply-comments` skill.
-- **Download menu** — PDF (true page size), self-contained HTML, and DOCX for review in Word.
+- **Download menu** — PDF (true page size) and DOCX for review in Word. Those are the only two formats.
 - **Word export** — DOCX reflows the text instead of copying the sheets, so write structure, not position: real `h1`–`h3` become Word headings, `<Footnote>` a Word footnote, `<TableOfContents />` a contents field, a flow `footer` a running footer with live page numbers, and tables, lists, and links their Word equivalents. Inside a `<Figure>`, anything that is not an image or a table — a chart drawn with divs — is exported as a picture of itself.
-- **Headless render** — `mosage export <id> --format pdf|html|docx|png` produces the same output from a script, and `mosage check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
+- **Headless render** — `mosage export <id> --format pdf|docx` produces the same output from a script, and `mosage check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
 - **Design panel** (the "Design" button in the document view, dev only): live-tweaks the `design` const — palette, fonts, type scale, margin, leading, radius — previewing on the real pages and writing the values back into `docs/<id>/index.tsx` on save.
 
 ### Writing for the inspector
@@ -405,7 +408,8 @@ confirms it.
 - [ ] Every page's root fills `100% × 100%` and sets `boxSizing: 'border-box'` with the margin as padding.
 - [ ] **For every fixed page, sum (font_size × line_height × lines) + gaps + 2×margin ≤ page height.** If close, split — or move the content into the flow section. No `overflow: auto` escape hatches.
 - [ ] No block inside a `flow()` section is taller than one page (a long table has to be split by hand — the framework never splits a block).
-- [ ] Body type ≥ 13px; nothing on the page under 9px.
+- [ ] Body type 14px (12px at the least); nothing on the page under 10px.
+- [ ] Every `fontSize` and type-scale step is an even number of px, unless the user asked for a specific size.
 - [ ] Section titles are real `h1`/`h2`/`h3` elements, so the outline and TOC pick them up.
 - [ ] Contents page uses `<TableOfContents />`, not a hand-written list.
 - [ ] Page numbers come from `useDocPageNumber()` / `useDocPageCount()`.
@@ -413,7 +417,8 @@ confirms it.
 - [ ] Tables have a header row, aligned numerals (`fontVariantNumeric: 'tabular-nums'`), and fit the text block width.
 - [ ] Numbers that refer to other things — figures, tables, notes, pages — come from `<Ref>` / `<Figure>` / `<Footnote>`, never typed in.
 - [ ] Any data that exists as a file is imported, not retyped into JSX.
-- [ ] All imported assets exist on disk (`docs/<id>/assets/`, or root `assets/` via `@assets/...`).
+- [ ] All imported assets exist on disk (`docs/<id>/assets/images/…`, or root `assets/` via `@assets/...`), and each image sits in the folder of the chapter it illustrates.
+- [ ] Every `<ImagePrompt>` is in a document that has generated images switched on (`npx mosage images --json`), with a unique `id`, a `chapter` matching the heading, and a real px size.
 - [ ] Every `<ImagePlaceholder>` marks a real image the user must supply — not decorative filler.
 - [ ] Nothing outside `docs/<id>/` was edited.
 
@@ -421,7 +426,8 @@ confirms it.
 
 - ❌ Overflowing the page. Cropped content is invisible — split instead.
 - ❌ `overflow: auto` / `scroll` / `hidden` to "fit" more. The sheet doesn't scroll; you've hidden the bug.
-- ❌ Shrinking body type below 13px or margins below 60px to cram content in.
+- ❌ Shrinking body type below 12px or margins below 60px to cram content in.
+- ❌ Odd or fractional font sizes (13px, 15px, 10.5px) that the user never asked for.
 - ❌ Hand-written contents lists or hardcoded page numbers — they go stale the moment a page is added.
 - ❌ "See Figure 3 on page 12" written by hand, or a figure caption numbered `Figure 3` in the copy. Use `<Ref>` and `<Figure>`.
 - ❌ Retyping a CSV the user already has into a JSX table.

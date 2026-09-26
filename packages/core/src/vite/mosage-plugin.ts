@@ -239,12 +239,7 @@ export function mosagePlugin(opts: MoSagePluginOptions): Plugin {
       }
       if (id === resolved(CONFIG_VMOD)) {
         const userBuild = config.build ?? {};
-        const build = isDev
-          ? { showDocBrowser: true, allowHtmlExport: true }
-          : {
-              showDocBrowser: userBuild.showDocBrowser ?? true,
-              allowHtmlExport: userBuild.allowHtmlExport ?? true,
-            };
+        const build = { showDocBrowser: isDev || (userBuild.showDocBrowser ?? true) };
         return `export default ${JSON.stringify({ ...config, build, version: coreVersion })};\n`;
       }
       if (id === resolved(FOLDERS_VMOD)) {

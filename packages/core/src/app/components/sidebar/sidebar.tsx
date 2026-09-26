@@ -1,5 +1,5 @@
 import config from 'virtual:mosage/config';
-import { Plus } from 'lucide-react';
+import { Plus, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Folder, FolderIcon } from '../../lib/sdk';
 import { cn } from '../../lib/utils';
@@ -11,6 +11,7 @@ export const ALL_DOCS_ID = '__all__';
 export const DRAFT_ID = 'draft';
 export const THEMES_ID = '__themes__';
 export const ASSETS_ID = '__assets__';
+export const SETTINGS_ID = '__settings__';
 
 export const FOLDER_DND_MIME = 'application/x-mosage-folder-id';
 
@@ -121,7 +122,9 @@ export function Sidebar({
       </div>
 
       <div className="mt-5 flex items-center gap-2 px-4 pb-1">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Folders</span>
+        <span className="text-[0.625rem] text-muted-foreground uppercase tracking-wider">
+          Folders
+        </span>
         <span className="h-px flex-1 bg-border" aria-hidden />
       </div>
 
@@ -220,14 +223,14 @@ export function Sidebar({
                 }}
                 placeholder="Folder name"
                 maxLength={40}
-                className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/60"
+                className="min-w-0 flex-1 bg-transparent text-[0.8125rem] outline-none placeholder:text-muted-foreground/60"
               />
             </div>
           ) : (
             <button
               type="button"
               onClick={startCreating}
-              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <Plus className="size-3.5" />
               New folder
@@ -241,7 +244,22 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="border-border border-t px-4 py-3 text-[11px] text-muted-foreground">
+      <div className="border-border border-t px-2 pt-2">
+        <button
+          type="button"
+          onClick={() => onSelect(SETTINGS_ID)}
+          className={cn(
+            'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[0.8125rem] transition-colors',
+            selectedId === SETTINGS_ID
+              ? 'bg-accent text-foreground'
+              : 'text-muted-foreground hover:bg-accent/60',
+          )}
+        >
+          <Settings className="size-3.5" />
+          Settings
+        </button>
+      </div>
+      <div className="px-4 py-3 text-[0.6875rem] text-muted-foreground">
         <div className="flex items-center justify-between">
           <span>v{config.version}</span>
           <span className="font-mono">{import.meta.env.DEV ? 'dev' : 'static'}</span>

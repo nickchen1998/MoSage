@@ -28,7 +28,9 @@ test.describe('document viewer', () => {
   test('the title sits at the centre of the header, not of the leftover space', async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 1600, height: 900 });
+    // Wide enough for the whole control cluster at the default text size; any
+    // narrower and the title slides aside by design rather than being overlapped.
+    await page.setViewportSize({ width: 1920, height: 900 });
     await openDoc(page, 'alpha');
 
     const header = await page.locator('header').boundingBox();
