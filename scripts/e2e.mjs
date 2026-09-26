@@ -163,10 +163,12 @@ async function main() {
 
   console.log('\nmosage dev');
   const port = 5400 + Math.floor(Math.random() * 400);
-  server = spawn('npx', ['--no-install', 'mosage', 'dev', '--port', String(port), '--no-open'], {
+  // Run the installed CLI with node directly: killing an `npx` wrapper would
+  // leave the actual server running after the test.
+  const cli = join(project, 'node_modules', 'mosage', 'dist', 'cli.js');
+  server = spawn(process.execPath, [cli, 'dev', '--port', String(port), '--no-open'], {
     cwd: project,
     env: { ...process.env, NO_COLOR: '1' },
-    shell: WIN,
     stdio: 'ignore',
   });
   const base = `http://localhost:${port}`;
@@ -244,11 +246,7 @@ try {
   failures++;
   console.error(`\n✗ ${err.stack ?? err}`);
 } finally {
-  if (server?.pid && WIN) {
-    try {
-      execFileSync('taskkill', ['/pid', String(server.pid), '/T', '/F'], { stdio: 'ignore' });
-    } catch {}
-  } else server?.kill();
+  server?.kill();
   if (failures === 0) rmSync(work, { recursive: true, force: true });
   console.log(
     failures
