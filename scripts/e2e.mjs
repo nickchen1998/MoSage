@@ -53,7 +53,9 @@ async function main() {
   console.log(`\nworking in ${work}\n`);
 
   console.log('pack');
-  const packed = JSON.parse(run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', work], ROOT));
+  const packed = JSON.parse(
+    run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', work], ROOT),
+  );
   const tarball = join(work, packed[0].filename);
   const files = packed[0].files.map((f) => f.path);
   check('tarball has the CLI', files.includes('dist/cli.js'));

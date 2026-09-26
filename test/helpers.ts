@@ -1,3 +1,8 @@
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { stringify } from 'yaml';
+import { BOOK_FILE, type Book } from '../src/node/book.ts';
+import { PROJECT_FILE, Project } from '../src/node/project.ts';
 // Shared fixtures for the export and import tests.
 
 import { deflateSync } from 'node:zlib';
@@ -42,4 +47,18 @@ export function makePng(width: number, height: number): Buffer {
     chunk('IDAT', deflateSync(raw)),
     chunk('IEND', Buffer.alloc(0)),
   ]);
+}
+
+/** A project folder with one book in it; returns the book. */
+export function makeBook(
+  projectDir: string,
+  id = 'book',
+  config: Record<string, unknown> = {},
+): Book {
+  if (!existsSync(join(projectDir, PROJECT_FILE)))
+    writeFileSync(join(projectDir, PROJECT_FILE), '');
+  const root = join(projectDir, 'books', id);
+  mkdirSync(join(root, 'chapters'), { recursive: true });
+  writeFileSync(join(root, BOOK_FILE), stringify(config));
+  return new Project(projectDir).book(id);
 }

@@ -3,18 +3,18 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { stringify } from 'yaml';
+import type { Book } from '../src/node/book.ts';
+import { BOOK_FILE } from '../src/node/book.ts';
 import { htmlToMarkdown, importFile, splitManuscript } from '../src/node/import/index.ts';
-import { CONFIG_FILE, Workspace } from '../src/node/workspace.ts';
-import { makePng } from './helpers.ts';
+import { makeBook, makePng } from './helpers.ts';
 
 let dir: string;
-let ws: Workspace;
+let ws: Book;
 let src: string;
 
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), 'mosage-import-'));
-  ws = new Workspace(join(dir, 'book'));
-  mkdirSync(ws.root, { recursive: true });
+  ws = makeBook(dir);
   src = join(dir, 'source');
   mkdirSync(join(src, 'img'), { recursive: true });
   writeFileSync(join(src, 'img', 'map.png'), makePng(20, 10));
@@ -134,7 +134,7 @@ describe('importFile (Markdown)', () => {
   });
 
   it('never overwrites existing chapters and names front matter in English for English books', async () => {
-    writeFileSync(join(ws.root, CONFIG_FILE), stringify({ title: 'Book', language: 'en-US' }));
+    writeFileSync(join(ws.root, BOOK_FILE), stringify({ title: 'Book', language: 'en-US' }));
     const file = join(src, 'draft.md');
     writeFileSync(file, 'Preface text.\n\n# One\n\nBody.\n');
     const first = await importFile(ws, file);

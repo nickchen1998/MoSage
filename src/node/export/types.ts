@@ -13,14 +13,14 @@ export interface ManuscriptInput {
   outputDir?: string;
 }
 
-/** The part of a book the exporters read (satisfied by `Workspace` and `Book`). */
+/** The part of a book the exporters read (satisfied by `Book`). */
 export interface ManuscriptSource {
   readonly root: string;
   readonly outputDir: string;
   loadManuscript(): Promise<{ config: BookConfig; chapters: { id: string; source: string }[] }>;
 }
 
-/** The part of a book the importer writes to (satisfied by `Workspace` and `Book`). */
+/** The part of a book the importer writes to (satisfied by `Book`). */
 export interface ImportTarget {
   readonly root: string;
   readonly chaptersDir: string;

@@ -3,16 +3,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import JSZip from 'jszip';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { stringify } from 'yaml';
 import { buildDocx } from '../src/node/export/docx.ts';
 import { buildHtml } from '../src/node/export/html.ts';
 import { exportManuscript, renderManuscript } from '../src/node/export/index.ts';
 import { buildMarkdown } from '../src/node/export/markdown.ts';
 import type { ManuscriptInput } from '../src/node/export/types.ts';
 import { importFile } from '../src/node/import/index.ts';
-import { CONFIG_FILE, Workspace } from '../src/node/workspace.ts';
 import { resolveConfig } from '../src/shared/config.ts';
-import { makePng } from './helpers.ts';
+import { makeBook, makePng } from './helpers.ts';
 
 const CHAPTER_ONE = `---
 status: draft
@@ -306,25 +304,21 @@ describe('exportManuscript', () => {
   it('writes <outputDir>/<fileName>.<ext> with a safe file name', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'mosage-ws-'));
     try {
-      mkdirSync(join(dir, 'chapters'));
-      mkdirSync(join(dir, 'assets'));
-      writeFileSync(join(dir, 'assets', 'harbor.png'), makePng(64, 32));
-      writeFileSync(join(dir, 'chapters', '01-start.md'), CHAPTER_ONE);
-      writeFileSync(join(dir, 'chapters', '02-back.md'), CHAPTER_TWO);
-      writeFileSync(
-        join(dir, CONFIG_FILE),
-        stringify({
-          title: '港口/之書: 初稿?',
-          chapters: ['01-start.md', '02-back.md'],
-        }),
-      );
-      const ws = new Workspace(dir);
+      const ws = makeBook(dir, 'harbor', {
+        title: '港口/之書: 初稿?',
+        chapters: ['01-start.md', '02-back.md'],
+      });
+      mkdirSync(join(ws.root, 'assets'));
+      writeFileSync(join(ws.root, 'assets', 'harbor.png'), makePng(64, 32));
+      writeFileSync(join(ws.chaptersDir, '01-start.md'), CHAPTER_ONE);
+      writeFileSync(join(ws.chaptersDir, '02-back.md'), CHAPTER_TWO);
       const result = await exportManuscript(ws, 'docx');
-      expect(result.path).toBe(join(ws.outputDir, '港口之書 初稿.docx'));
+      expect(result.path).toBe(join(dir, 'output', 'harbor', '港口之書 初稿.docx'));
       expect(result.bytes).toBe(readFileSync(result.path).length);
 
+      // output/harbor/ → books/harbor/assets/
       const md = await exportManuscript(ws, 'md');
-      expect(readFileSync(md.path, 'utf8')).toContain('](../assets/harbor.png)');
+      expect(readFileSync(md.path, 'utf8')).toContain('](../../books/harbor/assets/harbor.png)');
 
       const html = await renderManuscript(ws, 'html');
       expect(html.contentType).toContain('text/html');
@@ -342,8 +336,7 @@ describe('docx round trip', () => {
     try {
       const file = join(dir, 'book.docx');
       writeFileSync(file, await buildDocx(input()));
-      const target = join(dir, 'book');
-      const ws = new Workspace(target);
+      const ws = makeBook(dir);
       const result = await importFile(ws, file);
 
       const chapters = await Promise.all(result.created.map((id) => ws.readChapter(id)));
