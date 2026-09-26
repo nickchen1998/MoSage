@@ -1,7 +1,7 @@
 {
   "name": "mosage",
   "version": "0.10.0",
-  "description": "Write documents with your coding agent — MoSage scaffolds the workspace and handles the pages, print layout, and export (PDF, HTML, Word).",
+  "description": "Write documents with your coding agent — MoSage scaffolds the workspace and handles the pages, print layout, and export (PDF and Word).",
   "type": "module",
   "exports": {
     ".": {
