@@ -1,230 +1,228 @@
-# MoSage
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/preview-dark.png">
+  <img src=".github/assets/preview.png" alt="open-doc — the document framework built for agents." width="100%">
+</picture>
 
-[![CI](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml/badge.svg)](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/mosage)](https://www.npmjs.com/package/mosage)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+# open-doc
 
-**繁體中文** · [English](README.en.md)
+[![CI](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml/badge.svg)](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@open-document/core?style=flat)](https://www.npmjs.com/package/@open-document/core)
+[![GitHub stars](https://img.shields.io/github/stars/simonliu-ai-product/open-doc?style=flat)](https://github.com/simonliu-ai-product/open-doc/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](https://opensource.org/licenses/MIT)
 
-**和 AI 一起寫書、寫論文的本機寫作平台。** 用 Claude Code、Codex 等 AI 工具打開專案資料夾，
-跟 AI 對話完成立項、訂書名、排大綱、撰寫與修訂；你在瀏覽器裡用「書本排版」閱讀成果、
-選取文字留言給 AI、一鍵接受或拒絕 AI 的修改建議 —— 最後再匯出成出版社或學校要的 Word 檔。
+**English** · [繁體中文](README.zh-TW.md) · [costaffs.app/tools/open-doc](https://costaffs.app/tools/open-doc/)
 
-```bash
-npx mosage init my-writing
-```
+**The document framework built for agents.** Describe the report you need in natural language — your coding agent writes the React. open-doc handles the page geometry, the outline, the table of contents, page numbers, print layout, and export.
 
-不需要資料庫，不需要帳號。所有內容都是專案資料夾裡的純文字檔（Markdown + YAML），圖片和參考資料直接複製進資料夾即可，
-可以用 git 管理版本，也可以用任何編輯器打開。
-
-## 為什麼
-
-直接在 Word 裡寫長篇稿件，格式和內容總是攪在一起：一邊構思，一邊處理目錄頁碼、標題樣式和「追蹤修訂」。
-AI 很擅長寫文字，但不擅長操作 Word。
-
-MoSage 把兩件事分開：
-
-- **寫作階段**：內容是 Markdown，AI 讀寫起來又快又準；你在瀏覽器裡看到的是排好版的書頁，而不是原始碼。
-- **交稿階段**：一鍵輸出 Word，標題樣式、目錄、頁碼、註腳、圖說都幫你處理好。
-
-## 特色
-
-- 📚 **一個專案，很多本書**：`books/` 底下每個資料夾就是一本書或一篇論文，各自有設定、進度與風格。
-- 🤖 **AI 帶你從零開始**：全新專案時，AI 會主動訪談你的寫作目的、讀者、風格與篇幅，再提出書名候選與章節架構。
-- 🗂️ **大綱編排**：在瀏覽器裡拖曳章節順序、直接修改章名與摘要、設定每章狀態（構想／草稿／修訂中／完成）。
-- 📖 **書本排版預覽**：首行縮排、行距、字型沿用 Word 匯出設定；單章閱讀或全書預覽。
-- 💬 **留言給 AI**：選取任何文字 → 留言。留言以標記存進 Markdown，對 AI 說「處理留言」就會處理。
-- ✍️ **修改建議，先看再決定**：AI 修改你寫好的文字時，會以「新舊對照」呈現，你按「接受」才會生效。
-- ⚡ **即時同步**：AI 改檔案的同時，瀏覽器畫面自動更新 —— 看著 AI 一節一節寫。
-- 🕰️ **自動版本紀錄**：每次內容改變前自動保存上一版，可比較差異、一鍵還原。
-- 📍 **AI 知道你在看哪裡**：說「這段改短一點」，AI 會讀取你在瀏覽器裡正在看的段落與選取的文字。
-- 📄 **匯出 Word**：真正的 Word 樣式（標題 1–4、內文、引文、圖說）、自動目錄、頁碼、註腳、表格、圖片；也能匯出 HTML（可列印成 PDF）與合併的 Markdown。
-- 📥 **匯入舊稿**：`mosage import 書稿.docx` 依標題樣式把 Word 稿切成章節，圖片與註腳一併帶入。
-- 🎓 **書與論文兩種預設**：論文預設標楷體＋Times New Roman 12pt、左邊界 3 公分，符合台灣常見的論文格式。
-
-## 快速開始
-
-需要 [Node.js](https://nodejs.org/) 20.19 以上。
+If [open-slide](https://github.com/1weiho/open-slide) is Google Slides for agents, open-doc is Google Docs: same idea, different medium. A deck is a 1920 × 1080 canvas; a document is a stack of **A4 sheets** that has to survive a printer.
 
 ```bash
-npx mosage init my-writing     # 建立寫作專案
-cd my-writing
-npm run dev                    # 開啟寫作介面 → http://localhost:5280
+npx @open-document/cli init my-docs
 ```
 
-另開一個終端機，在同一個資料夾啟動 AI 工具：
+<img src=".github/assets/viewer.png" alt="The document viewer — page thumbnails on the left, a real A4 sheet in the middle, running footer and page numbers filled in by the framework." width="100%">
+
+<sub>The document viewer — page thumbnails on the left, a real A4 sheet in the middle, running footer and page numbers filled in by the framework.</sub>
+
+## Why
+
+Reports are the output nobody wants to format. Agents write excellent prose and terrible Word documents. open-doc gives the agent a medium it's actually good at — React — and gives you a PDF that looks like a designer made it.
+
+## Highlights
+
+### 📄 Real page geometry
+
+Every page component renders into a true sheet: A4 (794 × 1123 px @96dpi), JIS B4, or A3, portrait or landscape — those six combinations and nothing else, so a document always maps onto paper someone can actually buy. What you see on screen is what the PDF contains — the `@page` size matches, so nothing is rescaled at print time.
+
+### 🤖 Agent-native authoring
+
+Skills ship with the scaffolder:
+
+- **`/create-doc`** — drafts a document end to end. Establishes topic, audience, and *source material* first (it will not invent your numbers), asks four scoping questions, plans the pages, then writes them.
+- **`/doc-authoring`** — the technical reference: file contract, page canvas, print type scale, the vertical budget that decides where pages break, tables, charts, assets.
+- **`/current-doc`** — resolves "this page" and "this element". The dev server publishes where you are reading to `node_modules/.open-doc/current.json`, so your agent edits the sheet you are looking at instead of asking which one you mean.
+
+### 🔌 An MCP server, so any agent framework can drive it
+
+`open-doc dev --mcp` mounts an MCP endpoint next to the UI — 23 tools covering documents, surgical text edits, layout checks and page screenshots, Markdown import, export, themes, assets, and folders. It is stateless Streamable HTTP, so a client just points at `http://localhost:5273/mcp` with no session handshake.
+
+The tools and the browser share one implementation, so `write_document` / `write_text` take the content you last read and refuse a stale write with `409` rather than overwriting whoever got there first. See [packages/mcp](packages/mcp).
+
+### 🧭 Outline, contents, and page numbers that maintain themselves
+
+Write real `<h1>`/`<h2>` elements and you get an outline sidebar for free. Drop in `<TableOfContents />` and the contents page fills itself — with correct page numbers, in the viewer *and* in the export. `useDocPageNumber()` / `useDocPageCount()` handle running footers. Nothing to renumber by hand.
+
+### 📐 Auto-pagination that knows what not to break
+
+Wrap body content in `flow(<>…</>)` and the framework measures it in the real DOM, then packs it into pages: headings never end a page, captions stay with their figures, tables move whole. Fixed `DocPage` components remain available for covers and dividers, where the layout *is* the content.
+
+```tsx
+export default [Cover, Contents, flow(<>…</>, { footer: Footer })] satisfies DocEntry[];
+```
+
+### 🔢 A long document's furniture, maintained for you
+
+Footnotes, figure and table numbers, and cross-references all resolve from the rendered pages — the same scan that fills the contents list:
+
+```tsx
+<p style={p}>
+  Spend grew 8% quarter over quarter
+  <Footnote>Billing export, 2026-10-02. Excludes the edge tier.</Footnote>, driven by one service.
+</p>
+
+<Figure id="topology" caption="Service topology">…</Figure>
+
+<p style={p}>The shape in <Ref to="topology" /> is what the table hides.</p>
+```
+
+A `<Footnote>` prints at the foot of **whatever page its marker landed on**, and the space it needs is taken out of that page's budget *before* the packer decides where to break — the circular part of footnote layout, handled. `<Ref>` renders `Figure 3`, and adds `(p. 12)` only when the target is on another sheet. Insert a figure in the middle of the document and every number and reference after it moves. `<ListOfFigures />` and `<ListOfTables />` build the lists; `meta.labels` sets what they are called (`圖`, `表`).
+
+### 🧮 Tables from data files, not retyped
+
+```tsx
+import services from './data/services.csv';
+
+<DataTable id="tier" caption="Platform tier, Q3 2026" rows={services}
+  columns={[{ key: 'service' }, { key: 'requests', format: 'integer' }, { key: 'error_rate', format: 'percent' }]} />
+```
+
+`.csv`/`.tsv` resolve to arrays of objects at build time — quoted fields, embedded newlines and all — so a table's numbers are as synchronous as the prose around them, in the dev server and in a static build. A column of numbers aligns right with `tabular-nums` without being told. Change the file, the report changes.
+
+### 👁️ Layout checks, because an agent can't see the page
+
+An agent writing React has no idea whether the paragraph it just added pushed the last three lines off the sheet. `open-doc check` renders every page at true size and tells it:
+
+```
+$ open-doc check q3-infra-review
+q3-infra-review 9 pages — 2 error(s), 1 warning(s)
+  ✗ p.4   Content runs 37px past the bottom of the sheet and is clipped in the PDF.
+          p: Spend grew 8% quarter over quarter, driven by…  @ 214:6
+  ✗ p.7   Image failed to load: ./assets/topology.png
+  ! p.6   Heading ends the page — the section it opens starts on the next sheet.
+          h2: 4. Recommendations  @ 388:4
+```
+
+Clipped content, blank sheets, stranded headings, type too small to print, images that never loaded — each with the `line:column` in your source, because the inspector already stamps it there. It exits non-zero, so it works as a CI gate; agents call the same thing as the `check_layout` tool, and `render_page` when they need to look at a sheet.
+
+### ⌨️ Headless export — the Download menu without a browser
 
 ```bash
-claude     # Claude Code
-codex      # 或 OpenAI Codex
+open-doc export q3-infra-review --format pdf   # or html, docx, or one png per page
+open-doc export --all --out-dir out
 ```
 
-然後對 AI 說「**開始**」（Claude Code 也可以輸入 `/kickoff`）。
+Same render pipeline as the toolbar, driven from a script — so a report can be produced by CI on a schedule instead of by a person clicking. Needs `playwright` installed (`pnpm add -D playwright && pnpm exec playwright install chromium`); it is an optional peer, not a dependency.
 
-## 寫作流程
+### 📥 Markdown in, document out
 
-| 階段 | 你對 AI 說 | 發生什麼事 |
-| --- | --- | --- |
-| 1. 立項 | 「開始」 | AI 一次問一兩題：目的、類型、讀者、核心主張、風格、篇幅、既有素材。確認後建立 `books/<代號>/`、寫作企劃 `brief.md` 與風格指南 `STYLE.md` |
-| 2. 大綱 | 「幫我訂書名和大綱」 | 提出 5 個書名與 2–3 種章節架構；定案後建立每章骨架（小節＋要點） |
-| 3. 編排 | —— | 你在介面「大綱」頁拖曳排序、修改章名與摘要、新增或移出章節 |
-| 4. 撰寫 | 「寫第一章」 | AI 讀企劃、風格與前後章，一節一節寫，畫面即時更新；需要你補充資料的地方會留言 |
-| 5. 修訂 | 「處理留言」「幫我審這章」 | 你選取文字留言；AI 回以修改建議，你逐一接受或拒絕 |
-| 6. 匯出 | —— | 介面右上角「匯出 → Word」，或 `npx mosage export <書> docx` |
-
-寫到一半想改大綱？直接說，AI 會調整章節並保留已寫好的內容。想寫第二本？說「我想寫一本新書」。
-
-## 專案結構
-
-```
-my-writing/
-├── mosage.yaml              專案預設值：作者、AI 修改模式、共用匯出格式
-├── AGENTS.md                給 AI 的協作守則（CLAUDE.md 會引用它）
-├── .agents/skills/          AI skills（Codex 等工具讀這裡）
-├── .claude/skills/          → 連到 .agents/skills（Claude Code 讀這裡）
-├── notes/                   所有書共用的素材（作者簡介…）
-├── books/
-│   └── <代號>/
-│       ├── book.yaml        類型、階段、書名、章節順序、Word 格式
-│       ├── brief.md         寫作企劃
-│       ├── STYLE.md         風格指南
-│       ├── chapters/        01-xxx.md、02-xxx.md …
-│       ├── assets/          圖片
-│       └── notes/           這本書的參考資料（不會匯出）
-├── output/<代號>/           匯出的 Word / HTML / Markdown
-└── .mosage/                 目前閱讀位置、自動版本紀錄（不進 git）
+```bash
+open-doc import notes.md --id q3-notes --contents
 ```
 
-章節檔就是一般的 Markdown：
+Most reports start life as Markdown. The importer turns one into a real document — `flow()` body, cover page, self-filling contents, GFM tables through styled `Th`/`Td`, local images copied into the document's own `assets/` — and the output is ordinary authored TSX, so the outline, the inspector, and the design panel all work on it exactly as on a hand-written page.
 
-```markdown
----
-status: draft
-summary: 這一章讓讀者理解……
----
+### 🗂️ A workspace, not a file list
 
-# 第一章　出發
+<img src=".github/assets/workspace.png" alt="Documents, themes, and assets in one workspace, with folders you can file into." width="100%">
 
-## 1.1 小節
+<sub>Documents, themes, and assets in one workspace, with folders you can file into.</sub>
 
-正文，支援**粗體**、註腳[^1]、表格、圖片 ![圖說](../assets/fig.png)、
-提示框 `> [!TIP]`、場景分隔 `---`、強制換頁 `<!-- pagebreak -->`。
+A left sidebar holds every view — Documents, Themes, Assets — plus folders you create, rename, re-icon, and reorder by dragging. File a document by dragging its card onto a folder, or from the card's menu, which also renames (rewrites `meta.title` in source), duplicates, and deletes. Inside a document, the left rail switches between **page thumbnails** and the **outline**, and follows you as you scroll.
 
-[^1]: 註腳內容。
+### 🖱️ Edit on the page
+
+<img src=".github/assets/inspect.png" alt="Inspect mode: click any element to rewrite its text, or leave a note for your agent. Edits are written back into the source." width="100%">
+
+<sub>Inspect mode: click any element to rewrite its text, or leave a note for your agent. Edits are written back into the source.</sub>
+
+**Inspect** mode highlights elements as you hover (dashed) and selects on click (solid), then lets you rewrite their text — headings, paragraphs, list items, table cells, and text passed into your own helper components. Mixed content is split into one field per text run so inline markup survives. Edits land in `docs/<id>/index.tsx` through an AST replacement, checked against what was on screen, and the page hot-reloads. Or leave a note for your agent: it is stored as a `@doc-comment` marker in the source, and `/apply-comments` walks them, makes each edit, and clears the markers.
+
+### 🎨 Themes, assets, and a live design panel
+
+<img src=".github/assets/design.png" alt="The design panel tweaks palette, fonts, and spacing on the real pages, then writes the result back into the document’s design const." width="100%">
+
+<sub>The design panel tweaks palette, fonts, and spacing on the real pages, then writes the result back into the document’s design const.</sub>
+
+- **Themes** — `themes/<id>.md` is a house style (palette, type scale, paste-ready components) plus an optional `<id>.demo.tsx` the gallery previews. `create-doc` offers them; `meta.theme` back-links the document to the theme.
+- **Assets** — upload, rename, and delete files in the global `assets/` folder or any document's own, with an "unused" badge and a copy-ready import line.
+- **Design panel** — live-tweak the palette, fonts, type scale, margin, and leading on the real pages, then write the result straight back into the document's `design` const via an AST edit.
+
+### 🖨️ One Download menu: PDF, HTML, and Word
+
+- **PDF** — the browser print pipeline at the true page size; fonts and images are awaited and contents lists filled before serializing. This is the format that reproduces the page exactly.
+- **HTML** — self-contained and printable (a zip when the document has assets).
+- **DOCX** — for a review that runs on Word. Headings, footnotes, tables, lists, the contents, and running footers arrive as their Word equivalents, styles are read off the page so restyling Heading 2 restyles every one, and the text reflows instead of copying the sheets. A chart drawn in HTML travels as a picture.
+
+### 🚀 Deploy-friendly
+
+`open-doc build` outputs a plain static site — deploy to Vercel, Cloudflare Pages, Netlify, or any static host.
+
+## Get started
+
+```bash
+npx @open-document/cli init my-docs
+cd my-docs
+pnpm dev
 ```
 
-## AI Skills
+Open http://localhost:5273. From there, drive it through your agent — or edit `docs/<id>/index.tsx` directly.
 
-| Skill | 用途 |
+| Command | What it does |
 | --- | --- |
-| `kickoff` | 立項訪談，建立新書、寫作企劃與風格指南 |
-| `outline` | 書名候選、章節架構、章節骨架；寫作途中調整大綱 |
-| `write-chapter` | 撰寫、續寫、擴寫章節 |
-| `apply-comments` | 處理你在介面上的留言 |
-| `review` | 以編輯角度審稿，只留意見與修改建議，不直接改稿 |
-| `current-position` | 解讀「這段」「這章」—— 你在瀏覽器中正在看的位置 |
-| `mosage-reference` | 檔案格式、標記語法、Markdown 支援範圍、指令 |
+| `open-doc dev` | Dev server + viewer (`--mcp` to mount the MCP endpoint) |
+| `open-doc build` / `preview` | Static site |
+| `open-doc check [ids…]` | Report layout faults; non-zero exit on errors |
+| `open-doc export [ids…]` | Headless PDF / HTML / DOCX / PNG |
+| `open-doc import <file.md>` | Markdown → a document under `docs/` |
 
-升級 mosage 後執行 `npx mosage sync-skills` 更新專案裡的 skills。
+## The file contract
 
-### 留言與修改建議的格式
+```tsx
+// docs/q3-review/index.tsx
+import type { DocMeta, DocPage } from '@open-document/core';
 
-兩者都是 HTML 註解，任何 Markdown 工具都看不見，也不會被匯出：
+const Cover: DocPage = () => <div>…</div>;
+const Summary: DocPage = () => <div>…</div>;
 
-```markdown
-<!-- mosage:comment id=c-1a2b3c4d by=human quote="被選取的文字"
-這段太長，拆成兩段並舉個例子
--->
-被留言的段落。
-
-<!-- mosage:suggest by=ai note="刪除贅字"
-AI 提議的新段落。按「接受」後取代下方這一段。
--->
-原本的段落。
+export const meta: DocMeta = {
+  title: 'Q3 Review',
+  pageSize: 'A4',
+  createdAt: '2026-08-15T13:44:40.268Z',
+};
+export default [Cover, Summary] satisfies DocPage[];
 ```
 
-`mosage.yaml`（或單本的 `book.yaml`）的 `ai.editMode` 決定 AI 修改既有文字的方式：`suggest`（預設，修改建議）或 `direct`（直接改，仍有版本紀錄）。
+## Repo layout
 
-## 指令
+pnpm + Turbo monorepo.
 
-| 指令 | 說明 |
+| Path | Description |
 | --- | --- |
-| `npx mosage init <資料夾>` | 建立寫作專案（`--no-install`、`--no-git`、`--author`） |
-| `mosage dev` | 開啟寫作介面（`--port`、`--host`、`--no-open`） |
-| `mosage new <代號>` | 新增一本書（`--title`、`--type book\|thesis\|other`） |
-| `mosage status [書]` | 書架總覽，或單本書的章節、字數、待處理標記（`--json`） |
-| `mosage export [書] [docx\|html\|md]` | 匯出到 `output/<書>/`（`--out`） |
-| `mosage import <檔案.docx\|.md>` | 匯入舊稿（`--book`、`--title`、`--no-split`、`--unlisted`） |
-| `mosage sync-skills` | 更新專案裡的 AI skills |
+| [packages/core](packages/core) | `@open-document/core` — runtime (document browser, page viewer, outline, export), Vite plugin, and the `open-doc` dev/build/preview CLI. |
+| [packages/cli](packages/cli) | `@open-document/cli` — `npx @open-document/cli init` scaffolder + project template. |
+| [packages/mcp](packages/mcp) | `@open-document/mcp` — MCP server over Streamable HTTP. Opt-in; `open-doc dev --mcp` mounts it at `/mcp`. |
+| [apps/demo](apps/demo) | Example workspace consuming `@open-document/core` via `workspace:*`. Dogfood target. |
 
-## Word 匯出設定
-
-在 `book.yaml`（單本）或 `mosage.yaml`（全部的書）的 `export:` 調整：
-
-```yaml
-export:
-  pageSize: A4            # A4 | A5 | B5 | Letter | { width: 170, height: 230 }（公釐）
-  margins: { top: 25, bottom: 25, left: 30, right: 25 }
-  fonts: { body: 標楷體, latin: Times New Roman, heading: 標楷體, code: Consolas }
-  fontSize: 12            # pt
-  lineSpacing: 1.5
-  firstLineIndent: 2      # 首行縮排字數
-  titlePage: true
-  toc: true               # Word 開啟時會詢問是否更新目錄頁碼，選「是」
-  header: title           # none | title | chapter
-```
-
-匯出的是使用 Word 內建樣式的文件，要改整體字型或段落，直接在 Word 裡修改「標題 1」「內文」等樣式即可。
-
-## 常見問題
-
-**需要資料庫或網路嗎？** 不需要。MoSage 只是在你的電腦上開一個讀寫專案資料夾的小伺服器（只接受本機連線）；AI 工具本身才需要網路。
-
-**支援哪些 AI 工具？** Claude Code 與 OpenAI Codex 會自動讀取 skills。其他會讀 `AGENTS.md` 的工具也能照著守則工作。
-
-**可以不用 AI 嗎？** 可以。介面裡能直接修改段落、編輯 Markdown 原始碼、編排大綱與匯出。
-
-**我的稿子會不會被 AI 改壞？** 預設是「修改建議」模式，AI 的修改要你按接受才生效；另外每次變動前都會自動保存版本，可以在「版本紀錄」還原。建議同時用 git。
-
-## 開發
+## Development
 
 ```bash
-npm install
-npm run build           # web UI（Vite）+ CLI（tsup）→ dist/
-npm test                # 單元與 API 測試（vitest）
-npm run test:e2e        # 打包 → npx init → CLI → 伺服器；MOSAGE_E2E_BROWSER=1 再加上瀏覽器測試
-npm run check           # Biome（格式與 lint）
-npm run typecheck
+pnpm install
+pnpm dev        # runs the demo against the local @open-document/core
+pnpm build      # builds all packages
+pnpm typecheck  # tsc across the graph
+pnpm check      # biome (format + lint + organize imports)
+pnpm test       # vitest
+pnpm test:e2e   # playwright
 ```
 
-開發介面時：在某個寫作專案裡執行 `npx tsx <本 repo>/src/cli/index.ts dev --port 5281 --no-open`，
-再於本 repo 執行 `npm run dev:web`（Vite 會把 `/api` 轉給 5281）。
+## Contributing
 
-| 路徑 | 內容 |
-| --- | --- |
-| `src/shared/` | 瀏覽器與 Node 共用：設定、Markdown 解析、標記格式、字數、差異比對、原始碼編輯 |
-| `src/node/` | 專案與書籍檔案、版本紀錄、HTTP 伺服器、Word/HTML/Markdown 匯出、匯入 |
-| `src/cli/` | `mosage` 指令 |
-| `web/` | 瀏覽器介面（React） |
-| `template/` | `init` 與 `new` 使用的專案、書籍範本 |
-| `skills/` | 安裝到專案裡的 AI skills |
+Bug reports, feature requests, and pull requests are welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the checks CI runs, and the changeset convention. Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md); security issues go through [SECURITY.md](SECURITY.md), not the public tracker.
 
-### 發佈
+## Credits
 
-推送版本 tag 後，GitHub Actions 會跑完所有測試並發佈到 npm（第一次的帳號與權限設定見 [docs/RELEASING.md](docs/RELEASING.md)）：
+The architecture — virtual-module document discovery, the scaffolder, the skills-as-documentation approach — follows [open-slide](https://github.com/1weiho/open-slide) by [@1weiho](https://github.com/1weiho).
 
-```bash
-npm version patch       # 或 minor / major
-git push --follow-tags
-```
+## License
 
-## 致謝
-
-MoSage 的概念來自 [open-slide](https://github.com/open-slide/open-slide)（Yiwei Ho）與
-[open-doc](https://github.com/simonliu-ai-product/open-doc)（Simon Liu），兩者皆為 MIT 授權：
-用 `npx` 建立工作區、把 AI skills 放進專案、在瀏覽器裡留言再由 AI 套用、由開發伺服器發布目前閱讀位置。
-MoSage 是針對長篇寫作與 Word 交稿重新設計的獨立實作（Markdown 章節、修改建議、Word 匯出），未複製上述專案的程式碼。
-
-## 授權
-
-[MIT](LICENSE)
+MIT

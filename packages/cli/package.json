@@ -1,0 +1,58 @@
+{
+  "name": "@open-document/cli",
+  "version": "0.1.2",
+  "description": "Scaffold an open-doc workspace with agent skills preconfigured.",
+  "type": "module",
+  "bin": {
+    "open-doc": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "README.md",
+    "README.zh-TW.md"
+  ],
+  "scripts": {
+    "build": "node scripts/sync-template-skills.mjs && tsdown",
+    "typecheck": "tsc --noEmit",
+    "sync:template-skills": "node scripts/sync-template-skills.mjs",
+    "prepack": "pnpm build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "document",
+    "report",
+    "pdf",
+    "scaffold"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Simon Liu",
+    "url": "https://github.com/LiuYuWei"
+  },
+  "homepage": "https://github.com/simonliu-ai-product/open-doc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simonliu-ai-product/open-doc.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/simonliu-ai-product/open-doc/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "chalk": "^6.0.0",
+    "commander": "^15.0.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@types/prompts": "^2.4.9",
+    "tsdown": "^0.22.14",
+    "typescript": "^5.9.3"
+  }
+}

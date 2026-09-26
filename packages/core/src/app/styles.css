@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+
+  --radius-md: 6px;
+}
+
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.145 0 0);
+  --canvas: oklch(0.93 0 0);
+  --muted: oklch(0.955 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.945 0 0);
+  --accent-foreground: oklch(0.185 0 0);
+  --primary: oklch(0.185 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --border: oklch(0.9 0 0);
+}
+
+.dark {
+  --background: oklch(0.16 0 0);
+  --foreground: oklch(0.97 0 0);
+  --canvas: oklch(0.12 0 0);
+  --muted: oklch(0.24 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.25 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.97 0 0);
+  --primary-foreground: oklch(0.16 0 0);
+  --border: oklch(0.28 0 0);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  /* A heading's space-above is what separates it from the section before it —
+     but at the top of a page that space is just a dent. Strip it there so the
+     first block of every flow page starts flush with the margin. */
+  [data-od-flow-block]:first-child > * {
+    /* biome-ignore lint/complexity/noImportantStyles: blocks carry inline styles, which no stylesheet rule can outrank without it */
+    margin-top: 0 !important;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Search hits.
+ *
+ * Drawn with the CSS Custom Highlight API, so nothing in the page is wrapped or
+ * rewritten to show a match. Wrapping matches in <mark> would mean editing a
+ * tree React owns, and the next render would throw the marks away — or worse,
+ * keep them and lose the reader's place. Highlights are ranges held beside the
+ * DOM instead, which is what they are for.
+ *
+ * A browser without the API shows no highlight; the page-to-page jumping still
+ * works, so search degrades to "take me there" rather than breaking.
+ */
+/* Literal colours, deliberately. These paint the sheet, and the sheet is paper —
+   it does not follow the viewer's theme. A chrome token here resolves to
+   near-white in dark mode and disappears on a white page, which is the leak the
+   guidelines warn about, arriving as an invisible highlight rather than an
+   obviously wrong one. Amber is what every reader already reads as "found". */
+::highlight(od-search) {
+  background-color: rgb(255 214 0 / 0.42);
+  color: inherit;
+}
+::highlight(od-search-active) {
+  background-color: rgb(255 138 0 / 0.62);
+  color: inherit;
+}

@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "id": "f-88967a28",
+      "name": "Quarterly",
+      "icon": {
+        "type": "emoji",
+        "value": "📊"
+      }
+    }
+  ],
+  "assignments": {
+    "q3-infra-review": "f-88967a28"
+  }
+}

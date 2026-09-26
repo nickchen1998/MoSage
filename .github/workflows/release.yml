@@ -1,89 +1,50 @@
 name: Release
 
-# Publish to npm in either of two ways:
-#   1. Push a version tag:
-#        npm version patch        # or minor / major — bumps package.json and tags
-#        git push --follow-tags
-#   2. Actions → Release → Run workflow on main with "dry-run" unchecked:
-#      publishes the version in package.json, then creates its v* tag and
-#      GitHub release.
-#
-# Authentication: npm trusted publishing (OIDC, no secret needed) once it is
-# configured on npmjs.com; until then the NPM_TOKEN repository secret.
-
 on:
   push:
-    tags: ['v*.*.*']
-  workflow_dispatch:
-    inputs:
-      dry-run:
-        description: Run every step but do not publish
-        type: boolean
-        default: true
+    branches: [main]
 
-permissions:
-  contents: write # create the GitHub release
-  id-token: write # npm provenance + trusted publishing
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  publish:
+  release:
+    name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - name: Checkout
+        uses: actions/checkout@v7
         with:
-          node-version: 22
-          cache: npm
-          registry-url: https://registry.npmjs.org
-      # Trusted publishing needs npm >= 11.5.1.
-      - run: npm install -g npm@latest
-      - run: npm ci
+          fetch-depth: 0
 
-      - name: Tag matches package.json version
-        if: github.event_name == 'push'
-        run: |
-          VERSION="v$(node -p "require('./package.json').version")"
-          if [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
-            exit 1
-          fi
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
 
-      - run: npm run check
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
-      - run: npm run test:e2e
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
 
-      - name: Version not published yet (manual run)
-        if: github.event_name == 'workflow_dispatch' && !inputs.dry-run
-        run: |
-          NAME=$(node -p "require('./package.json').name")
-          VERSION=$(node -p "require('./package.json').version")
-          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
-            echo "::error::$NAME@$VERSION is already on npm — bump the version first (npm version patch)"
-            exit 1
-          fi
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@11
 
-      - name: Publish to npm
-        if: github.event_name == 'push' || !inputs.dry-run
-        run: npm publish --provenance --access public
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          # v2 renamed every input; the v1 names are silently ignored.
+          version-script: pnpm version-packages
+          publish-script: pnpm release
+          commit-message: "chore: release packages"
+          pr-title: "chore: release packages"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Dry run
-        if: github.event_name == 'workflow_dispatch' && inputs.dry-run
-        run: npm publish --dry-run --access public
-
-      - name: GitHub release (tag push)
-        if: github.event_name == 'push'
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: GitHub release and tag (manual run)
-        if: github.event_name == 'workflow_dispatch' && !inputs.dry-run
-        run: |
-          VERSION="v$(node -p "require('./package.json').version")"
-          gh release create "$VERSION" --target "$GITHUB_SHA" --generate-notes
-        env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

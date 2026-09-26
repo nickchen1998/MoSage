@@ -1,90 +1,34 @@
 {
-  "name": "mosage",
-  "version": "0.1.0",
-  "description": "和 AI 一起寫書的本機寫作平台：Markdown 章節、書本排版預覽、留言給 AI、一鍵匯出 Word。",
-  "type": "module",
-  "bin": {
-    "mosage": "dist/cli.js"
-  },
-  "files": [
-    "dist",
-    "template",
-    "skills",
-    "README.md",
-    "README.en.md"
-  ],
+  "name": "open-doc-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
-    "build": "npm run build:web && npm run build:cli",
-    "build:cli": "tsup",
-    "build:web": "vite build",
-    "dev:web": "vite",
-    "typecheck": "tsc --noEmit",
+    "dev": "turbo run dev",
+    "dev:demo": "turbo run dev --filter=demo",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepack": "npm run build",
-    "test:e2e": "node scripts/e2e.mjs",
-    "dev:cli": "tsx src/cli/index.ts"
-  },
-  "engines": {
-    "node": ">=20.19"
-  },
-  "keywords": [
-    "book",
-    "writing",
-    "ai",
-    "markdown",
-    "docx",
-    "word",
-    "claude-code",
-    "agent"
-  ],
-  "license": "MIT",
-  "author": "CHENBOHAN",
-  "homepage": "https://github.com/nickchen1998/MoSage",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nickchen1998/MoSage.git"
-  },
-  "bugs": {
-    "url": "https://github.com/nickchen1998/MoSage/issues"
-  },
-  "dependencies": {
-    "chokidar": "^4.0.3",
-    "diff": "^9.0.0",
-    "docx": "^9.7.2",
-    "image-size": "^2.0.4",
-    "mammoth": "^1.12.3",
-    "rehype-stringify": "^10.0.1",
-    "remark-frontmatter": "^5.0.0",
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-rehype": "^11.1.2",
-    "turndown": "^7.2.4",
-    "turndown-plugin-gfm": "^1.0.2",
-    "unified": "^11.0.5",
-    "yaml": "^2.9.1"
+    "test:e2e": "pnpm --filter @open-document/core test:e2e",
+    "core": "pnpm --filter @open-document/core",
+    "cli": "pnpm --filter @open-document/cli",
+    "mcp": "pnpm --filter @open-document/mcp",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build --filter=@open-document/core --filter=@open-document/cli --filter=@open-document/mcp && changeset publish"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.14",
-    "@codemirror/lang-markdown": "^6.5.2",
-    "@codemirror/lang-yaml": "^6.1.3",
-    "@codemirror/language": "^6.12.4",
-    "@lezer/highlight": "^1.2.4",
-    "@types/mdast": "^4.0.4",
-    "@types/node": "^22.20.4",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@types/turndown": "^5.0.6",
-    "@vitejs/plugin-react": "^6.1.1",
-    "codemirror": "^6.0.2",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "tsup": "^8.5.1",
-    "tsx": "^4.23.15",
-    "typescript": "~5.9.3",
-    "vite": "^8.3.1",
-    "vitest": "^5.0.2"
+    "@biomejs/biome": "2.5.7",
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^3.0.0",
+    "turbo": "^2.10.8",
+    "vitest": "^2.1.9"
   }
 }
