@@ -56,8 +56,10 @@ async function main() {
   const packed = JSON.parse(
     run('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', work], ROOT),
   );
-  const tarball = join(work, packed[0].filename);
-  const files = packed[0].files.map((f) => f.path);
+  // npm ≤ 11 prints an array, npm 12 an object keyed by package name.
+  const info = Array.isArray(packed) ? packed[0] : Object.values(packed)[0];
+  const tarball = join(work, info.filename);
+  const files = info.files.map((f) => f.path);
   check('tarball has the CLI', files.includes('dist/cli.js'));
   check('tarball has the web UI', files.includes('dist/web/index.html'));
   check('tarball has templates', files.includes('template/project/mosage.yaml'));
