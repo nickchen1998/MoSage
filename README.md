@@ -2,7 +2,7 @@
   <img src=".github/assets/mosage-viewer.png" alt="MoSage 的文件檢視器：左側是大綱，中間以雙頁對開顯示實際尺寸的 A4 頁面" width="100%">
 </p>
 
-# MoSage
+# MoSage 墨閣
 
 [![CI](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml/badge.svg)](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/mosage?style=flat)](https://www.npmjs.com/package/mosage)
@@ -80,7 +80,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 
 ### 交件前先檢查
 
-`mosage check` 會以實際尺寸渲染每一頁，列出超出紙張的內容、空白頁、落在頁尾的標題、太小的字、讀不到的圖片，並附上原始碼的行號；
+`mosage check` 會以實際尺寸渲染每一頁，列出超出紙張的內容、空白頁、落在頁尾的標題、太小的字、讀不到的圖片、找不到對象的交互參照，並附上原始碼的行號；
 發現錯誤時以非零狀態結束，可以直接放進 CI。
 
 ### 匯出
@@ -126,7 +126,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `mosage images` | 列出等待生成的 `<ImagePrompt>`（`--json` 給 AI 讀） |
 | `mosage images generate` | 用 OpenAI API 生成圖片（`--doc`、`--id`） |
 | `mosage images place <文件> [id]` | 把已存好的圖片換進頁面（Codex 畫完圖後使用） |
-| `mosage upgrade` | 更新到最新版，並同步 React 版本與 skills |
+| `mosage upgrade` | 更新到最新版，並同步 React、Vite 版本與 skills |
 | `mosage build` / `mosage preview` | 輸出與預覽靜態網站 |
 | `mosage sync:skills` | 更新專案裡的 AI skills |
 

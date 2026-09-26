@@ -9,3 +9,4 @@
 - 文件檢視器移除全螢幕模式、「符合頁面」與「實際大小」按鈕（點百分比仍可回到 100%）
 - 下載選單的「This page」改為「Current」，選項後不再顯示頁數，下方說明改為具體列出要下載的頁面
 - `mosage init` 的 `AGENTS.md` 更新：拿掉已移除的 HTML 匯出與「預設 A4」的說法，補上 `create-theme`、`apply-comments`、`generate-images` 三個 skills、`check`／`export`／`images` 指令與目前的檢視器功能
+- 套件說明與 README 加上中文名稱「墨閣」

@@ -1,6 +1,6 @@
 # MoSage 開發指引
 
-這個 repo 是 MoSage 框架本身：發佈到 npm 的 `mosage` 套件，包含檢視器、Vite 外掛、CLI、專案範本與 skills。
+這個 repo 是 MoSage（墨閣）框架本身：發佈到 npm 的 `mosage` 套件，包含檢視器、Vite 外掛、CLI、專案範本與 skills。
 在使用者專案裡撰寫文件的規範不在這裡，而在 `packages/core/skills/` 的 `create-doc`、`doc-authoring` 等 skills——那些是給 `docs/` 底下的檔案用的，不是給框架用的。
 
 ## 結構

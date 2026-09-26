@@ -1,6 +1,6 @@
 # 我的文件
 
-這個資料夾是一個 [MoSage](https://github.com/nickchen1998/MoSage) 專案：用 AI 寫文件，在瀏覽器裡預覽成真實的紙張，最後匯出 PDF 或 Word。
+這個資料夾是一個 [MoSage（墨閣）](https://github.com/nickchen1998/MoSage) 專案：用 AI 寫文件，在瀏覽器裡預覽成真實的紙張，最後匯出 PDF 或 Word。
 
 ## 開始
 
