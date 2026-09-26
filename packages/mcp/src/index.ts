@@ -7,10 +7,10 @@ import {
   McpServer,
   originValidationResponse,
 } from '@modelcontextprotocol/server';
-import { type ApiContext, makeContext } from '@open-document/core/ops';
+import { type ApiContext, makeContext } from 'mosage-core/ops';
 import { registerTools } from './tools.ts';
 
-export type OpenDocMcpOptions = {
+export type MoSageMcpOptions = {
   /** The workspace root — the directory holding `docs/`. */
   userCwd: string;
   docsDir?: string;
@@ -28,7 +28,7 @@ export type OpenDocMcpOptions = {
   allowedHosts?: string[];
 };
 
-function contextFor(opts: OpenDocMcpOptions): ApiContext {
+function contextFor(opts: MoSageMcpOptions): ApiContext {
   return makeContext({
     userCwd: opts.userCwd,
     docsDir: opts.docsDir,
@@ -44,20 +44,20 @@ function contextFor(opts: OpenDocMcpOptions): ApiContext {
  * 2026-07-28 revision expects, and what lets any client connect without a
  * session handshake.
  */
-export function createOpenDocMcpServer(opts: OpenDocMcpOptions): McpServer {
+export function createMoSageMcpServer(opts: MoSageMcpOptions): McpServer {
   const server = new McpServer({
-    name: 'open-doc',
+    name: 'mosage',
     version: opts.version ?? '0.0.0',
-    title: 'open-doc',
+    title: 'MoSage',
   });
   registerTools(server, contextFor(opts));
   return server;
 }
 
-export function createOpenDocMcpHandler(opts: OpenDocMcpOptions) {
+export function createMoSageMcpHandler(opts: MoSageMcpOptions) {
   const allowedHostnames = [...localhostAllowedHostnames(), ...(opts.allowedHosts ?? [])];
   const allowedOrigins = [...localhostAllowedOrigins(), ...(opts.allowedHosts ?? [])];
-  const handler = createMcpHandler(() => createOpenDocMcpServer(opts));
+  const handler = createMcpHandler(() => createMoSageMcpServer(opts));
 
   return {
     ...handler,
@@ -77,6 +77,6 @@ export function createOpenDocMcpHandler(opts: OpenDocMcpOptions) {
 }
 
 /** Connect/Express-style middleware, for mounting on the dev server. */
-export function createOpenDocMcpMiddleware(opts: OpenDocMcpOptions) {
-  return toNodeHandler(createOpenDocMcpHandler(opts));
+export function createMoSageMcpMiddleware(opts: MoSageMcpOptions) {
+  return toNodeHandler(createMoSageMcpHandler(opts));
 }

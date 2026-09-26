@@ -79,7 +79,7 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
 
   if (!interactive) {
     process.stderr.write(
-      `${chalk.yellow('!')} Skills out of date (${names}). Run \`open-doc sync:skills\` to update.\n`,
+      `${chalk.yellow('!')} Skills out of date (${names}). Run \`mosage sync:skills\` to update.\n`,
     );
     return;
   }
@@ -96,7 +96,7 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
     if (answer === '' || answer === 'y' || answer === 'yes') {
       await syncSkills(skillsDir);
     } else {
-      process.stdout.write(chalk.dim('Skipped. Run `open-doc sync:skills` later to update.\n'));
+      process.stdout.write(chalk.dim('Skipped. Run `mosage sync:skills` later to update.\n'));
     }
   } finally {
     rl.close();
@@ -108,11 +108,11 @@ export async function run(argv: string[]): Promise<void> {
 
   const program = new Command();
   program
-    .name('open-doc')
+    .name('mosage')
     .description('Author documents — we handle the Vite/React stack, pagination, and export.')
     .version(version, '-v, --version', 'print version')
     .helpOption('-h, --help', 'show help')
-    .showHelpAfterError(chalk.dim('(run `open-doc --help` for usage)'));
+    .showHelpAfterError(chalk.dim('(run `mosage --help` for usage)'));
 
   program
     .command('dev')
@@ -121,7 +121,7 @@ export async function run(argv: string[]): Promise<void> {
     .addOption(new Option('--host [host]', 'expose on the network (optional host)'))
     .option('--open', 'open the browser on start')
     .option('--no-skills-check', 'skip the built-in skills drift check')
-    .option('--mcp', 'serve an MCP endpoint at /mcp (requires @open-document/mcp)')
+    .option('--mcp', 'serve an MCP endpoint at /mcp (requires mosage-mcp)')
     .action(async (flags: DevFlags) => {
       if (flags.skillsCheck !== false) {
         await runSkillsDriftCheck(resolveBuiltinSkillsDir());
@@ -189,7 +189,7 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('sync:skills')
-    .description('Sync built-in skills from @open-document/core into this workspace')
+    .description('Sync built-in skills from mosage-core into this workspace')
     .option('--dry-run', 'show what would change without writing')
     .action(async (flags: SyncFlags) => {
       const { syncSkills } = await import('./sync.ts');

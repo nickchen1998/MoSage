@@ -199,7 +199,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
   // element" for an agent. Clearing the selection clears it there too.
   useEffect(() => {
     if (!import.meta.hot) return;
-    import.meta.hot.send('open-doc:current', {
+    import.meta.hot.send('mosage:current', {
       selection: selected
         ? {
             line: selected.line,

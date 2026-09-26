@@ -1,6 +1,6 @@
 ---
 name: print-layout-review
-description: Reviews page layout, typography, and pagination code in open-doc against a print craft bar — the sheet is the deliverable, not the screen. Use when reviewing changes to the flow packer, page geometry, the design system, themes, the exporters, or any document page that has to survive a printer. Default to flagging; approval is earned.
+description: Reviews page layout, typography, and pagination code in MoSage against a print craft bar — the sheet is the deliverable, not the screen. Use when reviewing changes to the flow packer, page geometry, the design system, themes, the exporters, or any document page that has to survive a printer. Default to flagging; approval is earned.
 ---
 
 # Reviewing print layout

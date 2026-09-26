@@ -411,7 +411,7 @@ export function generateDocumentSource(
 
   const head = [
     `import type { ReactNode } from 'react';`,
-    `import {\n${runtimeImports.map((name) => `  ${name},`).join('\n')}\n} from '@open-document/core';`,
+    `import {\n${runtimeImports.map((name) => `  ${name},`).join('\n')}\n} from 'mosage-core';`,
     ...imports.map((image) => `import ${image.ident} from './assets/${image.filename}';`),
   ].join('\n');
 

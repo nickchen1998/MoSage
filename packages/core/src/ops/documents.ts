@@ -9,7 +9,7 @@ import {
   validateDocTitle,
 } from '../editing/doc-ops.ts';
 import { readManifest, writeManifest } from '../files/folders.ts';
-import { DOC_ID_RE } from '../vite/open-doc-plugin.ts';
+import { DOC_ID_RE } from '../vite/mosage-plugin.ts';
 import type { ApiContext } from '../vite/routes/context.ts';
 
 /**

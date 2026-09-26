@@ -29,11 +29,11 @@ import {
   writeAsset,
   writeDocument,
   writeText,
-} from '@open-document/core/ops';
+} from 'mosage-core/ops';
 import { z } from 'zod';
 
 /**
- * Every tool is a thin wrapper over `@open-document/core/ops` — the same functions
+ * Every tool is a thin wrapper over `mosage-core/ops` — the same functions
  * the dev server calls for the browser. An agent and a person editing the same
  * workspace therefore go through one implementation, including its conflict
  * checks.

@@ -39,7 +39,7 @@ export type McpPluginOptions = ApiPluginOptions & {
 };
 
 /**
- * Mounts `@open-document/mcp` on the dev server so an agent and the browser act on
+ * Mounts `mosage-mcp` on the dev server so an agent and the browser act on
  * one workspace — a tool call lands on disk and the page hot-reloads.
  *
  * The package is imported dynamically and is *not* a dependency of core: the
@@ -49,24 +49,22 @@ export type McpPluginOptions = ApiPluginOptions & {
 export function mcpPlugin(opts: McpPluginOptions): Plugin {
   const endpoint = opts.endpoint ?? '/mcp';
   return {
-    name: 'open-doc:mcp',
+    name: 'mosage:mcp',
     apply: 'serve',
     async configureServer(server) {
-      let mod: { createOpenDocMcpMiddleware: (o: unknown) => Middleware };
+      let mod: { createMoSageMcpMiddleware: (o: unknown) => Middleware };
       try {
         // Resolved from the user's workspace, not from core's own location: the
         // package is installed by whoever opted into the endpoint, and under
         // pnpm's strict layout core cannot see a sibling it does not depend on.
         // The specifier stays a variable either way, so core takes no
         // build-time dependency on a package whose peer is core.
-        const specifier = '@open-document/mcp';
+        const specifier = 'mosage-mcp';
         const entry = resolveEsmEntry(opts.userCwd, specifier);
         mod = (await import(entry ? pathToFileURL(entry).href : specifier)) as typeof mod;
       } catch {
         server.config.logger.warn(
-          chalk.yellow(
-            '  MCP endpoint disabled — run `pnpm add -D @open-document/mcp` to enable it.\n',
-          ),
+          chalk.yellow('  MCP endpoint disabled — run `pnpm add -D mosage-mcp` to enable it.\n'),
         );
         return;
       }
@@ -80,7 +78,7 @@ export function mcpPlugin(opts: McpPluginOptions): Plugin {
       // want the server's own URL, and nothing is listening yet at config time.
       let middleware: Middleware | undefined;
       server.middlewares.use(endpoint, (req, res, next) => {
-        middleware ??= mod.createOpenDocMcpMiddleware({
+        middleware ??= mod.createMoSageMcpMiddleware({
           userCwd: opts.userCwd,
           docsDir: opts.docsDir,
           assetsDir: opts.assetsDir,

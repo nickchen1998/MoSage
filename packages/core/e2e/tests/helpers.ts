@@ -67,7 +67,7 @@ export async function refreshDocsModule(expectedDocId: string): Promise<void> {
   await expect
     .poll(
       async () => {
-        const res = await fetch(`${devServerUrl}/@id/__x00__virtual:open-doc/docs`);
+        const res = await fetch(`${devServerUrl}/@id/__x00__virtual:mosage/docs`);
         return res.ok ? await res.text() : '';
       },
       { timeout: 15_000 },
@@ -120,7 +120,7 @@ export function runCli(args: string[], cwd: string, timeoutMs = 180_000): Promis
     });
     const timer = setTimeout(() => {
       child.kill('SIGKILL');
-      reject(new Error(`open-doc ${args.join(' ')} timed out after ${timeoutMs}ms\n${stderr}`));
+      reject(new Error(`mosage ${args.join(' ')} timed out after ${timeoutMs}ms\n${stderr}`));
     }, timeoutMs);
     child.on('error', (err) => {
       clearTimeout(timer);

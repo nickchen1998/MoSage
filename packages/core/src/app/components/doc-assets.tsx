@@ -35,9 +35,9 @@ export function DocAssets({ docId }: { docId: string }) {
     void load();
     if (!import.meta.hot) return;
     const handler = () => void load();
-    import.meta.hot.on('open-doc:files-changed', handler);
+    import.meta.hot.on('mosage:files-changed', handler);
     return () => {
-      import.meta.hot?.off('open-doc:files-changed', handler);
+      import.meta.hot?.off('mosage:files-changed', handler);
     };
   }, [load]);
 

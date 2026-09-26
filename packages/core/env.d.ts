@@ -4,7 +4,7 @@
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["@open-document/core/env"] } }
+//   { "compilerOptions": { "types": ["mosage-core/env"] } }
 
 declare module '*.svg' {
   const src: string;
@@ -51,7 +51,7 @@ declare module '*.otf' {
   export default src;
 }
 
-// Parsed by the `open-doc:data` Vite plugin — the default export is the rows.
+// Parsed by the `mosage:data` Vite plugin — the default export is the rows.
 declare module '*.csv' {
   type CellValue = string | number | null;
   export const columns: string[];
@@ -65,7 +65,7 @@ declare module '*.tsv' {
   export default rows;
 }
 
-// Compiled by the `open-doc:diagram` Vite plugin — the default export is the
+// Compiled by the `mosage:diagram` Vite plugin — the default export is the
 // themed SVG and its natural size, ready for `<Diagram chart={…} />`.
 declare module '*.mmd' {
   export const svg: string;

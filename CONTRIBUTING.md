@@ -1,6 +1,6 @@
-# Contributing to open-doc
+# Contributing to MoSage
 
-Thanks for your interest in improving open-doc! This guide covers the workflow for contributing to the framework itself — the `@open-document/core` runtime, the `@open-document/cli` scaffolder, the `@open-document/mcp` server, and the demo app.
+Thanks for your interest in improving MoSage! This guide covers the workflow for contributing to the framework itself — the `mosage-core` runtime, the `mosage` scaffolder, the `mosage-mcp` server, and the demo app.
 
 If you're authoring documents inside a scaffolded project, you don't need this file — drive your report through your coding agent or edit `docs/<id>/index.tsx` directly.
 
@@ -8,7 +8,7 @@ If you're authoring documents inside a scaffolded project, you don't need this f
 
 - **Report a bug** via the [bug report template](./.github/ISSUE_TEMPLATE/bug_report.yml). Include a minimal reproduction.
 - **Propose a feature** via the [feature request template](./.github/ISSUE_TEMPLATE/feature_request.yml). Describe the problem before the solution.
-- **Ask a question or share what you're building** in [GitHub Discussions](https://github.com/simonliu-ai-product/open-doc/discussions).
+- **Ask a question or share what you're building** in [GitHub Discussions](https://github.com/nickchen1998/MoSage/discussions).
 - **Send a pull request** — see below.
 
 For non-trivial changes, please open an issue or discussion first so we can align on direction before you invest the time.
@@ -19,10 +19,10 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| [`packages/core`](packages/core) | `@open-document/core` | Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML export), Vite plugins, dev API, `open-doc` dev/build CLI, canonical skills. |
-| [`packages/cli`](packages/cli) | `@open-document/cli` | `npx @open-document/cli init` scaffolder + project template. |
-| [`packages/mcp`](packages/mcp) | `@open-document/mcp` | MCP server exposing the `ops` layer over Streamable HTTP. Opt-in; mounted at `/mcp` by `open-doc dev --mcp`. |
-| [`apps/demo`](apps/demo) | private | Local consumer of `@open-document/core` via `workspace:*`. The dogfood target for the framework. |
+| [`packages/core`](packages/core) | `mosage-core` | Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML export), Vite plugins, dev API, `mosage` dev/build CLI, canonical skills. |
+| [`packages/cli`](packages/cli) | `mosage` | `npx mosage init` scaffolder + project template. |
+| [`packages/mcp`](packages/mcp) | `mosage-mcp` | MCP server exposing the `ops` layer over Streamable HTTP. Opt-in; mounted at `/mcp` by `mosage dev --mcp`. |
+| [`apps/demo`](apps/demo) | private | Local consumer of `mosage-core` via `workspace:*`. The dogfood target for the framework. |
 
 ## Prerequisites
 
@@ -32,12 +32,12 @@ pnpm + Turbo monorepo.
 ## Getting set up
 
 ```bash
-git clone https://github.com/simonliu-ai-product/open-doc.git
-cd open-doc
+git clone https://github.com/nickchen1998/MoSage.git
+cd MoSage
 pnpm install
 ```
 
-Then run the demo against the local `@open-document/core`:
+Then run the demo against the local `mosage-core`:
 
 ```bash
 pnpm dev
@@ -111,13 +111,13 @@ pnpm mcp <script>
 ## Testing
 
 - Unit tests run via `pnpm test` (Vitest). Add tests next to the code (`*.test.ts`) when fixing a bug or adding logic that warrants it. Pure logic — the flow packer, the design serializer, path safety — is expected to be covered.
-- End-to-end tests run via `pnpm test:e2e` (Playwright). They build core, boot `open-doc dev` against `packages/core/e2e/fixture`, and cover the browser, the viewer, flow pagination, the inspector, the design panel, the dev API, HTML export, the static build, and the CLI. Anything touching those paths needs its case here. Run `npx playwright install chromium` once before the first run.
+- End-to-end tests run via `pnpm test:e2e` (Playwright). They build core, boot `mosage dev` against `packages/core/e2e/fixture`, and cover the browser, the viewer, flow pagination, the inspector, the design panel, the dev API, HTML export, the static build, and the CLI. Anything touching those paths needs its case here. Run `npx playwright install chromium` once before the first run.
 - For runtime/UI changes, verify the change in `apps/demo` **and in an export** (PDF and HTML), then describe what you exercised in the PR. The viewer and the exporters render the same pages through different paths; a fix that only lands in one of them is incomplete.
 
 ## Releases
 
-Releases are cut through [changesets](https://github.com/changesets/changesets). Landing a changeset on `main` opens (or updates) a "chore: release packages" PR; merging that PR builds `@open-document/core`, `@open-document/cli`, and `@open-document/mcp` and publishes them to npm from CI. Contributors don't need to publish anything — just land the changeset alongside your code.
+Releases are cut through [changesets](https://github.com/changesets/changesets). Landing a changeset on `main` opens (or updates) a "chore: release packages" PR; merging that PR builds `mosage-core`, `mosage`, and `mosage-mcp` and publishes them to npm from CI. Contributors don't need to publish anything — just land the changeset alongside your code.
 
 ## Questions
 
-Open a [discussion](https://github.com/simonliu-ai-product/open-doc/discussions) — happy to help.
+Open a [discussion](https://github.com/nickchen1998/MoSage/discussions) — happy to help.

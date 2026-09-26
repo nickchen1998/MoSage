@@ -1,6 +1,6 @@
 ---
 name: create-theme
-description: Use this skill when the user wants to create, draft, author, or extract a document theme in this open-doc repo — a reusable house style for reports, proposals, or memos. Triggers on phrases like "create a theme", "make a company template", "extract a theme from <doc>", "match our brand guidelines". Produces two paired files under `themes/` — `<id>.md` (palette, typography, page setup, paste-ready Title/Footer/Table components) and `<id>.demo.tsx` (a runnable two-page demo the Themes gallery previews). Do NOT use for editing real documents — only for authoring the theme bundle.
+description: Use this skill when the user wants to create, draft, author, or extract a document theme in this MoSage repo — a reusable house style for reports, proposals, or memos. Triggers on phrases like "create a theme", "make a company template", "extract a theme from <doc>", "match our brand guidelines". Produces two paired files under `themes/` — `<id>.md` (palette, typography, page setup, paste-ready Title/Footer/Table components) and `<id>.demo.tsx` (a runnable two-page demo the Themes gallery previews). Do NOT use for editing real documents — only for authoring the theme bundle.
 ---
 
 # Create a document theme
@@ -145,7 +145,7 @@ Include a callout and a stat component when the theme calls for them.
 A normal document module — **two pages**: a cover and one content page that exercises the theme's headings, body copy, a table, and the running footer.
 
 ```tsx
-import { type DesignSystem, type DocPage, useDocPageCount, useDocPageNumber } from '@open-document/core';
+import { type DesignSystem, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage-core';
 
 export const design: DesignSystem = { /* the same const as in the .md */ };
 

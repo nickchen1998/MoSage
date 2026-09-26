@@ -49,7 +49,7 @@ export {
   PAGE_SIZES,
   resolvePageGeometry,
 } from './app/lib/sdk.ts';
-export type { OpenDocBuildConfig, OpenDocConfig } from './config.ts';
+export type { MoSageBuildConfig, MoSageConfig } from './config.ts';
 export type { CellValue, DelimitedTable } from './data/delimited.ts';
 export { parseDelimited } from './data/delimited.ts';
 export type { CompiledDiagram, CompileOptions } from './diagram/index.ts';

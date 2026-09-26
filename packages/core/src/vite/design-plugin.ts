@@ -230,7 +230,7 @@ function findImports(ast: AstNode): ImportInfo[] {
 
 function ensureDesignSystemImport(source: string, ast: AstNode): string {
   const imports = findImports(ast);
-  const coreImport = imports.find((imp) => imp.source === '@open-document/core');
+  const coreImport = imports.find((imp) => imp.source === 'mosage-core');
   if (coreImport) {
     const hasDesignSystem = coreImport.specifiers.some((spec) => {
       if (spec.type !== 'ImportSpecifier') return false;
@@ -249,7 +249,7 @@ function ensureDesignSystemImport(source: string, ast: AstNode): string {
     return source.slice(0, absoluteBrace) + insertText + source.slice(absoluteBrace);
   }
 
-  const stmt = `import type { DesignSystem } from '@open-document/core';\n`;
+  const stmt = `import type { DesignSystem } from 'mosage-core';\n`;
   if (imports.length > 0) {
     const insertAt = imports[imports.length - 1].node.end;
     const trail = source[insertAt] === '\n' ? '' : '\n';
@@ -313,7 +313,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
   const docsDir = opts.docsDir ?? 'docs';
 
   return {
-    name: 'open-doc:design',
+    name: 'mosage:design',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       server.middlewares.use('/__design', async (req, res, next) => {

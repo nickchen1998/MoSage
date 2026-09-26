@@ -95,7 +95,7 @@ export function collectLabels(root: ParentNode): LabelEntry[] {
 // Shared through globalThis for the same reason as the outline store: the
 // viewer writes from the source copy of this module while a document's
 // `<Figure>` reads from the published bundle.
-const GLOBAL_KEY = '__open_doc_labels_store__';
+const GLOBAL_KEY = '__mosage_labels_store__';
 type LabelStore = { snapshot: LabelSnapshot; listeners: Set<() => void> };
 type GlobalWithStore = typeof globalThis & { [GLOBAL_KEY]?: LabelStore };
 const g = globalThis as GlobalWithStore;

@@ -60,7 +60,7 @@ export async function gitInitAndCommit(target: string): Promise<GitInitResult> {
   for (const [args, label] of [
     [['init'], 'git init'],
     [['add', '-A'], 'git add'],
-    [['commit', '-m', 'chore: init open-doc project'], 'git commit'],
+    [['commit', '-m', 'chore: init MoSage project'], 'git commit'],
   ] as const) {
     const res = await run('git', [...args], target);
     if (res.code !== 0) {

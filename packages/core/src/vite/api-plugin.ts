@@ -7,11 +7,11 @@ import { registerFolderRoutes } from './routes/folders.ts';
 
 export type { ApiPluginOptions };
 
-// All open-doc dev-server endpoints in one plugin. Each file under `routes/`
+// All mosage dev-server endpoints in one plugin. Each file under `routes/`
 // leads with a comment-block manifest of the endpoints it owns.
 export function apiPlugin(opts: ApiPluginOptions): Plugin {
   return {
-    name: 'open-doc:api',
+    name: 'mosage:api',
     apply: 'serve',
     configureServer(server) {
       const ctx = makeContext(opts);

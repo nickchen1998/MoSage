@@ -1,6 +1,6 @@
 ---
 name: apply-comments
-description: Use this skill when the user asks to apply, process, or clear the comments they left in the open-doc inspector — phrases like "apply the comments", "apply my edits", "I left notes on the document", "process the markers", "/apply-comments". It finds every `@doc-comment` marker under `docs/`, makes the edit each one asks for, then removes the marker. Do NOT use for authoring new documents — that is `create-doc`.
+description: Use this skill when the user asks to apply, process, or clear the comments they left in the MoSage inspector — phrases like "apply the comments", "apply my edits", "I left notes on the document", "process the markers", "/apply-comments". It finds every `@doc-comment` marker under `docs/`, makes the edit each one asks for, then removes the marker. Do NOT use for authoring new documents — that is `create-doc`.
 ---
 
 # Apply inspector comments

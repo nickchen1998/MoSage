@@ -3,7 +3,7 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { devScratchDir, openDoc, viewer } from './helpers.ts';
 
-const CURRENT = path.join(devScratchDir, 'node_modules', '.open-doc', 'current.json');
+const CURRENT = path.join(devScratchDir, 'node_modules', '.mosage', 'current.json');
 
 type Current = {
   docId: string;

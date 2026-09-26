@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Plugin, ViteDevServer } from 'vite';
-import { DOC_ID_RE } from './open-doc-plugin.ts';
+import { DOC_ID_RE } from './mosage-plugin.ts';
 
 const TEXT_SNIPPET_MAX = 120;
 
@@ -62,24 +62,24 @@ function parseSelection(raw: unknown): Selection | null {
 }
 
 /**
- * Writes `node_modules/.open-doc/current.json` whenever the viewer navigates or
+ * Writes `node_modules/.mosage/current.json` whenever the viewer navigates or
  * the inspector picks an element, so an agent can resolve "this page" without
  * asking. Dev only — a static build has no cursor to report.
  */
 export function currentPlugin(opts: CurrentPluginOptions): Plugin {
   const userCwd = opts.userCwd;
   const docsDir = opts.docsDir ?? 'docs';
-  const outDir = path.join(userCwd, 'node_modules', '.open-doc');
+  const outDir = path.join(userCwd, 'node_modules', '.mosage');
   const outFile = path.join(outDir, 'current.json');
   const tmpFile = `${outFile}.tmp`;
 
   let cached: Cached | null = null;
 
   return {
-    name: 'open-doc:current',
+    name: 'mosage:current',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      server.ws.on('open-doc:current', async (raw: IncomingPayload) => {
+      server.ws.on('mosage:current', async (raw: IncomingPayload) => {
         const next: Cached = cached
           ? { ...cached }
           : {

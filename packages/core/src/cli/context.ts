@@ -1,4 +1,4 @@
-import { loadUserConfig } from '../vite/open-doc-plugin.ts';
+import { loadUserConfig } from '../vite/mosage-plugin.ts';
 import { type ApiContext, makeContext } from '../vite/routes/context.ts';
 import { readCoreVersion } from './package-version.ts';
 

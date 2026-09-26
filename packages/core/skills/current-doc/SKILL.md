@@ -1,6 +1,6 @@
 ---
 name: current-doc
-description: Resolve which document, page, and (optionally) selected element the user is currently viewing in the open-doc dev server. Consult this whenever the user references "this page", "this document", "this element", "the page I'm on", "the report I'm looking at", or any deictic reference to document content without naming it. Re-read `node_modules/.open-doc/current.json` at the start of every such turn — the user navigates between turns, so a value you read earlier in the conversation is almost certainly stale.
+description: Resolve which document, page, and (optionally) selected element the user is currently viewing in the mosage dev server. Consult this whenever the user references "this page", "this document", "this element", "the page I'm on", "the report I'm looking at", or any deictic reference to document content without naming it. Re-read `node_modules/.mosage/current.json` at the start of every such turn — the user navigates between turns, so a value you read earlier in the conversation is almost certainly stale.
 ---
 
 # Where is the user right now?
@@ -20,7 +20,7 @@ A "continue editing" follow-up is exactly the case where the user has likely jus
 ## How to read it
 
 ```
-node_modules/.open-doc/current.json
+node_modules/.mosage/current.json
 ```
 
 Path is relative to the project root (the user's `cwd`, the directory that contains `docs/` and `package.json`). Use the `Read` tool. The file is JSON.
@@ -100,7 +100,7 @@ A *newer* `updatedAt` than the one you saw last turn is the normal signal that t
 
 User: "tighten the spacing on this page"
 
-1. Read `node_modules/.open-doc/current.json`.
+1. Read `node_modules/.mosage/current.json`.
 2. Check `updatedAt` is recent.
 3. Read `pagePath` (e.g. `docs/q3-review/index.tsx`).
 4. Work out what is on `pageNumber` — by the selection, or by matching visible content, remembering that a flow section spans many sheets.
@@ -112,7 +112,7 @@ If `current.json` is missing or stale, ask: "Which document and page should I ti
 
 User: "make this bigger"
 
-1. Read `node_modules/.open-doc/current.json`.
+1. Read `node_modules/.mosage/current.json`.
 2. If `selection` is non-null, that is the element. Read `pagePath`, jump to `selection.line`, and find the JSX opening tag near that line/column. Confirm against `selection.text` and `tagName`.
 3. Consult `doc-authoring` for the print type scale before editing — a size that looks fine on screen can print below the legibility floor.
 4. Edit the JSX node in place.

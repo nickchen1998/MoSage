@@ -1,15 +1,15 @@
 ---
 name: create-doc
-description: Use this skill when the user wants to create, draft, author, or generate a new document, report, whitepaper, proposal, memo, or spec in this open-doc repo. Triggers on phrases like "write a report about X", "draft a proposal", "make a whitepaper", "create a document", "write up the Q3 results", or when the user asks to add content under `docs/`. Do NOT use for editing the framework itself — only for authoring content inside `docs/<id>/`.
+description: Use this skill when the user wants to create, draft, author, or generate a new document, report, whitepaper, proposal, memo, or spec in this MoSage repo. Triggers on phrases like "write a report about X", "draft a proposal", "make a whitepaper", "create a document", "write up the Q3 results", or when the user asks to add content under `docs/`. Do NOT use for editing the framework itself — only for authoring content inside `docs/<id>/`.
 ---
 
-# Create a document in open-doc
+# Create a document in MoSage
 
 This skill owns the **workflow** for drafting a new document. The technical reference — file contract, page canvas, print type scale, vertical budget, tables, TOC — lives in the **`doc-authoring`** skill. Read it before writing code; don't duplicate its rules here.
 
-You only write files under `docs/<id>/`. Never modify `package.json`, `open-doc.config.ts`, or existing documents.
+You only write files under `docs/<id>/`. Never modify `package.json`, `mosage.config.ts`, or existing documents.
 
-**If the user already has the content written as Markdown, don't retype it into JSX.** `open-doc import <file.md> --id <id>` produces a real document — `flow()` body, cover, contents, local images copied into the document's assets — which you then refine. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
+**If the user already has the content written as Markdown, don't retype it into JSX.** `mosage import <file.md> --id <id>` produces a real document — `flow()` body, cover, contents, local images copied into the document's assets — which you then refine. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
 
 ## Step 0 — Pick a theme
 
@@ -89,7 +89,7 @@ While writing:
 
 ## Step 7 — Self-review
 
-**Run `open-doc check <id>` first.** You cannot see the sheets you produced; it renders them at true page size and reports clipped content, blank pages, stranded headings, and unreadable type, each with a source location. Fix every error before moving on. (Driving the MCP server instead? `check_layout`, and `render_page` when you need to look at a sheet.)
+**Run `mosage check <id>` first.** You cannot see the sheets you produced; it renders them at true page size and reports clipped content, blank pages, stranded headings, and unreadable type, each with a source location. Fix every error before moving on. (Driving the MCP server instead? `check_layout`, and `render_page` when you need to look at a sheet.)
 
 Then run the checklist in `doc-authoring` ("Self-review before finishing"), and re-read the prose once as a reader: does the summary state the conclusion? Does every claim have a source?
 
@@ -100,7 +100,7 @@ Tell the user:
 - The doc id and file path.
 - That the dev server hot-reloads — open `http://localhost:5273/d/<id>` (or refresh the home page).
 - **Every placeholder and `TODO:` you left**, and what data each one needs.
-- That "Export PDF" in the toolbar prints at the true page size, and "HTML" downloads a self-contained copy — or `open-doc export <id>` for the same files without a browser.
+- That "Export PDF" in the toolbar prints at the true page size, and "HTML" downloads a self-contained copy — or `mosage export <id>` for the same files without a browser.
 - That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images they want to drop in go through the **Assets** page.
 
 Don't run the dev server yourself unless asked.

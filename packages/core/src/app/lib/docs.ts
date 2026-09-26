@@ -3,7 +3,7 @@ import {
   docIds as ids,
   loadDoc as load,
   docThemes as themes,
-} from 'virtual:open-doc/docs';
+} from 'virtual:mosage/docs';
 import type { DocModule } from './sdk';
 
 export const docIds: string[] = ids;

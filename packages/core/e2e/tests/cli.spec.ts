@@ -3,7 +3,7 @@ import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { prepareScratchProject, runCli } from './helpers.ts';
 
-test.describe('open-doc CLI', () => {
+test.describe('mosage CLI', () => {
   test('--help lists the commands the docs promise', async () => {
     const res = await runCli(['--help'], prepareScratchProject('cli'));
     expect(res.code).toBe(0);

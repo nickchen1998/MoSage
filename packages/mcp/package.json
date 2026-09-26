@@ -1,7 +1,7 @@
 {
-  "name": "@open-document/mcp",
+  "name": "mosage-mcp",
   "version": "0.3.2",
-  "description": "MCP server for open-doc — lets any agent framework list, read, write, and file documents over Streamable HTTP.",
+  "description": "MCP server for MoSage — lets any agent framework list, read, write, and file documents over Streamable HTTP.",
   "type": "module",
   "exports": {
     ".": {
@@ -30,17 +30,17 @@
   ],
   "license": "MIT",
   "author": {
-    "name": "Simon Liu",
-    "url": "https://github.com/LiuYuWei"
+    "name": "CHENBOHAN",
+    "url": "https://github.com/nickchen1998"
   },
-  "homepage": "https://github.com/simonliu-ai-product/open-doc",
+  "homepage": "https://github.com/nickchen1998/MoSage",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonliu-ai-product/open-doc.git",
+    "url": "git+https://github.com/nickchen1998/MoSage.git",
     "directory": "packages/mcp"
   },
   "bugs": {
-    "url": "https://github.com/simonliu-ai-product/open-doc/issues"
+    "url": "https://github.com/nickchen1998/MoSage/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -51,12 +51,18 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "@open-document/core": "^0.6.0"
+    "mosage-core": "^0.6.0"
   },
   "devDependencies": {
-    "@open-document/core": "workspace:*",
+    "mosage-core": "workspace:*",
     "@types/node": "^22.19.17",
     "tsdown": "^0.22.14",
     "typescript": "^5.9.3"
-  }
+  },
+  "contributors": [
+    {
+      "name": "Simon Liu",
+      "url": "https://github.com/LiuYuWei"
+    }
+  ]
 }

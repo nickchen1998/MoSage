@@ -18,7 +18,7 @@ const DATA_RE = /\.(csv|tsv)$/i;
  */
 export function dataPlugin(): Plugin {
   return {
-    name: 'open-doc:data',
+    name: 'mosage:data',
     enforce: 'pre',
     async load(id) {
       const [file, query] = id.split('?');

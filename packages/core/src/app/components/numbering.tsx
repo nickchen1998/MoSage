@@ -123,7 +123,7 @@ export function Ref({ to, showPage = 'auto', style, className }: RefProps) {
   const here = useDocPageNumber();
 
   if (!entry) {
-    // Visible on the page and reported by `open-doc check`: a reference that
+    // Visible on the page and reported by `mosage check`: a reference that
     // resolves to nothing is a broken document, not a blank space.
     return (
       <span

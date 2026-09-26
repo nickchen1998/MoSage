@@ -35,7 +35,7 @@ type Collector = {
 // Same globalThis treatment as the page context: a document imports the
 // published bundle while the viewer runs the source copy, and a context created
 // twice registers into one instance and reads from the other.
-const GLOBAL_KEY = '__open_doc_footnote_context__';
+const GLOBAL_KEY = '__mosage_footnote_context__';
 type GlobalWithCtx = typeof globalThis & { [GLOBAL_KEY]?: Context<Collector | null> };
 const g = globalThis as GlobalWithCtx;
 if (!g[GLOBAL_KEY]) {

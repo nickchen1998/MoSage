@@ -1,5 +1,5 @@
 ---
-'@open-document/core': minor
+'mosage-core': minor
 ---
 
 Show several pages at once in the viewer, as two-up spreads or a grid.

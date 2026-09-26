@@ -1,4 +1,4 @@
-import { loadThemeDemo as load, themes as raw } from 'virtual:open-doc/themes';
+import { loadThemeDemo as load, themes as raw } from 'virtual:mosage/themes';
 import type { DesignSystem } from './design';
 import type { DocPage } from './sdk';
 

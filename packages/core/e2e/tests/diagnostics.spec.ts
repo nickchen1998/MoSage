@@ -4,7 +4,7 @@ import { deleteDoc, duplicateDoc, openDoc, refreshDocsModule, writeDocSource } f
 type Finding = { page: number; rule: string; severity: string; loc?: string };
 type Report = { pageCount: number; findings: Finding[] };
 
-const FAULTY = `import { type DocMeta, type DocPage, Ref } from '@open-document/core';
+const FAULTY = `import { type DocMeta, type DocPage, Ref } from 'mosage-core';
 
 export const meta: DocMeta = { title: 'Layout faults', createdAt: '2026-01-03T00:00:00.000Z' };
 
@@ -40,7 +40,7 @@ const Small: DocPage = () => (
 export default [Overflowing, Blank, Small] satisfies DocPage[];
 `;
 
-const READY = 'globalThis.__openDoc ? globalThis.__openDoc.status().ready : false';
+const READY = 'globalThis.__mosage ? globalThis.__mosage.status().ready : false';
 
 /**
  * The bridge the headless exporter and `check_layout` drive. Other specs write
@@ -51,7 +51,7 @@ async function diagnose(page: import('@playwright/test').Page): Promise<Report> 
   for (let attempt = 0; ; attempt++) {
     try {
       await page.waitForFunction(READY, undefined, { timeout: 15_000 });
-      return (await page.evaluate('globalThis.__openDoc.diagnose()')) as Report;
+      return (await page.evaluate('globalThis.__mosage.diagnose()')) as Report;
     } catch (err) {
       if (attempt >= 2) throw err;
     }
@@ -69,7 +69,7 @@ test.describe('layout diagnostics', () => {
   test('the bridge only reports ready once the flow packer has run', async ({ page }) => {
     await openDoc(page, 'flow-report');
     await page.waitForFunction(READY, undefined, { timeout: 15_000 });
-    const status = await page.evaluate('globalThis.__openDoc.status()');
+    const status = await page.evaluate('globalThis.__mosage.status()');
     // A flow section that had not been measured would come back as one page.
     expect((status as { ready: boolean; pageCount: number }).ready).toBe(true);
     expect((status as { pageCount: number }).pageCount).toBeGreaterThan(1);

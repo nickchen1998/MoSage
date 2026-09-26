@@ -42,10 +42,10 @@ export function useDocModule(docId: string | undefined): DocState {
     const onChange = (data: unknown) => {
       if (docChangeIncludes(data, docId)) read();
     };
-    import.meta.hot.on('open-doc:doc-changed', onChange);
+    import.meta.hot.on('mosage:doc-changed', onChange);
     return () => {
       cancelled = true;
-      import.meta.hot?.off('open-doc:doc-changed', onChange);
+      import.meta.hot?.off('mosage:doc-changed', onChange);
     };
   }, [docId]);
 

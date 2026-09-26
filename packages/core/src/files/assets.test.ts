@@ -10,8 +10,8 @@ import {
   validateAssetName,
 } from './assets.ts';
 
-const DOCS_ROOT = path.resolve('/tmp/open-doc-fixture/docs');
-const GLOBAL_ROOT = path.resolve('/tmp/open-doc-fixture/assets');
+const DOCS_ROOT = path.resolve('/tmp/mosage-fixture/docs');
+const GLOBAL_ROOT = path.resolve('/tmp/mosage-fixture/assets');
 
 describe('validateAssetName', () => {
   it('accepts an ordinary file name', () => {

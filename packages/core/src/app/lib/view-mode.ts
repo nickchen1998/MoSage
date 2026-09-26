@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from 'react';
 export const VIEW_MODES = ['continuous', 'two-up', 'grid'] as const;
 export type ViewMode = (typeof VIEW_MODES)[number];
 
-const STORAGE_PREFIX = 'open-doc:view-mode:';
+const STORAGE_PREFIX = 'mosage:view-mode:';
 
 function isViewMode(value: unknown): value is ViewMode {
   return VIEW_MODES.some((mode) => mode === value);

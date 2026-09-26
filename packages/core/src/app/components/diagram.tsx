@@ -19,7 +19,7 @@ export type DiagramProps = {
   /**
    * Drawn width in CSS px. Defaults to the diagram's natural size, capped to
    * the column — a diagram wider than the text block is a layout fault, and
-   * `open-doc check` would report it as one.
+   * `mosage check` would report it as one.
    */
   width?: number;
   align?: 'left' | 'center';

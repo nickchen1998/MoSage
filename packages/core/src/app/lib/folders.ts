@@ -1,4 +1,4 @@
-import buildManifest from 'virtual:open-doc/folders';
+import buildManifest from 'virtual:mosage/folders';
 import { useCallback, useEffect, useState } from 'react';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
@@ -76,9 +76,9 @@ export function useFolders(): UseFoldersResult {
     const handler = () => {
       refresh().catch(() => {});
     };
-    import.meta.hot.on('open-doc:files-changed', handler);
+    import.meta.hot.on('mosage:files-changed', handler);
     return () => {
-      import.meta.hot?.off('open-doc:files-changed', handler);
+      import.meta.hot?.off('mosage:files-changed', handler);
     };
   }, [refresh]);
 

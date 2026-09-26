@@ -10,7 +10,7 @@ import {
   ListOfFigures,
   ListOfTables,
   Ref,
-} from '@open-document/core';
+} from 'mosage-core';
 import type { CSSProperties } from 'react';
 import rows from './data/rows.csv';
 

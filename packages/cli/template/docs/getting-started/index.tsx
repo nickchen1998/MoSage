@@ -5,7 +5,7 @@ import {
   TableOfContents,
   useDocPageCount,
   useDocPageNumber,
-} from '@open-document/core';
+} from 'mosage-core';
 import type { CSSProperties, ReactNode } from 'react';
 
 export const design: DesignSystem = {
@@ -95,7 +95,7 @@ const Footer = () => {
         paddingTop: 8,
       }}
     >
-      <span>Getting started with open-doc</span>
+      <span>Getting started with MoSage</span>
       <span style={{ fontVariantNumeric: 'tabular-nums' }}>
         {n} / {total}
       </span>
@@ -114,7 +114,7 @@ const Cover: DocPage = () => (
         margin: '0 0 16px',
       }}
     >
-      open-doc
+      mosage
     </p>
     <h1
       data-od-outline="skip"
@@ -195,7 +195,7 @@ const Authoring: DocPage = () => (
       and <code>useDocPageCount()</code>; never hardcode them.
     </p>
 
-    <Code>{`import { useDocPageNumber, useDocPageCount } from '@open-document/core';
+    <Code>{`import { useDocPageNumber, useDocPageCount } from 'mosage-core';
 
 const Footer = () => {
   const n = useDocPageNumber();
@@ -222,7 +222,7 @@ const Footer = () => {
 
 export const meta: DocMeta = {
   title: 'Getting started',
-  subtitle: 'A tour of open-doc',
+  subtitle: 'A tour of MoSage',
   pageSize: 'A4',
   createdAt: '2026-08-15T13:44:40.268Z',
 };

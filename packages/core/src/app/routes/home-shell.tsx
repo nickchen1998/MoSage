@@ -127,7 +127,7 @@ export function HomeShell() {
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-canvas">
         <div className="flex items-center justify-between border-border border-b bg-background px-4 py-3 md:hidden">
-          <h1 className="font-semibold text-base tracking-tight">open-doc</h1>
+          <h1 className="font-semibold text-base tracking-tight">MoSage</h1>
           <div className="-mr-1 flex items-center gap-0.5">
             <ThemeToggle />
             <Menu

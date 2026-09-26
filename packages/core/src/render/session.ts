@@ -151,7 +151,7 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
 
       try {
         await page.waitForFunction(
-          'globalThis.__openDoc ? globalThis.__openDoc.status().ready : false',
+          'globalThis.__mosage ? globalThis.__mosage.status().ready : false',
           undefined,
           { timeout },
         );
@@ -161,17 +161,17 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
         throw new Error(`Document "${docId}" never finished rendering.${detail}`);
       }
 
-      const status = await page.evaluate<BridgeStatus>('globalThis.__openDoc.status()');
+      const status = await page.evaluate<BridgeStatus>('globalThis.__mosage.status()');
 
       return {
         status,
-        diagnose: () => page.evaluate<BridgeReport>('globalThis.__openDoc.diagnose()'),
+        diagnose: () => page.evaluate<BridgeReport>('globalThis.__mosage.diagnose()'),
         async pdf() {
-          await page.evaluate('globalThis.__openDoc.preparePrint()');
+          await page.evaluate('globalThis.__mosage.preparePrint()');
           try {
             return await page.pdf({ printBackground: true, preferCSSPageSize: true });
           } finally {
-            await page.evaluate('globalThis.__openDoc.releasePrint()');
+            await page.evaluate('globalThis.__mosage.releasePrint()');
           }
         },
         async screenshot(pageNumber: number) {
@@ -180,7 +180,7 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
               `page ${pageNumber} is out of range — "${docId}" has ${status.pageCount}`,
             );
           }
-          await page.evaluate('globalThis.__openDoc.preparePrint()');
+          await page.evaluate('globalThis.__mosage.preparePrint()');
           // Print media is what lays the copy out at true sheet size and hides
           // the viewer chrome, so the shot matches the PDF rather than the app.
           await page.emulateMedia({ media: 'print' });
@@ -190,11 +190,11 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
             return await sheet.screenshot({ type: 'png' });
           } finally {
             await page.emulateMedia({ media: null });
-            await page.evaluate('globalThis.__openDoc.releasePrint()');
+            await page.evaluate('globalThis.__mosage.releasePrint()');
           }
         },
-        html: () => page.evaluate<BridgeBundle | null>('globalThis.__openDoc.htmlBundle()'),
-        docx: () => page.evaluate<BridgeBundle | null>('globalThis.__openDoc.docxBundle()'),
+        html: () => page.evaluate<BridgeBundle | null>('globalThis.__mosage.htmlBundle()'),
+        docx: () => page.evaluate<BridgeBundle | null>('globalThis.__mosage.docxBundle()'),
         close: () => page.close(),
       };
     },

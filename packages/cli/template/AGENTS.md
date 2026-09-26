@@ -1,11 +1,11 @@
-# open-doc workspace
+# MoSage workspace
 
 You author **documents** here — reports, proposals, whitepapers, memos. Each document is a folder under `docs/` with one `index.tsx` that exports an array of page components. Every page is one printed sheet (A4 by default).
 
 ## Rules
 
-- Write only inside `docs/<id>/`. Don't touch `package.json`, `open-doc.config.ts`, or other documents.
-- No new dependencies. Only `react`, `@open-document/core`, and standard web APIs are available.
+- Write only inside `docs/<id>/`. Don't touch `package.json`, `mosage.config.ts`, or other documents.
+- No new dependencies. Only `react`, `mosage-core`, and standard web APIs are available.
 - A document is one `index.tsx` plus an optional `assets/` folder. No sibling components files.
 
 ## Skills
@@ -14,7 +14,7 @@ You author **documents** here — reports, proposals, whitepapers, memos. Each d
 | --- | --- |
 | `create-doc` | Drafting a new document end to end — scoping questions, page plan, then the file. |
 | `doc-authoring` | The technical reference: file contract, page canvas, print type scale, vertical budget, tables, TOC, page numbers. Read before any edit under `docs/`. |
-| `current-doc` | Resolving "this page" / "this element" — reads the cursor the dev server writes to `node_modules/.open-doc/current.json`. |
+| `current-doc` | Resolving "this page" / "this element" — reads the cursor the dev server writes to `node_modules/.mosage/current.json`. |
 
 ## Commands
 

@@ -26,7 +26,7 @@ importers:
 
   apps/demo:
     dependencies:
-      '@open-document/core':
+      mosage-core:
         specifier: workspace:*
         version: link:../../packages/core
       react:
@@ -146,7 +146,7 @@ importers:
 
   packages/core/e2e/fixture:
     dependencies:
-      '@open-document/core':
+      mosage-core:
         specifier: workspace:*
         version: link:../..
       react:
@@ -175,12 +175,12 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
-      '@open-document/core':
-        specifier: workspace:*
-        version: link:../core
       '@types/node':
         specifier: ^22.19.17
         version: 22.20.1
+      mosage-core:
+        specifier: workspace:*
+        version: link:../core
       tsdown:
         specifier: ^0.22.14
         version: 0.22.14(typescript@5.9.3)
