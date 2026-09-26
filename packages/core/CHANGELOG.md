@@ -1,5 +1,15 @@
 # mosage
 
+## 0.11.0
+
+### Minor Changes
+
+- [#24](https://github.com/nickchen1998/MoSage/pull/24) [`c9f389f`](https://github.com/nickchen1998/MoSage/commit/c9f389fbcbefd397d1edd3e3fb729f5350732650) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 新專案內建四個主題：函文、會議紀錄、橫式信封、直式信封（信封一頁一個，可從 CSV 批次產生）。主題的 frontmatter 可以寫 `orientation: landscape`，預覽會用 A4 橫式。文件、主題、素材三個頁面拿掉頂端的標題區塊；設定頁的用量只顯示這台電腦所有專案的總計。
+
+### Patch Changes
+
+- [#25](https://github.com/nickchen1998/MoSage/pull/25) [`210ade3`](https://github.com/nickchen1998/MoSage/commit/210ade3dabcecf8a0249228c0e1af6629413c517) Thanks [@nickchen1998](https://github.com/nickchen1998)! - npm 套件說明拿掉已移除的 HTML 匯出。
+
 ## 0.10.0
 
 ### Minor Changes
