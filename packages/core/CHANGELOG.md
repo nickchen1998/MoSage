@@ -1,5 +1,11 @@
 # mosage
 
+## 0.8.0
+
+### Minor Changes
+
+- [#14](https://github.com/nickchen1998/MoSage/pull/14) [`dee10e2`](https://github.com/nickchen1998/MoSage/commit/dee10e2fa2fe5bd80f321212c01f31092f5eecf1) Thanks [@nickchen1998](https://github.com/nickchen1998)! - MoSage 現在是單一套件：`mosage init` 併入主套件（`npx mosage init` 用法不變），專案改為依賴 `mosage`；移除 MCP 伺服器與 `mosage dev --mcp`。
+
 ## 0.7.0
 
 ### Minor Changes
