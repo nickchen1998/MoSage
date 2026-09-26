@@ -415,14 +415,15 @@ export function Doc() {
   // page" from node_modules/.mosage/current.json. See vite/current-plugin.ts.
   useEffect(() => {
     if (!import.meta.hot) return;
-    if (!docId || !doc || pages.length === 0) return;
+    // An unmeasured flow section is one sheet; wait for the real page count.
+    if (!docId || !doc || measuring || pages.length === 0) return;
     import.meta.hot.send('mosage:current', {
       docId,
       pageIndex: currentPage - 1,
       totalPages: pages.length,
       docTitle: doc.meta?.title ?? docId,
     });
-  }, [docId, doc, currentPage, pages.length]);
+  }, [docId, doc, measuring, currentPage, pages.length]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
