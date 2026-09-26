@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { ViteDevServer } from 'vite';
 import {
   applySettingsPatch,
@@ -23,7 +24,7 @@ import { type ApiContext, json, readBody } from './context.ts';
 // PATCH  /__settings              update { imageGeneration: { mode?, model?, quality?, documents? } }
 // PUT    /__settings/openai-key   save the key on this machine { key }
 // DELETE /__settings/openai-key   forget the saved key
-// GET    /__settings/usage        OpenAI image usage: this project, and every project
+// GET    /__settings/usage        OpenAI image usage across every project on this machine
 // GET    /__settings/version      installed and latest mosage version
 
 export const SETTINGS_CHANGED_EVENT = 'mosage:settings-changed';
@@ -87,11 +88,13 @@ export function registerSettingsRoutes(server: ViteDevServer, ctx: ApiContext): 
 
       if (url.pathname === '/usage' && method === 'GET') {
         const all = await readUsage();
-        const project = all.filter((entry) => entry.project === ctx.userCwd);
         return json(res, 200, {
-          project: totalsOf(project),
-          all: totalsOf(all),
-          recent: project.slice(-20).reverse(),
+          totals: totalsOf(all),
+          // The folder name is enough to tell projects apart; full paths stay out of the page.
+          recent: all
+            .slice(-20)
+            .reverse()
+            .map((entry) => ({ ...entry, project: path.basename(entry.project) })),
         });
       }
 

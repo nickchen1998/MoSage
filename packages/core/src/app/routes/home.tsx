@@ -51,26 +51,12 @@ export function Home() {
 
   return (
     <div>
-      <header className="mb-8">
-        <h1 className="font-medium text-lg tracking-tight">{heading}</h1>
-        <p className="mt-1 text-muted-foreground text-sm">
-          {ctx.selectedId === ALL_DOCS_ID ? (
-            <>
-              Every folder under <code className="font-mono">docs/</code> with an{' '}
-              <code className="font-mono">index.tsx</code>.
-            </>
-          ) : ctx.selectedId === DRAFT_ID ? (
-            'Documents that have not been filed into a folder yet.'
-          ) : (
-            `${visibleIds.length} document${visibleIds.length === 1 ? '' : 's'} in this folder.`
-          )}
+      <h1 className="sr-only">{heading}</h1>
+      {error && (
+        <p className="mb-6 rounded-md border border-border bg-background px-3 py-2 text-xs">
+          {error}
         </p>
-        {error && (
-          <p className="mt-3 rounded-md border border-border bg-background px-3 py-2 text-xs">
-            {error}
-          </p>
-        )}
-      </header>
+      )}
 
       {visibleIds.length === 0 ? (
         <div className="py-16 text-center">

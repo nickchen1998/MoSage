@@ -28,6 +28,7 @@ export type ThemeSummary = {
   name: string;
   description?: string;
   pageSize?: string;
+  orientation?: string;
   mode?: string;
   hasDemo: boolean;
 };
@@ -60,6 +61,7 @@ export async function listThemes(ctx: ApiContext, themesDir?: string): Promise<T
       name: fm.name,
       description: fm.description,
       pageSize: fm.pageSize,
+      orientation: fm.orientation,
       mode: fm.mode,
       hasDemo: demoFor(root, id) !== null,
     });

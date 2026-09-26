@@ -48,16 +48,7 @@ export function AssetsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="border-border border-b px-8 py-6">
-        <h1 className="font-medium text-lg tracking-tight">Assets</h1>
-        <p className="mt-1 text-muted-foreground text-sm">
-          Images are filed by chapter under “{KIND_LABEL.image}”; every other file goes to “
-          {KIND_LABEL.reference}”. Uploads are copied into the project — shared files under{' '}
-          <code className="font-mono">assets/</code>, a document's own under{' '}
-          <code className="font-mono">docs/&lt;id&gt;/assets/</code>.
-        </p>
-      </header>
-
+      <h1 className="sr-only">Assets</h1>
       <div className="flex min-h-0 flex-1">
         <nav
           aria-label="Asset folders"

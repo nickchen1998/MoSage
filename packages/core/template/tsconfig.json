@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": ["mosage/env"]
   },
-  "include": ["docs/**/*", "mosage.config.ts"]
+  "include": ["docs/**/*", "themes/**/*", "mosage.config.ts"]
 }

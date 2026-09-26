@@ -12,6 +12,17 @@ npm run dev        # 開啟 http://localhost:5273
 在同一個資料夾開啟 Claude Code 或 Codex，描述你要的文件，例如「幫我寫一份 Q3 營運報告，給主管看，大約 6 頁」。
 AI 會用內建的 `create-doc` skill 先確認主題與資料來源，再規劃頁面、撰寫。
 
+`themes/` 內建四個主題，在檢視器的 **Themes** 頁可以預覽：
+
+| 主題 | 用途 |
+| --- | --- |
+| `tw-official` | 函文：檔號欄、主旨／說明／辦法、正副本與署名 |
+| `tw-meeting-minutes` | 會議紀錄：一至十的固定欄位、案由／說明／決議、決議追蹤表 |
+| `tw-envelope-horizontal` | 橫式信封（A4 橫式，一頁一個信封） |
+| `tw-envelope-vertical` | 直式信封（中式，紅框） |
+
+請 AI 用某個主題寫文件即可，例如「用直式信封主題，照 `收件人.csv` 印信封」。主題只是寫給 AI 看的範本，可以自由修改或刪除。
+
 ## 資料夾
 
 ```
@@ -22,7 +33,7 @@ docs/
       images/      圖片，每個章節一個資料夾
       references/  參考文獻：PDF、資料、筆記等撰寫時參考的檔案
 assets/            多份文件共用的圖片與參考文獻（結構同上）
-themes/            可重複使用的主題（選用）
+themes/            可重複使用的主題：內建函文、會議紀錄、橫式信封、直式信封
 .mosage/           專案設定（AI 生圖方式等），會一起提交
 mosage.config.ts   專案設定
 ```

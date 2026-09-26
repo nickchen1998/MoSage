@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type DocPage, isPageSizeName, resolvePageGeometry } from '../../lib/sdk';
+import { type DocPage, isOrientation, isPageSizeName, resolvePageGeometry } from '../../lib/sdk';
 import { loadThemeDemo, type ThemeDemoModule, type ThemeMeta } from '../../lib/themes';
 import { PageFrame } from '../page-frame';
 
@@ -28,9 +28,10 @@ export function ThemePreview({ theme, width, all = false }: Props) {
     };
   }, [theme.id, theme.hasDemo]);
 
-  const geometry = resolvePageGeometry(
-    isPageSizeName(theme.pageSize) ? { pageSize: theme.pageSize } : undefined,
-  );
+  const geometry = resolvePageGeometry({
+    pageSize: isPageSizeName(theme.pageSize) ? theme.pageSize : undefined,
+    orientation: isOrientation(theme.orientation) ? theme.orientation : undefined,
+  });
   const scale = width / geometry.width;
   const pages = (demo?.default ?? []).filter(
     (entry): entry is DocPage => typeof entry === 'function',

@@ -94,7 +94,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 
 ### 其他
 
-- 主題（themes）管理，文件可以用資料夾分類。
+- 主題（themes）管理，文件可以用資料夾分類。`mosage init` 建立的專案內建函文、會議紀錄、橫式信封、直式信封四個主題。
 - `mosage import notes.md`：把既有的 Markdown 轉成一份文件。
 - `mosage build`：輸出靜態網站，可以直接部署。
 - **自動檢查更新**：`npm run dev` 啟動時會檢查 npm 上有沒有新版；有的話，在終端機輸入 `u` 再按 Enter 就會更新並重新啟動（也可以執行 `npx mosage upgrade`）。

@@ -8,6 +8,7 @@ describe('parseFrontmatter', () => {
 name: "Corporate Neutral"
 description: 'One blue accent'
 pageSize: A4
+orientation: landscape
 mode: light
 ---
 
@@ -20,6 +21,7 @@ Body copy.`,
       name: 'Corporate Neutral',
       description: 'One blue accent',
       pageSize: 'A4',
+      orientation: 'landscape',
       mode: 'light',
     });
     expect(body.startsWith('# Corporate Neutral')).toBe(true);
@@ -37,13 +39,19 @@ describe('generateThemesModule', () => {
   const themes = [
     {
       id: 'with-demo',
-      frontmatter: { name: 'With demo', description: '', pageSize: 'A4', mode: 'light' },
+      frontmatter: {
+        name: 'With demo',
+        description: '',
+        pageSize: 'A4',
+        orientation: '',
+        mode: 'light',
+      },
       body: '# With demo',
       demoAbs: '/tmp/themes/with-demo.demo.tsx',
     },
     {
       id: 'no-demo',
-      frontmatter: { name: 'No demo', description: '', pageSize: '', mode: '' },
+      frontmatter: { name: 'No demo', description: '', pageSize: '', orientation: '', mode: '' },
       body: '# No demo',
       demoAbs: null,
     },
