@@ -1,5 +1,13 @@
 # mosage
 
+## 0.9.0
+
+### Minor Changes
+
+- [#17](https://github.com/nickchen1998/MoSage/pull/17) [`671d1d3`](https://github.com/nickchen1998/MoSage/commit/671d1d328cb4c852e4bb8173fb2c8396f732a80b) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 文件一律使用 A4（可選直式或橫式），不再支援 B4 與 A3；`mosage import` 移除 `--page-size` 選項。舊文件若設定了 B4 或 A3，會自動改以 A4 顯示與匯出。
+
+- [#16](https://github.com/nickchen1998/MoSage/pull/16) [`4223755`](https://github.com/nickchen1998/MoSage/commit/4223755c8085bf5e7f7276629e27af4223904c6c) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 改用 React 19，新專案的範本也同步更新；既有專案升級時，請一併把 `react`、`react-dom`、`@types/react`、`@types/react-dom` 升到 19。範本不再固定舊版的 `vite`，改用 mosage 內建的版本。
+
 ## 0.8.0
 
 ### Minor Changes
