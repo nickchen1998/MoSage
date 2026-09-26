@@ -1,16 +1,12 @@
 {
-  "name": "mosage-core",
+  "name": "mosage",
   "version": "0.7.0",
-  "description": "Runtime and CLI for MoSage — write documents in docs/, we handle the pages, print layout, and export.",
+  "description": "Write documents with your coding agent — MoSage scaffolds the workspace and handles the pages, print layout, and export (PDF, HTML, Word).",
   "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./ops": {
-      "types": "./dist/ops/index.d.ts",
-      "import": "./dist/ops/index.js"
     },
     "./vite": {
       "types": "./dist/vite/index.d.ts",
@@ -29,8 +25,8 @@
     "env.d.ts",
     "src/app",
     "skills",
-    "README.md",
-    "README.zh-TW.md"
+    "template",
+    "README.md"
   ],
   "scripts": {
     "build": "tsdown",
@@ -42,11 +38,15 @@
     "node": ">=18"
   },
   "keywords": [
+    "agent",
     "document",
-    "report",
+    "docx",
     "pdf",
     "react",
-    "vite"
+    "report",
+    "scaffold",
+    "vite",
+    "word"
   ],
   "license": "MIT",
   "author": {
@@ -81,7 +81,8 @@
     "react-router-dom": "^7.18.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.2.1"
+    "vite": "^8.2.1",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@playwright/test": "~1.56.1",
@@ -90,7 +91,8 @@
     "@types/react-dom": "^18.3.1",
     "playwright": "~1.56.1",
     "tsdown": "^0.22.14",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@types/prompts": "^2.4.9"
   },
   "peerDependencies": {
     "playwright": "*"

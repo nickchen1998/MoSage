@@ -10,10 +10,8 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `mosage-core` | Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML export), Vite plugins, dev API, headless render/diagnostics, Markdown import, `mosage` CLI, canonical skills. |
-| `packages/cli` | `mosage` | `npx mosage init` scaffolder + project template. |
-| `packages/mcp` | `mosage-mcp` | MCP server exposing the `ops` layer as tools over Streamable HTTP. Opt-in; mounted at `/mcp` by `mosage dev --mcp`. |
-| `apps/demo` | private | Local consumer of `mosage-core` via `workspace:*`. Dogfood target — `pnpm dev:demo`. |
+| `packages/core` | `mosage` | The one published package. Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML/Word export), Vite plugins, dev API, headless render/diagnostics, Markdown import, the `mosage` CLI (including `init`), the project template in `template/`, canonical skills. |
+| `apps/demo` | private | Local consumer of `mosage` via `workspace:*`. Dogfood target — `pnpm dev:demo`. |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `vitest.config.ts`, `tsconfig` per package.
 
@@ -29,7 +27,7 @@ pnpm test         # vitest
 pnpm test:e2e     # playwright (builds core first, boots the e2e fixture project)
 ```
 
-Filter to one package: `pnpm core <script>` / `pnpm cli <script>` / `pnpm mcp <script>`.
+Run a script in the package: `pnpm core <script>`.
 
 Releases go through changesets: `pnpm changeset` on any PR touching `packages/*`, then CI opens the release PR and publishes on merge. Never bump versions or edit `CHANGELOG.md` by hand.
 
@@ -37,13 +35,12 @@ Releases go through changesets: `pnpm changeset` on any PR touching `packages/*`
 
 ## Architecture notes
 
-- **Two copies of core exist at runtime.** The viewer imports `src/app/**`; a document imports the built `dist` bundle via `mosage-core`. Anything that must be *shared* between them (React context, the outline store) is stashed on `globalThis` — see `src/app/lib/page-context.tsx` and `src/app/lib/outline.ts`. A new shared singleton must follow the same pattern or it will silently split in two.
+- **Two copies of core exist at runtime.** The viewer imports `src/app/**`; a document imports the built `dist` bundle via `mosage`. Anything that must be *shared* between them (React context, the outline store) is stashed on `globalThis` — see `src/app/lib/page-context.tsx` and `src/app/lib/outline.ts`. A new shared singleton must follow the same pattern or it will silently split in two.
 - **Documents are discovered through a virtual module.** `src/vite/mosage-plugin.ts` globs `docs/*/index.{tsx,jsx,ts,js}` and generates `virtual:mosage/docs`, plus a cache-bust token per doc for hot reload.
 - **The outline is a DOM scan, not a parse.** `collectOutline()` walks rendered page frames for headings. The viewer scans after fonts settle; every exporter scans its own offscreen copy before reading it, then restores the previous snapshot.
 - **Two kinds of page entries.** `DocModule.default` is `DocEntry[]`: a component is one fixed sheet, a `flow()` section is continuous content the framework paginates. `lib/flow.ts` holds the pure packer (`paginateBlocks`, unit-tested), `lib/flow-measure.ts` does the offscreen DOM measurement, `lib/use-doc-pages.ts` joins them into the rendered page list that the viewer, the thumbnails, and both exporters all consume. Anything that used to read `doc.default` directly must go through `useDocPages`.
-- **Page geometry is one function, over a closed set of sheets.** `PAGE_SIZE_NAMES` (`app/lib/sdk.ts`) is the single source of truth — A4, JIS B4, A3 — and `PageSizeName` is derived from it, so adding a size means editing one tuple and `PAGE_SIZES`; every boundary that accepts a size (the CLI's `--page-size`, the MCP `import_markdown` schema, `ops/import.ts`) reads that tuple rather than restating the list. `resolvePageGeometry(meta)` owns the CSS-pixel size *and* the `@page` descriptor, and falls back to portrait A4 for anything off the list so a stale document still renders. Never hardcode 794 × 1123 anywhere else.
-- **Document operations live in `src/ops/`, not in the routes.** `routes/docs.ts` and the MCP tools both call the same functions, so a conflict check or a validation rule is written once. An `OpsError` carries the HTTP status the transport should report. Anything new that mutates a document belongs there, not inline in a route.
-- **`mosage-mcp` is imported dynamically and is not a core dependency.** `mcp-plugin.ts` resolves it through a variable specifier — core must not take a build-time dependency on a package whose peer is core — and finds its entry by walking `node_modules` up from the *user's* workspace, because under pnpm's strict layout core cannot see a sibling it does not depend on, and `require.resolve` cannot read an ESM-only exports map. A missing install warns and disables the endpoint; it is never fatal.
+- **Page geometry is one function, over a closed set of sheets.** `PAGE_SIZE_NAMES` (`app/lib/sdk.ts`) is the single source of truth — A4, JIS B4, A3 — and `PageSizeName` is derived from it, so adding a size means editing one tuple and `PAGE_SIZES`; every boundary that accepts a size (the CLI's `--page-size`, `ops/import.ts`) reads that tuple rather than restating the list. `resolvePageGeometry(meta)` owns the CSS-pixel size *and* the `@page` descriptor, and falls back to portrait A4 for anything off the list so a stale document still renders. Never hardcode 794 × 1123 anywhere else.
+- **Document operations live in `src/ops/`, not in the routes.** `routes/docs.ts` and the CLI both call the same functions, so a conflict check or a validation rule is written once. An `OpsError` carries the HTTP status the transport should report. Anything new that mutates a document belongs there, not inline in a route.
 - **Dev-only endpoints live behind `apply: 'serve'`.** `api-plugin.ts` mounts `/__assets/*` (routes under `vite/routes/`), `design-plugin.ts` mounts `/__design`. Every mutating handler calls `validateMutationRequest` first — these write to the user's disk. Path safety for assets is centralized in `files/assets.ts`; never join a user-supplied name onto a directory by hand.
 - **The inspector edits source, not the DOM.** `loc-tags-plugin.ts` stamps `data-od-loc="line:col"` onto host JSX in document sources (dev only); the overlay reads that attribute, and `/__edit/*` (routes/edit.ts) applies the change through `editing/edit-ops.ts` (single text child only — anything else is refused) or writes a `@doc-comment` marker via `editing/comments.ts`. Markers are base64url JSON so a note can hold quotes and newlines.
 - **The design panel edits source, not state.** `design-plugin.ts` parses `docs/<id>/index.tsx` with Babel, replaces only the `design` object's byte range, and rewrites the file. It accepts literal objects only; anything else is reported back to the panel rather than overwritten. Round-trip tests live in `design-plugin.test.ts` — extend them when you touch the serializer.
@@ -67,5 +64,5 @@ Releases go through changesets: `pnpm changeset` on any PR touching `packages/*`
 - **Biome must pass before commit.** Run `pnpm check` (or `pnpm check:fix`).
 - Don't add dependencies casually. The `core` runtime ships to users; every dep inflates install size.
 - **Two kinds of skills, don't mix them.** `packages/core/skills/` ships to users (authoring documents under `docs/`). `.agents/skills/` is for working on this repo — `doc-runtime-patterns` (core implementation rules), `print-layout-review` (page/print craft bar), `viewer-ui-guidelines` (viewer chrome + a11y). `.claude/skills/` symlinks the latter.
-- Skills under `packages/core/skills/` are canonical. `packages/cli/template/.agents/skills` is generated from them by `scripts/sync-template-skills.mjs` at build time — never edit the template copies by hand.
+- Skills under `packages/core/skills/` are canonical. `mosage init` and `mosage sync:skills` copy them into a workspace — there are no other copies to keep in sync.
 - **Default to writing no comments.** Only add one when the WHY is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain WHAT the code does, don't write section-divider banners, don't leave commented-out code.

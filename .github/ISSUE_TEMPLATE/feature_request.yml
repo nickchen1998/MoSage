@@ -25,12 +25,12 @@ body:
   - type: dropdown
     id: scope
     attributes:
-      label: Which package would this affect?
+      label: Which part would this affect?
       multiple: true
       options:
-        - "mosage-core (runtime, viewer, flow pagination, design panel, export)"
-        - "mosage (scaffolder / template)"
-        - "mosage-mcp (MCP server over the ops layer)"
+        - "Runtime (viewer, flow pagination, design panel)"
+        - "Export (PDF, Word, HTML, PNG)"
+        - "CLI and project template (mosage init / dev / check)"
         - Agent skills (create-doc, doc-authoring, create-theme, apply-comments)
         - Docs / README
         - Not sure

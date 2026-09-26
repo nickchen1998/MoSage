@@ -89,7 +89,7 @@ While writing:
 
 ## Step 7 — Self-review
 
-**Run `mosage check <id>` first.** You cannot see the sheets you produced; it renders them at true page size and reports clipped content, blank pages, stranded headings, and unreadable type, each with a source location. Fix every error before moving on. (Driving the MCP server instead? `check_layout`, and `render_page` when you need to look at a sheet.)
+**Run `mosage check <id>` first.** You cannot see the sheets you produced; it renders them at true page size and reports clipped content, blank pages, stranded headings, and unreadable type, each with a source location. Fix every error before moving on.
 
 Then run the checklist in `doc-authoring` ("Self-review before finishing"), and re-read the prose once as a reader: does the summary state the conclusion? Does every claim have a source?
 

@@ -2,13 +2,11 @@
 
 ## Supported versions
 
-MoSage is pre-1.0. Only the latest published version of each package receives security fixes:
+MoSage is pre-1.0. Only the latest published version receives security fixes:
 
 | Package | Supported |
 | --- | --- |
-| `mosage-core` | latest release |
 | `mosage` | latest release |
-| `mosage-mcp` | latest release |
 | older versions | :x: |
 
 ## Reporting a vulnerability
@@ -30,6 +28,5 @@ You can expect an acknowledgement within 7 days and an assessment within 14 days
 Worth knowing before you file:
 
 - **The dev server is a local authoring tool, not a hardened service.** `mosage dev` mounts endpoints that read and write files under the project directory (`/__assets/*`, `/__design`, `/__edit/*`, `/__folders`) and are dev-only (`apply: 'serve'`). They are meant to be bound to localhost and are not exposed by `mosage build` / `preview`. Bugs that let a request **escape the project directory**, bypass `validateMutationRequest`, or be triggered cross-origin from a page the user merely visits **are in scope**.
-- **The MCP server (`mosage dev --mcp`) is opt-in** and inherits the same trust boundary: it exposes the `ops` layer over Streamable HTTP for a local agent. Path traversal or missing validation in an `ops` function is in scope.
 - **Document sources are code.** A document is a React component that the framework executes and the scaffolder's template is authored by you. "A malicious `docs/<id>/index.tsx` can run code" is expected behaviour, not a vulnerability.
 - **Exports run in the browser.** PDF/HTML export serializes the rendered DOM. Report anything that lets an exported artifact reach outside the project or leak files that weren't part of the document.

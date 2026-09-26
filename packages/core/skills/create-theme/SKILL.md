@@ -145,7 +145,7 @@ Include a callout and a stat component when the theme calls for them.
 A normal document module — **two pages**: a cover and one content page that exercises the theme's headings, body copy, a table, and the running footer.
 
 ```tsx
-import { type DesignSystem, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage-core';
+import { type DesignSystem, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage';
 
 export const design: DesignSystem = { /* the same const as in the .md */ };
 

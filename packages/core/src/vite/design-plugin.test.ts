@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultDesign } from '../app/lib/design.ts';
 import { applyDesignWrite, mergeDesign, parseDocDesign, serializeDesign } from './design-plugin.ts';
 
-const DOC_WITH_DESIGN = `import type { DesignSystem, DocPage } from 'mosage-core';
+const DOC_WITH_DESIGN = `import type { DesignSystem, DocPage } from 'mosage';
 
 export const design: DesignSystem = {
   palette: {
@@ -23,7 +23,7 @@ const Cover: DocPage = () => <div>hi</div>;
 export default [Cover] satisfies DocPage[];
 `;
 
-const DOC_WITHOUT_DESIGN = `import type { DocPage } from 'mosage-core';
+const DOC_WITHOUT_DESIGN = `import type { DocPage } from 'mosage';
 
 const Cover: DocPage = () => <div>hi</div>;
 export default [Cover] satisfies DocPage[];
@@ -124,6 +124,6 @@ describe('applyDesignWrite', () => {
     const result = applyDesignWrite(`const Cover = () => null;\n`, defaultDesign);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.source).toContain("import type { DesignSystem } from 'mosage-core';");
+    expect(result.source).toContain("import type { DesignSystem } from 'mosage';");
   });
 });

@@ -1,6 +1,6 @@
 # Contributing to MoSage
 
-Thanks for your interest in improving MoSage! This guide covers the workflow for contributing to the framework itself — the `mosage-core` runtime, the `mosage` scaffolder, the `mosage-mcp` server, and the demo app.
+Thanks for your interest in improving MoSage! This guide covers the workflow for contributing to the framework itself — the `mosage` package (runtime, CLI, and project template) and the demo app.
 
 If you're authoring documents inside a scaffolded project, you don't need this file — drive your report through your coding agent or edit `docs/<id>/index.tsx` directly.
 
@@ -19,10 +19,8 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| [`packages/core`](packages/core) | `mosage-core` | Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML export), Vite plugins, dev API, `mosage` dev/build CLI, canonical skills. |
-| [`packages/cli`](packages/cli) | `mosage` | `npx mosage init` scaffolder + project template. |
-| [`packages/mcp`](packages/mcp) | `mosage-mcp` | MCP server exposing the `ops` layer over Streamable HTTP. Opt-in; mounted at `/mcp` by `mosage dev --mcp`. |
-| [`apps/demo`](apps/demo) | private | Local consumer of `mosage-core` via `workspace:*`. The dogfood target for the framework. |
+| [`packages/core`](packages/core) | `mosage` | The one published package: runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML/Word export), Vite plugins, dev API, the `mosage` CLI including `init`, the project template, canonical skills. |
+| [`apps/demo`](apps/demo) | private | Local consumer of `mosage` via `workspace:*`. The dogfood target for the framework. |
 
 ## Prerequisites
 
@@ -37,7 +35,7 @@ cd MoSage
 pnpm install
 ```
 
-Then run the demo against the local `mosage-core`:
+Then run the demo against the local `mosage`:
 
 ```bash
 pnpm dev
@@ -63,8 +61,6 @@ Filter to one package:
 
 ```bash
 pnpm core <script>   # e.g. pnpm core build
-pnpm cli <script>
-pnpm mcp <script>
 ```
 
 ## Pull request workflow
@@ -78,7 +74,7 @@ pnpm mcp <script>
    pnpm test
    ```
    `pnpm check:fix` will auto-fix most formatting and lint issues.
-4. **Add a changeset if you touched `packages/core`, `packages/cli`, or `packages/mcp`:**
+4. **Add a changeset if you touched `packages/core`:**
    ```bash
    pnpm changeset
    ```
@@ -104,9 +100,9 @@ pnpm mcp <script>
 - **Biome must pass.** Formatting, lint, and import organisation are all enforced by `pnpm check`.
 - **No casual dependencies.** The `core` runtime ships to users — every dep inflates install size. Prefer a small piece of inline code over a new package.
 - **Default to writing no comments.** Only add one when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain *what* the code does; well-named identifiers handle that.
-- **Skills under `packages/core/skills/` are canonical.** `packages/cli/template/.agents/skills` is generated from them by `scripts/sync-template-skills.mjs` at build time — never edit the template copies by hand.
+- **Skills under `packages/core/skills/` are canonical.** `mosage init` and `mosage sync:skills` copy them into a workspace's `.agents/skills` and `.claude/skills`.
 - **Page geometry lives in one place.** `resolvePageGeometry(meta)` owns the CSS-pixel page size and the `@page` descriptor. Never hardcode sheet dimensions anywhere else.
-- **Mutations go through `src/ops/`.** The dev routes and the MCP tools both call it, so a validation rule is written once.
+- **Mutations go through `src/ops/`.** The dev routes and the CLI both call it, so a validation rule is written once.
 
 ## Testing
 
@@ -116,7 +112,7 @@ pnpm mcp <script>
 
 ## Releases
 
-Releases are cut through [changesets](https://github.com/changesets/changesets). Landing a changeset on `main` opens (or updates) a "chore: release packages" PR; merging that PR builds `mosage-core`, `mosage`, and `mosage-mcp` and publishes them to npm from CI. Contributors don't need to publish anything — just land the changeset alongside your code.
+Releases are cut through [changesets](https://github.com/changesets/changesets). Landing a changeset on `main` opens (or updates) a "chore: release packages" PR; merging that PR builds `mosage` and publishes it to npm from CI. Contributors don't need to publish anything — just land the changeset alongside your code.
 
 ## Questions
 

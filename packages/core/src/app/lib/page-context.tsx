@@ -4,7 +4,7 @@ import { FootnoteCollector } from '../components/footnote';
 type PageContextValue = { index: number; total: number };
 
 // Stored on globalThis so the dev (src) and published (dist) copies of this
-// module share one context instance — a document imports `mosage-core`
+// module share one context instance — a document imports `mosage`
 // (dist) while the viewer imports the source, so without this the provider
 // writes to one context and the hook reads from another.
 const GLOBAL_KEY = '__mosage_page_context__';

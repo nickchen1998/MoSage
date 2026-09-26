@@ -10,7 +10,6 @@ import { dataPlugin } from './data-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
 import { diagramPlugin } from './diagram-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
-import { mcpPlugin } from './mcp-plugin.ts';
 import { loadUserConfig, type MoSageConfig, mosagePlugin } from './mosage-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
@@ -39,8 +38,6 @@ const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  /** Mount the MCP endpoint (requires `mosage-mcp`). */
-  mcp?: boolean;
   config?: MoSageConfig;
   mode?: 'serve' | 'build';
   /**
@@ -76,7 +73,6 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       designPlugin({ userCwd, docsDir }),
       apiPlugin({ userCwd, docsDir, assetsDir, coreVersion: CORE_VERSION }),
       ...(opts.headless ? [] : [currentPlugin({ userCwd, docsDir })]),
-      ...(opts.mcp ? [mcpPlugin({ userCwd, docsDir, assetsDir, coreVersion: CORE_VERSION })] : []),
     ],
     resolve: {
       alias: {
@@ -96,7 +92,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'clsx',
         'tailwind-merge',
       ],
-      // The app source ships inside node_modules/mosage-core/src/app, so
+      // The app source ships inside node_modules/mosage/src/app, so
       // Vite's dep scanner traverses it as a third-party dep and tries to
       // bundle the virtual imports with esbuild. Mark them external.
       esbuildOptions: {

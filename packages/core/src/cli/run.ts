@@ -5,6 +5,7 @@ import chalk from 'chalk';
 import { Command, Option } from 'commander';
 import { ORIENTATIONS, PAGE_SIZE_NAMES } from '../app/lib/sdk.ts';
 import { EXPORT_FORMATS } from '../ops/formats.ts';
+import type { runInit as runInitType } from './init.ts';
 import { readCoreVersion } from './package-version.ts';
 import { detectSkillsDrift, syncSkills } from './sync.ts';
 
@@ -115,13 +116,29 @@ export async function run(argv: string[]): Promise<void> {
     .showHelpAfterError(chalk.dim('(run `mosage --help` for usage)'));
 
   program
+    .command('init')
+    .description('Create a new MoSage workspace')
+    .argument('[dir]', 'target directory', undefined)
+    .option('-f, --force', 'overwrite non-empty target directory', false)
+    .option('-n, --name <name>', 'override package name (defaults to folder name)')
+    .option('--use-npm', 'use npm to install dependencies')
+    .option('--use-pnpm', 'use pnpm to install dependencies')
+    .option('--use-yarn', 'use yarn to install dependencies')
+    .option('--use-bun', 'use bun to install dependencies')
+    .option('--no-install', 'skip dependency installation')
+    .option('--no-git', 'skip git init and initial commit')
+    .action(async (dir: string | undefined, flags: Parameters<typeof runInitType>[1]) => {
+      const { runInit } = await import('./init.ts');
+      await runInit(dir, flags);
+    });
+
+  program
     .command('dev')
     .description('Start the dev server')
     .addOption(new Option('-p, --port <port>', 'port to listen on').argParser(parsePort))
     .addOption(new Option('--host [host]', 'expose on the network (optional host)'))
     .option('--open', 'open the browser on start')
     .option('--no-skills-check', 'skip the built-in skills drift check')
-    .option('--mcp', 'serve an MCP endpoint at /mcp (requires mosage-mcp)')
     .action(async (flags: DevFlags) => {
       if (flags.skillsCheck !== false) {
         await runSkillsDriftCheck(resolveBuiltinSkillsDir());
@@ -189,7 +206,7 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('sync:skills')
-    .description('Sync built-in skills from mosage-core into this workspace')
+    .description('Sync built-in skills from mosage into this workspace')
     .option('--dry-run', 'show what would change without writing')
     .action(async (flags: SyncFlags) => {
       const { syncSkills } = await import('./sync.ts');

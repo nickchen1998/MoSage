@@ -4,7 +4,7 @@
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["mosage-core/env"] } }
+//   { "compilerOptions": { "types": ["mosage/env"] } }
 
 declare module '*.svg' {
   const src: string;

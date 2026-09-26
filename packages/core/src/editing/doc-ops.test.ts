@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { copyTitle, nextCopyId, readMetaTitle, setMetaTitle, validateDocTitle } from './doc-ops.ts';
 
-const DOC = `import type { DocMeta, DocPage } from 'mosage-core';
+const DOC = `import type { DocMeta, DocPage } from 'mosage';
 
 const Cover: DocPage = () => <div>hi</div>;
 

@@ -4,7 +4,7 @@ import { deleteDoc, duplicateDoc, openDoc, refreshDocsModule, writeDocSource } f
 type Finding = { page: number; rule: string; severity: string; loc?: string };
 type Report = { pageCount: number; findings: Finding[] };
 
-const FAULTY = `import { type DocMeta, type DocPage, Ref } from 'mosage-core';
+const FAULTY = `import { type DocMeta, type DocPage, Ref } from 'mosage';
 
 export const meta: DocMeta = { title: 'Layout faults', createdAt: '2026-01-03T00:00:00.000Z' };
 

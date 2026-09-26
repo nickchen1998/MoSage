@@ -5,11 +5,10 @@ export interface DevOptions {
   port?: number;
   host?: string | boolean;
   open?: boolean;
-  mcp?: boolean;
 }
 
 export async function dev(opts: DevOptions = {}): Promise<void> {
-  const base = await createViteConfig({ userCwd: process.cwd(), mcp: opts.mcp });
+  const base = await createViteConfig({ userCwd: process.cwd() });
   const config = mergeConfig(base, {
     server: {
       ...(opts.port !== undefined ? { port: opts.port } : {}),

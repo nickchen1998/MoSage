@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "mosage-core": "workspace:*",
+    "mosage": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

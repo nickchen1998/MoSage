@@ -5,7 +5,7 @@ Every document declares typed design tokens at the top of `index.tsx` and consum
 ## The shape
 
 ```tsx
-import type { DesignSystem } from 'mosage-core';
+import type { DesignSystem } from 'mosage';
 
 export const design: DesignSystem = {
   palette: {
