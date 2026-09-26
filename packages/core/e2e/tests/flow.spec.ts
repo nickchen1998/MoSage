@@ -37,6 +37,8 @@ test.describe('flow pagination', () => {
 
   test('the running footer numbers every flow page', async ({ page }) => {
     await openDoc(page, 'flow-report');
+    // Count only once the packer has run; before that the flow section is one sheet.
+    await page.waitForFunction('globalThis.__mosage ? globalThis.__mosage.status().ready : false');
     const total = await pages(page).count();
     // The cover has no footer, so the footer count is the flow page count.
     await expect(viewer(page).getByText(/^Flow Report — page \d+ of \d+$/)).toHaveCount(total - 1);

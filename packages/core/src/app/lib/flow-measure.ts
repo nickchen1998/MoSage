@@ -1,4 +1,5 @@
 import { createElement, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { FLOW_BLOCK_ATTR, FlowBlock } from '../components/flow-page';
 import { FOOTNOTE_AREA_MARGIN_TOP, FOOTNOTE_ROW_ATTR, Footnotes } from '../components/footnote';
@@ -81,6 +82,9 @@ export async function measureFlowSections(
   opts: { geometry: PageGeometry; design?: DesignSystem },
 ): Promise<FlowMeasurement[]> {
   if (sections.length === 0) return [];
+  // The caller is an effect, and React won't flush a render synchronously from
+  // inside its own commit — step out of it before the flushSync calls below.
+  await Promise.resolve();
 
   const host = document.createElement('div');
   host.setAttribute('aria-hidden', 'true');
@@ -120,12 +124,16 @@ export async function measureFlowSections(
       const blocks = makeContainer(width);
       blockContainers.push(blocks);
       const blockRoot = createRoot(blocks);
-      blockRoot.render(
-        section.blocks.map((block, index) =>
-          createElement(FlowBlock, { key: index }, block),
-        ) as unknown as Parameters<typeof blockRoot.render>[0],
-      );
       roots.push(blockRoot);
+      // Committed now, not "by the next frame": React 19 may schedule a new
+      // root's first render after the frames below, leaving nothing to measure.
+      flushSync(() =>
+        blockRoot.render(
+          section.blocks.map((block, index) =>
+            createElement(FlowBlock, { key: index }, block),
+          ) as unknown as Parameters<typeof blockRoot.render>[0],
+        ),
+      );
 
       const allNotes = section.notesByBlock.flat();
       if (allNotes.length === 0) {
@@ -135,8 +143,8 @@ export async function measureFlowSections(
       const notes = makeContainer(width);
       noteContainers.push(notes);
       const noteRoot = createRoot(notes);
-      noteRoot.render(createElement(Footnotes, { notes: allNotes }));
       roots.push(noteRoot);
+      flushSync(() => noteRoot.render(createElement(Footnotes, { notes: allNotes })));
     }
 
     await nextFrame();

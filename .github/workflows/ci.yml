@@ -82,7 +82,7 @@ jobs:
     timeout-minutes: 20
     container:
       # Image version must match @playwright/test in packages/core/package.json.
-      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
       options: --user 1001
     steps:
       - name: Checkout
@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ github.run_attempt }}
           path: packages/core/playwright-report
