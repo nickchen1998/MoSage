@@ -85,6 +85,37 @@ export function describeSelection(
   return { count: pages?.length ?? 0, valid: pages !== null };
 }
 
+/** `[0,1,2,4]` → `1–3, 5`: the pages as a reader would write them. */
+export function formatPages(indices: number[]): string {
+  const runs: string[] = [];
+  for (let i = 0; i < indices.length; i++) {
+    const start = indices[i];
+    while (i + 1 < indices.length && indices[i + 1] === indices[i] + 1) i++;
+    runs.push(indices[i] === start ? `${start + 1}` : `${start + 1}–${indices[i] + 1}`);
+  }
+  return runs.join(', ');
+}
+
+/** The line under the page choice, saying what the download button is about to take. */
+export function selectionSummary(
+  selection: PageSelection,
+  total: number,
+  currentPage: number,
+): string {
+  const pages = resolveSelection(selection, total, currentPage);
+  if (!pages) return 'Type page numbers, like 1-3, 5';
+  if (selection.kind === 'all') {
+    return total === 1
+      ? "The document's only page will be downloaded"
+      : `All ${total} pages will be downloaded`;
+  }
+  if (selection.kind === 'current') {
+    return `Only page ${pages[0] + 1}, the one you're viewing, will be downloaded`;
+  }
+  if (pages.length === 1) return `Page ${pages[0] + 1} will be downloaded`;
+  return `${pages.length} pages will be downloaded: ${formatPages(pages)}`;
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }

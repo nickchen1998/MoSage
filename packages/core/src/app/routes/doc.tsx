@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   BookOpen,
   Check,
-  CodeXml,
   Download,
   FilePen,
   FileText,
@@ -11,21 +10,14 @@ import {
   LayoutGrid,
   Loader2,
   type LucideIcon,
-  Maximize,
-  Minimize,
   Minus,
   MousePointerClick,
   MoveHorizontal,
-  MoveVertical,
   Palette,
-  Percent,
   Plus,
 } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CodeExportCheck } from '../components/code/code-export-check';
-import { CodeHighlights } from '../components/code/code-highlights';
-import { CodePanel, unpushedEntries } from '../components/code/code-panel';
 import { DesignPanel } from '../components/design-panel/design-panel';
 import { DesignProvider } from '../components/design-panel/design-provider';
 import { DocSearch } from '../components/doc-search';
@@ -36,9 +28,13 @@ import { ThemeToggle } from '../components/theme-toggle';
 import { Menu, MenuItem } from '../components/ui/menu';
 import { useAgentBridge } from '../lib/agent-bridge';
 import { exportDocAsPdf } from '../lib/export-pdf';
-import { LABEL_ID_ATTR, useDocLabels } from '../lib/labels';
 import { type OutlineEntry, useDocOutline } from '../lib/outline';
-import { describeSelection, type PageSelection, resolveSelection } from '../lib/page-range';
+import {
+  describeSelection,
+  type PageSelection,
+  resolveSelection,
+  selectionSummary,
+} from '../lib/page-range';
 import { nextFrame, waitForFonts } from '../lib/print-ready';
 import { scanDocument } from '../lib/scan';
 import { resolvePageGeometry } from '../lib/sdk';
@@ -115,11 +111,10 @@ export function Doc() {
   const state = useDocModule(docId);
   const doc = state.doc;
 
-  const rootRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState({ width: 0, height: 0 });
-  const [zoomMode, setZoomMode] = useState<'auto' | 'fit-width' | 'fit-page'>('auto');
+  const [zoomMode, setZoomMode] = useState<'auto' | 'fit-width'>('auto');
   const [manualScale, setManualScale] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [download, setDownload] = useState<{ format: DownloadFormat; percent: number } | null>(
@@ -129,12 +124,7 @@ export function Doc() {
   const [selection, setSelection] = useState<PageSelection>({ kind: 'all' });
   const [customRange, setCustomRange] = useState('');
   const [designOpen, setDesignOpen] = useState(false);
-  const [codeOpen, setCodeOpen] = useState(false);
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
-  const [codeCheck, setCodeCheck] = useState<DownloadFormat | null>(null);
-  const [exportAfterPush, setExportAfterPush] = useState<DownloadFormat | null>(null);
   const [inspecting, setInspecting] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useViewMode(docId);
   const chosenPage = useRef<number | null>(null);
   const place = useRef<{ page: number; fraction: number; centre: number } | null>(null);
@@ -143,8 +133,6 @@ export function Doc() {
   const geometry = useMemo(() => resolvePageGeometry(doc?.meta), [doc?.meta]);
   const { pages, measuring, overflowing } = useDocPages(doc, geometry);
   const outline = useDocOutline();
-  const codeEntries = useDocLabels('code');
-  const unpushedCode = import.meta.env.DEV ? unpushedEntries(codeEntries) : [];
 
   useAgentBridge({ docId: docId ?? '', doc, pages, geometry, measuring, oversized: overflowing });
 
@@ -154,19 +142,13 @@ export function Doc() {
   const columnGap = viewMode === 'two-up' ? SPREAD_GAP : PAGE_GAP;
   const widthFit = (available.width - (across - 1) * columnGap) / (geometry.width * across);
   const fitWidthScale = available.width ? clamp(widthFit) : 1;
-  // Fit page is bounded by both axes so the whole sheet lands inside the pane.
-  const fitPageScale = available.height
-    ? clamp(Math.min(widthFit, available.height / geometry.height))
-    : 1;
   // Auto keeps a page at its true size unless the window is too narrow to hold
-  // it, and opens a grid zoomed out; the explicit fit modes may go past 100%.
+  // it, and opens a grid zoomed out; fit width may go past 100%.
   const scale =
     manualScale ??
     (zoomMode === 'fit-width'
       ? fitWidthScale
-      : zoomMode === 'fit-page'
-        ? fitPageScale
-        : Math.min(viewMode === 'grid' ? GRID_SCALE : 1, fitWidthScale));
+      : Math.min(viewMode === 'grid' ? GRID_SCALE : 1, fitWidthScale));
   const columns =
     viewMode === 'grid'
       ? gridColumns(geometry.width * scale, available.width, columnGap, pages.length)
@@ -326,12 +308,8 @@ export function Doc() {
     return onPage[0]?.id ?? null;
   }, [outline, currentPage]);
 
-  const runDownload = async (format: DownloadFormat, opts: { codeChecked?: boolean } = {}) => {
+  const runDownload = async (format: DownloadFormat) => {
     if (!doc || !docId || download) return;
-    if (!opts.codeChecked && unpushedCode.length > 0) {
-      setCodeCheck(format);
-      return;
-    }
 
     /*
      * The pages are chosen here, once, and every exporter is handed the subset
@@ -366,30 +344,6 @@ export function Doc() {
     }
   };
 
-  // After "Push, then export": the push reloads every excerpt with its new
-  // link, the pages re-measure, and only then is there something to export.
-  useEffect(() => {
-    if (!exportAfterPush) return;
-    const giveUp = setTimeout(() => setExportAfterPush(null), 20_000);
-    return () => clearTimeout(giveUp);
-  }, [exportAfterPush]);
-  useEffect(() => {
-    if (!exportAfterPush || measuring || unpushedCode.length > 0) return;
-    const format = exportAfterPush;
-    setExportAfterPush(null);
-    // Out of the effect: the exporters mount their print copy with flushSync,
-    // which React refuses while it is still committing.
-    setTimeout(() => void runDownload(format, { codeChecked: true }), 0);
-  });
-
-  const selectCode = (id: string, page: number) => {
-    setSelectedCode(id);
-    choosePage(page);
-    scrollRef.current
-      ?.querySelector(`[${LABEL_ID_ATTR}="${CSS.escape(id)}"]`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
   /* What the menu is about to do, so nobody has to count commas themselves. */
   const chosenPages = describeSelection(
     selection.kind === 'custom' ? { kind: 'custom', text: customRange } : selection,
@@ -403,9 +357,9 @@ export function Doc() {
     );
   };
 
-  const fitTo = (mode: 'fit-width' | 'fit-page') => {
+  const fitWidth = () => {
     setManualScale(null);
-    setZoomMode(mode);
+    setZoomMode('fit-width');
   };
 
   const actualSize = () => {
@@ -422,20 +376,6 @@ export function Doc() {
     setZoomMode('auto');
   };
 
-  const toggleFullscreen = useCallback(() => {
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
-      return;
-    }
-    void rootRef.current?.requestFullscreen?.().catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
-
   // Tell the dev server where the reader is, so an agent can resolve "this
   // page" from node_modules/.mosage/current.json. See vite/current-plugin.ts.
   useEffect(() => {
@@ -449,20 +389,6 @@ export function Doc() {
       docTitle: doc.meta?.title ?? docId,
     });
   }, [docId, doc, measuring, currentPage, pages.length]);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const target = e.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, [contenteditable]')) return;
-      if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        toggleFullscreen();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [toggleFullscreen]);
 
   if (state.status === 'error') {
     return (
@@ -483,7 +409,7 @@ export function Doc() {
   }
 
   const view = (
-    <div ref={rootRef} className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Equal `1fr` rails put the title at the true centre of the bar rather
           than the centre of what is left over, which is where a flex row would
           drop it — the control cluster is many times wider than the back link.
@@ -538,33 +464,12 @@ export function Doc() {
             </IconButton>
             <IconButton
               label="Fit width"
-              onClick={() => fitTo('fit-width')}
+              onClick={fitWidth}
               active={manualScale === null && zoomMode === 'fit-width'}
             >
               <MoveHorizontal className="size-3.5" />
             </IconButton>
-            {/* Fit-width moves the page sideways to the edges, fit-page moves it
-                up and down to them. Both used to be a square-ish glyph, and the
-                fit-page one was the same square as fullscreen — three controls,
-                two shapes, no way to tell which did what without clicking. */}
-            <IconButton
-              label="Fit page"
-              onClick={() => fitTo('fit-page')}
-              active={manualScale === null && zoomMode === 'fit-page'}
-            >
-              <MoveVertical className="size-3.5" />
-            </IconButton>
-            <IconButton label="Actual size (100%)" onClick={actualSize}>
-              <Percent className="size-3.5" />
-            </IconButton>
           </div>
-
-          <IconButton
-            label={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
-            onClick={toggleFullscreen}
-          >
-            {isFullscreen ? <Minimize className="size-4" /> : <Maximize className="size-4" />}
-          </IconButton>
 
           {/* The document browser normally carries this. A viewer mounted with
             `showDocBrowser: false` never shows that shell, and without it a
@@ -588,10 +493,7 @@ export function Doc() {
           {import.meta.env.DEV && (
             <button
               type="button"
-              onClick={() => {
-                setDesignOpen((open) => !open);
-                setCodeOpen(false);
-              }}
+              onClick={() => setDesignOpen((open) => !open)}
               className={cn(
                 'flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-accent',
                 designOpen && 'bg-accent',
@@ -599,32 +501,6 @@ export function Doc() {
             >
               <Palette className="size-3.5" />
               Design
-            </button>
-          )}
-          {import.meta.env.DEV && codeEntries.length > 0 && (
-            <button
-              type="button"
-              aria-pressed={codeOpen}
-              onClick={() => {
-                setCodeOpen((open) => !open);
-                setDesignOpen(false);
-              }}
-              className={cn(
-                'flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-accent',
-                codeOpen && 'bg-accent',
-              )}
-            >
-              <CodeXml className="size-3.5" />
-              程式碼
-              {unpushedCode.length > 0 && (
-                <span
-                  role="status"
-                  aria-label={`${unpushedCode.length} not pushed`}
-                  className="min-w-4 rounded-full bg-changed px-1 text-center text-[0.625rem] text-background leading-4"
-                >
-                  {unpushedCode.length}
-                </span>
-              )}
             </button>
           )}
           <Menu
@@ -729,46 +605,12 @@ export function Doc() {
               </PageFrame>
             ))}
           </div>
-          {codeOpen && (
-            <CodeHighlights
-              containerRef={scrollRef}
-              entries={codeEntries}
-              selectedId={selectedCode}
-              layoutKey={`${scale}:${viewMode}:${columns}:${pages.length}`}
-            />
-          )}
         </div>
         {inspecting && docId && (
           <Inspector docId={docId} containerRef={scrollRef} onExit={() => setInspecting(false)} />
         )}
         {designOpen && <DesignPanel onClose={() => setDesignOpen(false)} />}
-        {codeOpen && (
-          <CodePanel
-            entries={codeEntries}
-            docTitle={doc.meta?.title ?? docId ?? ''}
-            selectedId={selectedCode}
-            onSelect={(entry) => selectCode(entry.id, entry.page)}
-            onClose={() => setCodeOpen(false)}
-          />
-        )}
       </div>
-      {codeCheck && (
-        <CodeExportCheck
-          entries={unpushedCode}
-          format={codeCheck}
-          docTitle={doc.meta?.title ?? docId ?? ''}
-          onCancel={() => setCodeCheck(null)}
-          onExportAnyway={() => {
-            const format = codeCheck;
-            setCodeCheck(null);
-            void runDownload(format, { codeChecked: true });
-          }}
-          onPushed={() => {
-            setExportAfterPush(codeCheck);
-            setCodeCheck(null);
-          }}
-        />
-      )}
     </div>
   );
 
@@ -779,7 +621,7 @@ export function Doc() {
 }
 
 /**
- * 全部／此頁／自訂 —— 和列印對話框問的是同一件事，因為那是使用者已經會的問法。
+ * 全部／目前頁／自訂 —— 和列印對話框問的是同一件事，因為那是使用者已經會的問法。
  *
  * 自訂欄位只在被選中時出現。三個選項配一個永遠佔著位置的空欄位，會讓人以為那是
  * 必填的。
@@ -800,9 +642,9 @@ function PageChoice({
   onCustom: (text: string) => void;
 }) {
   const options = [
-    { kind: 'all' as const, label: 'All', hint: `${total}` },
-    { kind: 'current' as const, label: 'This page', hint: `${currentPage}` },
-    { kind: 'custom' as const, label: 'Custom', hint: '' },
+    { kind: 'all' as const, label: 'All' },
+    { kind: 'current' as const, label: 'Current' },
+    { kind: 'custom' as const, label: 'Custom' },
   ];
   const chosen = describeSelection(
     selection.kind === 'custom' ? { kind: 'custom', text: custom } : selection,
@@ -832,11 +674,6 @@ function PageChoice({
             )}
           >
             {option.label}
-            {option.hint && (
-              <span className="ml-1 font-mono text-[0.625rem] text-muted-foreground">
-                {option.hint}
-              </span>
-            )}
           </button>
         ))}
       </div>
@@ -855,9 +692,11 @@ function PageChoice({
         />
       )}
       <p className="px-1 pt-1.5 text-[0.625rem] text-muted-foreground">
-        {chosen.valid
-          ? `${chosen.count} page${chosen.count === 1 ? '' : 's'} will be downloaded`
-          : 'Type page numbers, like 1-3, 5'}
+        {selectionSummary(
+          selection.kind === 'custom' ? { kind: 'custom', text: custom } : selection,
+          total,
+          currentPage,
+        )}
       </p>
     </div>
   );

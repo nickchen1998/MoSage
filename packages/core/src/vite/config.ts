@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import type { InlineConfig } from 'vite';
 import { apiPlugin } from './api-plugin.ts';
-import { codePlugin } from './code-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { dataPlugin } from './data-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
@@ -66,7 +65,6 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     plugins: [
       dataPlugin(),
       diagramPlugin(),
-      codePlugin({ userCwd, docsDir }),
       locTagsPlugin({ userCwd, docsDir }),
       react(),
       tailwindcss(),

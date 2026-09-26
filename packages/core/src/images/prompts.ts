@@ -1,5 +1,5 @@
 import { type AstNode, parseSource, walkAst } from '../editing/babel-walk.ts';
-import { IMAGES_DIR, validateFolderName } from '../files/assets.ts';
+import { IMAGES_DIR } from '../files/assets.ts';
 
 /** File-name-safe: the id becomes `<id>.png` on disk. */
 export const IMAGE_PROMPT_ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
@@ -8,7 +8,6 @@ export const IMAGE_PROMPT_ID_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
 export type ImagePromptEntry = {
   id: string;
   prompt: string;
-  chapter: string | null;
   alt: string | null;
   width: number | null;
   height: number | null;
@@ -71,18 +70,14 @@ function readEntry(element: AstNode): ImagePromptEntry {
   };
   const id = text('id') ?? '';
   const prompt = text('prompt') ?? '';
-  const chapterRaw = text('chapter');
-  const chapter = chapterRaw === null ? null : validateFolderName(chapterRaw);
 
   let problem: string | null = null;
   if (!IMAGE_PROMPT_ID_RE.test(id)) problem = 'id must be lowercase letters, digits and dashes';
   else if (!prompt) problem = 'prompt is empty';
-  else if (chapterRaw !== null && chapter === null) problem = 'chapter is not a usable folder name';
 
   return {
     id,
     prompt,
-    chapter,
     alt: text('alt'),
     width: size('width'),
     height: size('height'),
@@ -105,10 +100,8 @@ export function findImagePrompts(source: string): ImagePromptEntry[] {
 }
 
 /** Where a prompt's image is stored, relative to the document's own folder. */
-export function imagePathFor(entry: Pick<ImagePromptEntry, 'id' | 'chapter'>): string {
-  return ['assets', IMAGES_DIR, ...(entry.chapter ? [entry.chapter] : []), `${entry.id}.png`].join(
-    '/',
-  );
+export function imagePathFor(entry: Pick<ImagePromptEntry, 'id'>): string {
+  return `assets/${IMAGES_DIR}/${entry.id}.png`;
 }
 
 function identifierFor(id: string, source: string): string {

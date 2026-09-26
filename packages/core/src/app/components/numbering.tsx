@@ -16,15 +16,8 @@ export const REF_ATTR = 'data-od-ref';
 export const REF_PAGE_ATTR = 'data-od-ref-page';
 export const LIST_OF_ATTR = 'data-od-list-of';
 
-export function nameFor(
-  kind: LabelKind,
-  vocabulary: { figure: string; table: string; code: string },
-): string {
-  return kind === 'table'
-    ? vocabulary.table
-    : kind === 'code'
-      ? vocabulary.code
-      : vocabulary.figure;
+function nameFor(kind: LabelKind, vocabulary: { figure: string; table: string }): string {
+  return kind === 'table' ? vocabulary.table : vocabulary.figure;
 }
 
 export type FigureProps = {
@@ -33,7 +26,7 @@ export type FigureProps = {
   /** What the caption says after the number. */
   caption?: ReactNode;
   /** `figure` numbers with figures, `table` with tables. Defaults to `figure`. */
-  kind?: Exclude<LabelKind, 'code' | 'footnote'>;
+  kind?: LabelKind;
   /** Tables conventionally caption above, figures below. */
   captionPosition?: 'above' | 'below';
   /** Plain-text caption for the list of figures, when `caption` carries markup. */
@@ -108,7 +101,7 @@ export function Figure({
 }
 
 export type RefProps = {
-  /** The `id` of a `<Figure>`, `<CodeExcerpt>` or `<Footnote>`. */
+  /** The `id` of a `<Figure>` or `<Footnote>`. */
   to: string;
   /**
    * Append the page. `auto` (the default) adds it only when the target sits on

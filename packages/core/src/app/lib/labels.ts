@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { PAGE_ATTR, PAGE_INDEX_ATTR } from './outline';
 
-export type LabelKind = 'figure' | 'table' | 'code' | 'footnote';
+export type LabelKind = 'figure' | 'table' | 'footnote';
 
 export type LabelEntry = {
   /** Author-supplied id for `<Ref to>`, or a generated one. */
@@ -13,15 +13,11 @@ export type LabelEntry = {
   text: string;
   /** 1-based page the item sits on. */
   page: number;
-  /** What the element publishes about itself beyond a caption — a code excerpt's file and link. */
-  detail?: Record<string, string>;
 };
 
 export const LABEL_ATTR = 'data-od-label';
 export const LABEL_ID_ATTR = 'data-od-label-id';
 export const LABEL_TEXT_ATTR = 'data-od-label-text';
-/** JSON object of strings, read into {@link LabelEntry.detail}. */
-export const LABEL_DETAIL_ATTR = 'data-od-label-detail';
 
 /**
  * The words wrapped around a number. Numbering is structural; what it is
@@ -31,12 +27,6 @@ export const LABEL_DETAIL_ATTR = 'data-od-label-detail';
 export type LabelVocabulary = {
   figure: string;
   table: string;
-  /** A numbered code excerpt. */
-  code: string;
-  /** The line range above an excerpt. `{range}` is replaced, e.g. `12–38`. */
-  codeLines: string;
-  /** Lines left out of an excerpt. `{range}` is replaced. */
-  codeOmitted: string;
   /** Heading above a page's footnotes. Empty string renders no heading. */
   footnotes: string;
   /** Page suffix for a cross-reference. `{page}` is replaced. */
@@ -46,9 +36,6 @@ export type LabelVocabulary = {
 export const defaultVocabulary: LabelVocabulary = {
   figure: 'Figure',
   table: 'Table',
-  code: 'Listing',
-  codeLines: 'lines {range}',
-  codeOmitted: 'lines {range} omitted',
   footnotes: '',
   onPage: ' (p. {page})',
 };
@@ -60,25 +47,10 @@ export type LabelSnapshot = {
 
 const EMPTY: LabelSnapshot = { entries: [], vocabulary: defaultVocabulary };
 
-const KINDS: LabelKind[] = ['figure', 'table', 'code', 'footnote'];
+const KINDS: LabelKind[] = ['figure', 'table', 'footnote'];
 
 function isKind(value: string | null): value is LabelKind {
   return value !== null && (KINDS as string[]).includes(value);
-}
-
-function readDetail(raw: string | null): Record<string, string> | undefined {
-  if (!raw) return undefined;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return undefined;
-    return Object.fromEntries(
-      Object.entries(parsed).filter(
-        (pair): pair is [string, string] => typeof pair[1] === 'string',
-      ),
-    );
-  } catch {
-    return undefined;
-  }
 }
 
 /**
@@ -89,7 +61,7 @@ function readDetail(raw: string | null): Record<string, string> | undefined {
  */
 export function collectLabels(root: ParentNode): LabelEntry[] {
   const entries: LabelEntry[] = [];
-  const counters: Record<LabelKind, number> = { figure: 0, table: 0, code: 0, footnote: 0 };
+  const counters: Record<LabelKind, number> = { figure: 0, table: 0, footnote: 0 };
   const frames = Array.from(root.querySelectorAll<HTMLElement>(`[${PAGE_ATTR}]`));
 
   frames.forEach((frame, fallbackIndex) => {
@@ -105,7 +77,6 @@ export function collectLabels(root: ParentNode): LabelEntry[] {
       // id; the marker is what fixes its position in the sequence.
       if (entries.some((entry) => entry.id === id)) continue;
       counters[kind] += 1;
-      const detail = readDetail(el.getAttribute(LABEL_DETAIL_ATTR));
       entries.push({
         id,
         kind,
@@ -114,7 +85,6 @@ export function collectLabels(root: ParentNode): LabelEntry[] {
           .replace(/\s+/g, ' ')
           .trim(),
         page,
-        ...(detail ? { detail } : {}),
       });
     }
   });
@@ -144,15 +114,17 @@ function sameEntries(a: LabelEntry[], b: LabelEntry[]): boolean {
       entry.kind === other.kind &&
       entry.number === other.number &&
       entry.text === other.text &&
-      entry.page === other.page &&
-      JSON.stringify(entry.detail) === JSON.stringify(other.detail)
+      entry.page === other.page
     );
   });
 }
 
 function sameVocabulary(a: LabelVocabulary, b: LabelVocabulary): boolean {
-  return (Object.keys(defaultVocabulary) as Array<keyof LabelVocabulary>).every(
-    (key) => a[key] === b[key],
+  return (
+    a.figure === b.figure &&
+    a.table === b.table &&
+    a.footnotes === b.footnotes &&
+    a.onPage === b.onPage
   );
 }
 

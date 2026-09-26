@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { TINY_PNG } from './helpers.ts';
 
-const CHAPTER = '第一章';
-const IMAGE = `images/${CHAPTER}/e2e-panel-pixel.png`;
+const IMAGE = 'images/e2e-panel-pixel.png';
 const CSV = 'references/e2e-panel.csv';
 const url = (scope: string, p: string) =>
   `/__assets/${scope}/${p.split('/').map(encodeURIComponent).join('/')}`;
@@ -10,11 +9,10 @@ const url = (scope: string, p: string) =>
 test.describe('assets', () => {
   test.afterEach(async ({ request }) => {
     await request.delete(url('@global', IMAGE));
-    await request.delete(`${url('@global', `images/${CHAPTER}`)}?folder=1`);
     await request.delete(url('alpha', CSV));
   });
 
-  test('an uploaded image is filed under its chapter, marked unused', async ({ page, request }) => {
+  test('an uploaded image lands in 圖片, marked unused', async ({ page, request }) => {
     const uploaded = await request.post(url('@global', IMAGE), {
       data: TINY_PNG,
       headers: { 'content-type': 'image/png' },
@@ -24,8 +22,9 @@ test.describe('assets', () => {
     await page.goto('/assets');
     await expect(page.getByRole('heading', { name: 'Assets' })).toBeVisible();
     const tree = page.getByRole('navigation', { name: 'Asset folders' });
-    await tree.getByRole('button', { name: CHAPTER, exact: true }).click();
+    await tree.getByRole('button', { name: '圖片' }).first().click();
     await expect(page.getByText('e2e-panel-pixel.png')).toBeVisible();
+    await expect(page.getByRole('combobox')).toHaveCount(0);
     // Nothing imports it, which is exactly what the badge is for.
     await expect(page.getByText('unused').first()).toBeVisible();
   });

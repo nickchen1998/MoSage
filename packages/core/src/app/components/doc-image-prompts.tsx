@@ -112,11 +112,6 @@ export function DocImagePrompts({ docId }: { docId: string }) {
                 <p className="mt-0.5 line-clamp-2 text-[0.6875rem] text-muted-foreground">
                   {prompt.problem ?? prompt.prompt}
                 </p>
-                {prompt.chapter && (
-                  <p className="mt-0.5 truncate text-[0.625rem] text-muted-foreground">
-                    → {prompt.chapter}
-                  </p>
-                )}
               </li>
             ))}
           </ul>

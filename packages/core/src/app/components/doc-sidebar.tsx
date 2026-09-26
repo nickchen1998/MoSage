@@ -77,7 +77,7 @@ export function DocSidebar({
       </div>
 
       {tab === 'assets' ? (
-        <DocAssets docId={docId} entries={entries} />
+        <DocAssets docId={docId} />
       ) : tab === 'pages' ? (
         <div ref={railRef} className="flex-1 overflow-y-auto px-3 pb-6">
           <div className="flex flex-col items-center gap-3">
