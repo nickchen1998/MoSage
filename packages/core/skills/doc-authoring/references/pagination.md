@@ -63,8 +63,6 @@ usable_height = page_height − 2 × margin
 | A4 portrait (1123px) | 76 | **971px** |
 | A4 portrait | 96 | 931px |
 | A4 landscape (794px) | 76 | 642px |
-| B4 portrait (1376px) | 76 | 1224px |
-| A3 portrait (1587px) | 76 | 1435px |
 
 A running footer sits inside the margin band, so it costs nothing from the budget — but leave **24px of clearance** above it, i.e. treat the budget as ~947px on A4 when a footer is present.
 

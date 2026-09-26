@@ -52,7 +52,7 @@ Keep this exact section order; adapt the bodies.
 ---
 name: <Human title, e.g. "Acme Corporate">
 description: <one-line elevator pitch>
-pageSize: <A4 | B4 | A3>
+pageSize: A4
 mode: <light | dark — light for anything that prints>
 ---
 

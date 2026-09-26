@@ -47,6 +47,16 @@ test.describe('mosage CLI', () => {
     expect(source).toContain('satisfies DocEntry[]');
   });
 
+  test('import refuses a page size other than A4', async () => {
+    const dir = prepareScratchProject('cli-import-b4');
+    await fs.writeFile(path.join(dir, 'b4.md'), '---\npageSize: B4\n---\n\n# Plan\n', 'utf8');
+
+    const res = await runCli(['import', 'b4.md', '--id', 'plan'], dir);
+    expect(res.code).not.toBe(0);
+    expect(res.stderr).toContain('A4 only');
+    await expect(fs.access(path.join(dir, 'docs', 'plan'))).rejects.toThrow();
+  });
+
   test('export writes a PDF and a DOCX, and check passes the fixture documents', async () => {
     const dir = prepareScratchProject('cli-render');
 
