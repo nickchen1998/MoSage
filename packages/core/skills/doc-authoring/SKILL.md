@@ -22,7 +22,6 @@ Read the matching reference **before** using a primitive:
 | Tables, stat rows, inline charts | rendering data of any kind | `references/tables-and-charts.md` |
 | Assets, references, `<ImagePrompt>`, `<ImagePlaceholder>` | importing images, reading the user's reference files, leaving an image to be generated or supplied | `references/assets.md` |
 | Footnotes, `<Figure>`, `<Ref>`, `<DataTable>` | any note, numbered figure, cross-reference, or `.csv` | `references/long-form.md` |
-| `code/`, `<CodeExcerpt>`, `<CodeList>`, `mosage code` | showing code the document explains, linked to GitHub or GitLab | `references/code.md` |
 
 ## Themes
 
@@ -33,7 +32,7 @@ Themes are produced by the `create-theme` skill and are pure documentation: copy
 ## Hard rules
 
 - Put the document under `docs/<kebab-case-id>/`.
-- Entry is `docs/<id>/index.tsx`. Images go under `docs/<id>/assets/images/<chapter>/`; the user's source files (PDFs, data, notes) are in `docs/<id>/assets/references/` — read them before writing.
+- Entry is `docs/<id>/index.tsx`. Images go under `docs/<id>/assets/images/`; the user's source files (PDFs, data, notes) are in `docs/<id>/assets/references/` — read them before writing.
 - Do **not** touch `package.json`, `mosage.config.ts`, or other documents.
 - Do not add dependencies. Only `react`, `mosage`, and standard web APIs are available.
 - A document is **one `index.tsx` plus `assets/`** — nothing else. Helper components and constants live inside `index.tsx`; no sibling `.tsx` files, no `README.md`.
@@ -155,13 +154,9 @@ contents list does. Read `references/long-form.md` before using any of them.
 - **`<DataTable rows={…}>`** — a print-shaped table from an imported `.csv`.
 - **`<Diagram chart={…} caption>`** — an architecture or flow drawing from an
   imported `.mmd`. Given a caption it numbers as a figure, like `<Figure>`.
-- **`<CodeExcerpt src={…} lines caption>`** — lines of a file in `code/`, with
-  the file's own line numbers and a link to that commit on GitHub or GitLab.
-  Numbered in its own sequence; `<CodeList />` is the appendix. Read
-  `references/code.md` first.
 
-`meta.labels` sets what they are called (`圖`, `表`, `程式`) — the numbering
-itself is structural.
+`meta.labels` sets what they are called (`圖`, `表`) — the numbering itself is
+structural.
 
 ## Diagrams
 
@@ -358,9 +353,9 @@ A document is not a slide deck. Long-form copy is the point — but it still has
 ## Runtime behavior you get for free
 
 - Home page lists every folder under `docs/` with a live thumbnail of page 1.
-- Document view: vertical scroll of real-size pages, a left rail that switches between page thumbnails, the outline, and the document's assets, zoom (actual size / fit width / fit page), page counter, and fullscreen reading (`F`).
+- Document view: vertical scroll of real-size pages, a left rail that switches between page thumbnails, the outline, and the document's assets, zoom in and out or fit the width (click the percentage for actual size), and a page counter.
 - Hot reload: edit `index.tsx` and the pages update live.
-- **Assets** (`/assets` in the dev UI, and the Assets tab of each document): images filed by chapter in a tree, and 參考文獻 (references) with a preview for PDFs, text, tables, audio, and video. Uploads are copied into the project; moving an image to another chapter or renaming it rewrites the imports that use it. An "unused" badge and a copy-ready import line come from scanning the sources, so an import you write by hand shows up there immediately.
+- **Assets** (`/assets` in the dev UI, and the Assets tab of each document): 圖片 (images) and 參考文獻 (references), with a preview for PDFs, text, tables, audio, and video. Uploads are copied into the project; renaming a file rewrites the imports that use it. An "unused" badge and a copy-ready import line come from scanning the sources, so an import you write by hand shows up there immediately.
 - **Settings** (`/settings`): the app's text size, and AI images — off, prompts left for Codex, or drawn through the OpenAI API with a key saved on this machine and the token cost recorded. Each document can switch generated images off.
 - **Inspect mode** (the "Inspect" button, dev only): click any element on a page to edit its text in place — the change is written straight back into `docs/<id>/index.tsx` — or leave a note for the agent, which is stored as a `@doc-comment` marker and processed by the `apply-comments` skill.
 - **Download menu** — PDF (true page size) and DOCX for review in Word. Those are the only two formats.
@@ -422,11 +417,10 @@ confirms it.
 - [ ] Tables have a header row, aligned numerals (`fontVariantNumeric: 'tabular-nums'`), and fit the text block width.
 - [ ] Numbers that refer to other things — figures, tables, notes, pages — come from `<Ref>` / `<Figure>` / `<Footnote>`, never typed in.
 - [ ] Any data that exists as a file is imported, not retyped into JSX.
-- [ ] All imported assets exist on disk (`docs/<id>/assets/images/…`, or root `assets/` via `@assets/...`), and each image sits in the folder of the chapter it illustrates.
-- [ ] Every `<ImagePrompt>` is in a document that has generated images switched on (`npx mosage images --json`), with a unique `id`, a `chapter` matching the heading, and a real px size.
+- [ ] All imported assets exist on disk (`docs/<id>/assets/images/…`, or root `assets/` via `@assets/...`).
+- [ ] Every `<ImagePrompt>` is in a document that has generated images switched on (`npx mosage images --json`), with a unique `id` and a real px size.
 - [ ] Every `<ImagePlaceholder>` marks a real image the user must supply — not decorative filler.
-- [ ] Code is shown with `<CodeExcerpt>` from a file in `code/`, never pasted; `npx mosage code` reports nothing unpushed, or the user knows why.
-- [ ] Nothing outside `docs/<id>/` was edited, apart from the files in `code/` the document excerpts.
+- [ ] Nothing outside `docs/<id>/` was edited.
 
 ## Anti-patterns
 

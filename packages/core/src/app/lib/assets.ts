@@ -2,15 +2,14 @@ import { useEffect, useState } from 'react';
 
 export const GLOBAL_SCOPE = '@global';
 
-/** Images are filed by chapter; everything else is a reference the author works from. */
+/** Images, and everything else — a reference the author works from. */
 export type AssetKind = 'image' | 'reference';
 
 export type Asset = {
   name: string;
-  /** Inside the scope's assets folder, e.g. `images/第一章/chart.png`. */
+  /** Inside the scope's assets folder, e.g. `images/chart.png`. */
   path: string;
   kind: AssetKind;
-  chapter: string | null;
   size: number;
   createdAt: number;
   mtime: number;
@@ -20,7 +19,7 @@ export type Asset = {
   unused: boolean;
 };
 
-export type AssetList = { assets: Asset[]; chapters: string[] };
+export type AssetList = { assets: Asset[] };
 
 export type AssetUsages = {
   usages: Array<{ docId: string; count: number }>;
@@ -70,18 +69,17 @@ export function listAssets(scope: string): Promise<ApiResult<AssetList>> {
   return request<AssetList>(base(scope));
 }
 
-/** Where a dropped file goes: images into the chapter, anything else into references. */
-export function uploadPath(filename: string, chapter: string | null): string {
-  if (!isImageName(filename)) return `references/${filename}`;
-  return chapter ? `images/${chapter}/${filename}` : `images/${filename}`;
+/** Where a dropped file goes: images into `images/`, anything else into `references/`. */
+export function uploadPath(filename: string): string {
+  return `${isImageName(filename) ? 'images' : 'references'}/${filename}`;
 }
 
 export function uploadAsset(
   scope: string,
   file: File,
-  opts: { chapter?: string | null; overwrite?: boolean } = {},
+  opts: { overwrite?: boolean } = {},
 ): Promise<ApiResult<Asset>> {
-  const url = `${pathUrl(scope, uploadPath(file.name, opts.chapter ?? null))}${opts.overwrite ? '?overwrite=1' : ''}`;
+  const url = `${pathUrl(scope, uploadPath(file.name))}${opts.overwrite ? '?overwrite=1' : ''}`;
   return request<Asset>(url, {
     method: 'POST',
     headers: { 'content-type': file.type || 'application/octet-stream' },
@@ -97,52 +95,12 @@ export function renameAsset(scope: string, path: string, name: string) {
   );
 }
 
-/** Moves an image to another chapter (or out of one). Imports follow it. */
-export function moveImage(scope: string, asset: Asset, chapter: string | null) {
-  const next = chapter ? `images/${chapter}/${asset.name}` : `images/${asset.name}`;
-  return request<{ path: string; updated: number }>(
-    pathUrl(scope, asset.path),
-    jsonBody('PATCH', { path: next }),
-  );
-}
-
 export function deleteAsset(scope: string, path: string) {
   return request<{ ok: true }>(pathUrl(scope, path), { method: 'DELETE' });
 }
 
 export function assetUsages(scope: string, path: string) {
   return request<AssetUsages>(`${pathUrl(scope, path)}/usages`);
-}
-
-const chapterUrl = (scope: string, chapter: string) =>
-  `${pathUrl(scope, `images/${chapter}`)}?folder=1`;
-
-export function createChapter(scope: string, chapter: string) {
-  return request<{ chapter: string }>(chapterUrl(scope, chapter), { method: 'POST' });
-}
-
-export function renameChapter(scope: string, chapter: string, name: string) {
-  return request<{ chapter: string; updated: number }>(
-    chapterUrl(scope, chapter),
-    jsonBody('PATCH', { name }),
-  );
-}
-
-export function deleteChapter(scope: string, chapter: string) {
-  return request<{ ok: true }>(chapterUrl(scope, chapter), { method: 'DELETE' });
-}
-
-/** A heading such as `第二章：市場分析`, made into a folder name the server accepts. */
-export function chapterFromHeading(text: string): string | null {
-  const cleaned = text
-    // biome-ignore lint/suspicious/noControlCharactersInRegex: mirrors the server's file-name rules
-    .replace(/[\x00-\x1F\x7F/\\:*?"<>|]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/^[.~\s]+/, '')
-    .trim()
-    .slice(0, 80)
-    .trim();
-  return cleaned || null;
 }
 
 /** Re-reads a scope whenever files change on disk or through the API. */
@@ -165,7 +123,7 @@ export function useAssets(scope: string): {
         setList(result.value);
         setError(null);
       } else {
-        setList({ assets: [], chapters: [] });
+        setList({ assets: [] });
         setError(result.error);
       }
     });

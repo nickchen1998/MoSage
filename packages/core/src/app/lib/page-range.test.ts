@@ -9,7 +9,13 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { describeSelection, parseRange, resolveSelection } from './page-range';
+import {
+  describeSelection,
+  formatPages,
+  parseRange,
+  resolveSelection,
+  selectionSummary,
+} from './page-range';
 
 describe('parseRange', () => {
   it('reads single pages, one-based', () => {
@@ -91,5 +97,37 @@ describe('describeSelection', () => {
       count: 0,
       valid: false,
     });
+  });
+});
+
+describe('formatPages', () => {
+  it('writes runs of pages as spans, one-based', () => {
+    expect(formatPages([0, 1, 2, 4])).toBe('1–3, 5');
+    expect(formatPages([3])).toBe('4');
+    expect(formatPages([0, 2, 3])).toBe('1, 3–4');
+  });
+});
+
+describe('selectionSummary', () => {
+  it('names the pages each choice takes', () => {
+    expect(selectionSummary({ kind: 'all' }, 12, 3)).toBe('All 12 pages will be downloaded');
+    expect(selectionSummary({ kind: 'all' }, 1, 1)).toBe(
+      "The document's only page will be downloaded",
+    );
+    expect(selectionSummary({ kind: 'current' }, 12, 8)).toBe(
+      "Only page 8, the one you're viewing, will be downloaded",
+    );
+    expect(selectionSummary({ kind: 'custom', text: '5' }, 12, 1)).toBe(
+      'Page 5 will be downloaded',
+    );
+    expect(selectionSummary({ kind: 'custom', text: '1-3, 5' }, 12, 1)).toBe(
+      '4 pages will be downloaded: 1–3, 5',
+    );
+  });
+
+  it('asks for page numbers when the range cannot be read', () => {
+    expect(selectionSummary({ kind: 'custom', text: 'nope' }, 12, 1)).toBe(
+      'Type page numbers, like 1-3, 5',
+    );
   });
 });

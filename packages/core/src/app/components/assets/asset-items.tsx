@@ -1,16 +1,7 @@
 import { Check, Copy, Eye, FileIcon, FileText, PencilLine, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import {
-  type Asset,
-  deleteAsset,
-  formatBytes,
-  importSnippet,
-  moveImage,
-  renameAsset,
-} from '../../lib/assets';
+import { type Asset, deleteAsset, formatBytes, importSnippet, renameAsset } from '../../lib/assets';
 import { cn } from '../../lib/utils';
-
-export const UNSORTED_LABEL = '未分章節';
 
 type Actions = {
   scope: string;
@@ -72,19 +63,10 @@ function IconAction({
 
 export function ImageCard({
   asset,
-  chapters,
   onPreview,
   ...actions
-}: Actions & { asset: Asset; chapters: string[]; onPreview: (asset: Asset) => void }) {
+}: Actions & { asset: Asset; onPreview: (asset: Asset) => void }) {
   const { copied, copy } = useCopy(actions.onError);
-
-  const move = async (value: string) => {
-    const chapter = value === '' ? null : value;
-    if (chapter === asset.chapter) return;
-    const result = await moveImage(actions.scope, asset, chapter);
-    if (!result.ok) actions.onError(`${asset.name}: ${result.error}`);
-    actions.onChanged();
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -111,19 +93,6 @@ export function ImageCard({
         </p>
         <p className="text-muted-foreground text-xs">{formatBytes(asset.size)}</p>
       </div>
-      <select
-        aria-label={`Chapter of ${asset.name}`}
-        value={asset.chapter ?? ''}
-        onChange={(e) => void move(e.target.value)}
-        className="w-full rounded-md border border-border bg-background px-2 py-1 text-xs"
-      >
-        <option value="">{UNSORTED_LABEL}</option>
-        {chapters.map((chapter) => (
-          <option key={chapter} value={chapter}>
-            {chapter}
-          </option>
-        ))}
-      </select>
       <div className="flex items-center gap-1">
         <button
           type="button"

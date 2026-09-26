@@ -1,5 +1,3 @@
-export type { CodeExcerptProps, CodeListProps } from './app/components/code-excerpt.tsx';
-export { CodeExcerpt, CodeList } from './app/components/code-excerpt.tsx';
 export type {
   DataAlign,
   DataColumn,
@@ -19,8 +17,6 @@ export type { FigureProps, ListOfProps, RefProps } from './app/components/number
 export { Figure, ListOf, ListOfFigures, ListOfTables, Ref } from './app/components/numbering.tsx';
 export type { TableOfContentsProps } from './app/components/table-of-contents.tsx';
 export { TableOfContents } from './app/components/table-of-contents.tsx';
-export type { CodeSource, ExcerptStatus } from './app/lib/code.ts';
-export type { CodeHost } from './app/lib/code-remote.ts';
 export type {
   DesignFonts,
   DesignPalette,

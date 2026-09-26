@@ -18,24 +18,20 @@ import {
   resolveScopedAssetPath,
   resolveScopedAssetsDir,
   rewriteAssetReferences,
-  validateFolderName,
 } from '../../files/assets.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { DOC_ID_RE } from '../mosage-plugin.ts';
 import { type ApiContext, json, readBody, resolveDocEntry } from './context.ts';
 
-// GET    /__assets/:scope                              list { assets, chapters }
-// GET    /__assets/:scope/<path>                       serve raw bytes
-// POST   /__assets/:scope/<path>                       upload (raw body, ?overwrite=1)
-// POST   /__assets/:scope/images/<chapter>?folder=1    create a chapter folder
-// PATCH  /__assets/:scope/<path>                       move or rename { path } — rewrites imports
-// PATCH  /__assets/:scope/images/<chapter>?folder=1    rename a chapter { name } — rewrites imports
-// DELETE /__assets/:scope/<path>                       delete
-// DELETE /__assets/:scope/images/<chapter>?folder=1    delete an empty chapter
-// GET    /__assets/:scope/<path>/usages                count references from document sources
+// GET    /__assets/:scope                  list { assets }
+// GET    /__assets/:scope/<path>           serve raw bytes
+// POST   /__assets/:scope/<path>           upload (raw body, ?overwrite=1)
+// PATCH  /__assets/:scope/<path>           rename { name } — rewrites imports
+// DELETE /__assets/:scope/<path>           delete
+// GET    /__assets/:scope/<path>/usages    count references from document sources
 //
-// <path> is `images/<chapter>/<file>`, `images/<file>`, `references/<file>`, or
-// a bare `<file>` from before images and references were split.
+// <path> is `images/<file>` or `references/<file>`; older projects also have a
+// bare `<file>` and `images/<folder>/<file>` (see parseAssetPath).
 
 export const FILES_CHANGED_EVENT = 'mosage:files-changed';
 
@@ -97,7 +93,6 @@ async function rewriteReferences(
 
 async function listScope(ctx: ApiContext, scope: string, dir: string) {
   const found: AssetPath[] = [];
-  const chapters: string[] = [];
   const take = (segments: string[]) => {
     const parsed = parseAssetPath(segments);
     if (parsed) found.push(parsed);
@@ -112,11 +107,9 @@ async function listScope(ctx: ApiContext, scope: string, dir: string) {
     } else if (entry.isDirectory() && entry.name === IMAGES_DIR) {
       for (const child of await readDir(path.join(dir, IMAGES_DIR))) {
         if (child.isFile()) take([IMAGES_DIR, child.name]);
-        const chapter = child.isDirectory() ? validateFolderName(child.name) : null;
-        if (!chapter || chapter !== child.name) continue;
-        chapters.push(chapter);
-        for (const file of await readDir(path.join(dir, IMAGES_DIR, chapter))) {
-          if (file.isFile()) take([IMAGES_DIR, chapter, file.name]);
+        if (!child.isDirectory()) continue;
+        for (const file of await readDir(path.join(dir, IMAGES_DIR, child.name))) {
+          if (file.isFile()) take([IMAGES_DIR, child.name, file.name]);
         }
       }
     }
@@ -152,8 +145,7 @@ async function listScope(ctx: ApiContext, scope: string, dir: string) {
     }
   }
 
-  chapters.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  return { assets, chapters };
+  return { assets };
 }
 
 async function readUpload(req: import('vite').Connect.IncomingMessage): Promise<Buffer | null> {
@@ -208,53 +200,6 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
         return json(res, 200, await listScope(ctx, scope, scopedDir));
       }
 
-      // A chapter folder, addressed as `images/<chapter>` with ?folder=1.
-      if (url.searchParams.get('folder') === '1') {
-        const chapter =
-          rest.length === 2 && rest[0] === IMAGES_DIR ? validateFolderName(rest[1]) : null;
-        if (!chapter) return json(res, 400, { error: 'invalid chapter' });
-        const folder = path.join(scopedDir, IMAGES_DIR, chapter);
-        const check = validateMutationRequest(req, { requireJsonBody: method === 'PATCH' });
-        if (!check.ok) return json(res, check.status, { error: check.error });
-
-        if (method === 'POST') {
-          await fs.mkdir(folder, { recursive: true });
-          changed();
-          return json(res, 200, { ok: true, chapter });
-        }
-        if (method === 'PATCH') {
-          const target = validateFolderName(((await readBody(req)) as { name?: unknown }).name);
-          if (!target) return json(res, 400, { error: 'invalid name' });
-          if (target === chapter) return json(res, 200, { ok: true, chapter, updated: 0 });
-          const dest = path.join(scopedDir, IMAGES_DIR, target);
-          if (await exists(dest)) return json(res, 409, { error: 'target exists' });
-          if (!(await exists(folder))) return json(res, 404, { error: 'chapter not found' });
-          await fs.rename(folder, dest);
-          const from = assetImportPath(scope, `${IMAGES_DIR}/${chapter}/`);
-          const to = assetImportPath(scope, `${IMAGES_DIR}/${target}/`);
-          const updated = await rewriteReferences(ctx, scope, (p) =>
-            p.startsWith(from) ? to + p.slice(from.length) : null,
-          );
-          changed();
-          return json(res, 200, { ok: true, chapter: target, updated });
-        }
-        if (method === 'DELETE') {
-          try {
-            await fs.rmdir(folder);
-          } catch (err) {
-            const code = (err as NodeJS.ErrnoException).code;
-            if (code === 'ENOENT') return json(res, 404, { error: 'chapter not found' });
-            if (code === 'ENOTEMPTY' || code === 'EEXIST') {
-              return json(res, 409, { error: 'chapter is not empty' });
-            }
-            throw err;
-          }
-          changed();
-          return json(res, 200, { ok: true });
-        }
-        return next();
-      }
-
       if (method === 'GET' && rest.length > 1 && rest[rest.length - 1] === 'usages') {
         const asset = parseAssetPath(rest.slice(0, -1));
         if (!asset) return json(res, 400, { error: 'invalid path' });
@@ -302,6 +247,10 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
       if (method === 'POST') {
         const check = validateMutationRequest(req);
         if (!check.ok) return json(res, check.status, { error: check.error });
+        // Folders under images/ are only read, for projects that filed images by chapter.
+        if (asset.path.split('/').length > 2) {
+          return json(res, 400, { error: 'images go directly under images/' });
+        }
         const len = Number(req.headers['content-length']);
         if (Number.isFinite(len) && len > ASSET_MAX_BYTES) {
           return json(res, 413, { error: 'file too large' });
@@ -330,15 +279,11 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
       if (method === 'PATCH') {
         const check = validateMutationRequest(req, { requireJsonBody: true });
         if (!check.ok) return json(res, check.status, { error: check.error });
-        const body = (await readBody(req)) as { path?: unknown; name?: unknown };
-        // `name` renames in place; `path` can also move to another chapter.
-        const wanted =
-          typeof body.path === 'string'
-            ? body.path.split('/')
-            : typeof body.name === 'string'
-              ? [...asset.path.split('/').slice(0, -1), body.name.trim()]
-              : null;
-        const target = wanted ? parseAssetPath(wanted) : null;
+        const { name } = (await readBody(req)) as { name?: unknown };
+        const target =
+          typeof name === 'string'
+            ? parseAssetPath([...asset.path.split('/').slice(0, -1), name.trim()])
+            : null;
         if (!target || target.kind !== asset.kind) return json(res, 400, { error: 'invalid name' });
         if (target.path === asset.path)
           return json(res, 200, { ok: true, path: asset.path, updated: 0 });

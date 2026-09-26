@@ -29,19 +29,6 @@ describe('normalizeSettings', () => {
     });
     expect(normalizeSettings(null)).toEqual(defaultSettings());
   });
-
-  it('keeps the code remote and a known host, each on its own', () => {
-    expect(
-      normalizeSettings({ code: { remote: ' git@gitlab.acme.dev:t/q.git ', host: 'gitlab' } }),
-    ).toEqual({
-      ...defaultSettings(),
-      code: { remote: 'git@gitlab.acme.dev:t/q.git', host: 'gitlab' },
-    });
-    expect(normalizeSettings({ code: { remote: '', host: 'bitbucket' } }).code).toEqual({
-      remote: null,
-      host: null,
-    });
-  });
 });
 
 describe('applySettingsPatch', () => {

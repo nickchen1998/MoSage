@@ -65,12 +65,6 @@ declare module '*.tsv' {
   export default rows;
 }
 
-// Read by the `mosage:code` Vite plugin — pass the default export to `<CodeExcerpt src>`.
-declare module '*?code' {
-  const src: import('mosage').CodeSource;
-  export default src;
-}
-
 // Compiled by the `mosage:diagram` Vite plugin — the default export is the
 // themed SVG and its natural size, ready for `<Diagram chart={…} />`.
 declare module '*.mmd' {

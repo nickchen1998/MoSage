@@ -5,7 +5,6 @@ import { generateImage, listImagePrompts, type PendingImage, placeImage } from '
 import { cliContext } from './context.ts';
 
 function describe(prompt: PendingImage): string {
-  const where = prompt.chapter ? chalk.dim(` [${prompt.chapter}]`) : '';
   const state = prompt.problem
     ? chalk.red(`✗ ${prompt.problem}`)
     : prompt.ready
@@ -14,7 +13,7 @@ function describe(prompt: PendingImage): string {
         ? chalk.cyan('waiting')
         : chalk.dim('off for this document');
   const text = prompt.prompt.length > 90 ? `${prompt.prompt.slice(0, 89)}…` : prompt.prompt;
-  return `  ${chalk.bold(`${prompt.docId}/${prompt.id}`)}${where} ${state}\n    ${text}\n    ${chalk.dim(`→ ${prompt.file}`)}`;
+  return `  ${chalk.bold(`${prompt.docId}/${prompt.id}`)} ${state}\n    ${text}\n    ${chalk.dim(`→ ${prompt.file}`)}`;
 }
 
 /**

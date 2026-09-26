@@ -12,8 +12,6 @@ import {
   writeDocSource,
 } from './helpers.ts';
 
-const CHAPTER = '第一章 緒論';
-
 function withPrompt(source: string, id: string): string {
   return source
     .replace(
@@ -23,7 +21,7 @@ function withPrompt(source: string, id: string): string {
     .replace(
       '<p>Opening content</p>',
       `<p>Opening content</p>
-    <ImagePrompt id="${id}" chapter="${CHAPTER}" prompt="A calm harbour at dawn, no text" alt="Harbour" width={642} height={300} />`,
+    <ImagePrompt id="${id}" prompt="A calm harbour at dawn, no text" alt="Harbour" width={642} height={300} />`,
     );
 }
 
@@ -52,7 +50,7 @@ test.describe('generated images', () => {
     await request.delete('/__settings/openai-key');
   });
 
-  test('OpenAI mode: Generate draws the prompt, files it by chapter, and swaps it in', async ({
+  test('OpenAI mode: Generate draws the prompt, saves it under images/, and swaps it in', async ({
     page,
     request,
   }) => {
@@ -71,12 +69,10 @@ test.describe('generated images', () => {
     await expect(page.getByText(/harbour: done · about \$/)).toBeVisible({ timeout: 20_000 });
 
     const source = await readDocSource('alpha');
-    expect(source).toContain(`import imgHarbour from './assets/images/${CHAPTER}/harbour.png';`);
+    expect(source).toContain("import imgHarbour from './assets/images/harbour.png';");
     expect(source).toContain('<img src={imgHarbour}');
     expect(source).not.toContain('ImagePrompt');
-    await fs.access(
-      path.join(devScratchDir, 'docs', 'alpha', 'assets', 'images', CHAPTER, 'harbour.png'),
-    );
+    await fs.access(path.join(devScratchDir, 'docs', 'alpha', 'assets', 'images', 'harbour.png'));
     await expect(viewer(page).locator('img[alt="Harbour"]')).toBeVisible();
 
     const usage = await (await request.get('/__settings/usage')).json();
@@ -131,8 +127,7 @@ test.describe('generated images', () => {
     const [prompt] = report.prompts;
     expect(prompt).toMatchObject({
       id: 'harbour',
-      chapter: CHAPTER,
-      file: `docs/alpha/assets/images/${CHAPTER}/harbour.png`,
+      file: 'docs/alpha/assets/images/harbour.png',
       ready: false,
     });
 
@@ -144,7 +139,7 @@ test.describe('generated images', () => {
     const placed = await runCli(['images', 'place', 'alpha'], devScratchDir);
     expect(placed.code, placed.stderr).toBe(0);
     const source = await readDocSource('alpha');
-    expect(source).toContain(`'./assets/images/${CHAPTER}/harbour.png'`);
+    expect(source).toContain("'./assets/images/harbour.png'");
     expect(source).not.toContain('ImagePrompt');
   });
 });

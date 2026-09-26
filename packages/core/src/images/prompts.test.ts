@@ -27,14 +27,15 @@ describe('findImagePrompts', () => {
     const [map, team] = findImagePrompts(DOC);
     expect(map).toMatchObject({
       id: 'market-map',
-      chapter: '第二章 市場分析',
       prompt: 'An isometric map of the three market segments',
       alt: 'Market segments',
       width: 642,
       height: 360,
       problem: null,
     });
-    expect(team).toMatchObject({ id: 'team-photo', chapter: null, width: 300, height: null });
+    expect(team).toMatchObject({ id: 'team-photo', width: 300, height: null });
+    // `chapter` is left over from when images were filed by chapter.
+    expect(map).not.toHaveProperty('chapter');
   });
 
   it('flags prompts that cannot be generated as written', () => {
@@ -52,27 +53,20 @@ describe('findImagePrompts', () => {
     expect(problems[1]).toMatch(/empty/);
     expect(problems[2]).toBeNull();
     expect(problems[3]).toMatch(/more than once/);
-    expect(problems[4]).toMatch(/folder name/);
+    expect(problems[4]).toBeNull();
   });
 });
 
 describe('imagePathFor', () => {
-  it('files an image under its chapter, or directly under images/ without one', () => {
-    expect(imagePathFor({ id: 'a', chapter: '第一章' })).toBe('assets/images/第一章/a.png');
-    expect(imagePathFor({ id: 'a', chapter: null })).toBe('assets/images/a.png');
+  it('files every image directly under images/', () => {
+    expect(imagePathFor({ id: 'a' })).toBe('assets/images/a.png');
   });
 });
 
 describe('replaceImagePrompt', () => {
   it('swaps the prompt for an imported <img> of the same size', () => {
-    const next = replaceImagePrompt(
-      DOC,
-      'market-map',
-      './assets/images/第二章 市場分析/market-map.png',
-    );
-    expect(next).toContain(
-      "import imgMarketMap from './assets/images/第二章 市場分析/market-map.png';",
-    );
+    const next = replaceImagePrompt(DOC, 'market-map', './assets/images/market-map.png');
+    expect(next).toContain("import imgMarketMap from './assets/images/market-map.png';");
     expect(next).toContain(
       "<img src={imgMarketMap} alt='Market segments' style={{ width: 642, height: 360, objectFit: 'cover', display: 'block' }} />",
     );

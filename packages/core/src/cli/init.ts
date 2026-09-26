@@ -101,8 +101,7 @@ export async function init(opts: InitOptions): Promise<void> {
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   }
 
-  // code/ is a repository of its own, pushed to GitHub or GitLab by `mosage code`.
-  await writeFile(join(target, '.gitignore'), 'node_modules\ndist\n.DS_Store\n/code/\n');
+  await writeFile(join(target, '.gitignore'), 'node_modules\ndist\n.DS_Store\n');
 
   // pnpm blocks postinstall scripts unless a package opts in, and Vite is dead
   // in the water without esbuild's — it never unpacks its platform binary.

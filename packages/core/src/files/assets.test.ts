@@ -5,7 +5,6 @@ import {
   assetResponseHeaders,
   countAssetUsages,
   findReferencedAssets,
-  folderNameFromHeading,
   GLOBAL_SCOPE,
   mimeForFilename,
   parseAssetPath,
@@ -102,13 +101,17 @@ describe('mimeForFilename', () => {
 
 describe('parseAssetPath', () => {
   it('accepts the images, references, and legacy shapes', () => {
+    expect(parseAssetPath(['images', 'logo.svg'])).toEqual({
+      path: 'images/logo.svg',
+      name: 'logo.svg',
+      kind: 'image',
+    });
+    // Filed by chapter, as older projects did.
     expect(parseAssetPath(['images', '第二章 市場分析', 'map.png'])).toEqual({
       path: 'images/第二章 市場分析/map.png',
       name: 'map.png',
       kind: 'image',
-      chapter: '第二章 市場分析',
     });
-    expect(parseAssetPath(['images', 'logo.svg'])).toMatchObject({ kind: 'image', chapter: null });
     expect(parseAssetPath(['references', 'paper.pdf'])).toMatchObject({ kind: 'reference' });
     expect(parseAssetPath(['old.png'])).toMatchObject({ path: 'old.png', kind: 'image' });
     expect(parseAssetPath(['notes.md'])).toMatchObject({ path: 'notes.md', kind: 'reference' });
@@ -130,10 +133,10 @@ describe('parseAssetPath', () => {
 });
 
 describe('uploadPathFor', () => {
-  it('files images under the chapter and everything else under references', () => {
-    expect(uploadPathFor('map.png', '第一章')?.path).toBe('images/第一章/map.png');
-    expect(uploadPathFor('map.png', null)?.path).toBe('images/map.png');
-    expect(uploadPathFor('data.csv', '第一章')?.path).toBe('references/data.csv');
+  it('files images under images/ and everything else under references/', () => {
+    expect(uploadPathFor('map.png')?.path).toBe('images/map.png');
+    expect(uploadPathFor('data.csv')?.path).toBe('references/data.csv');
+    expect(uploadPathFor('../x.png')).toBeNull();
   });
 });
 
@@ -143,15 +146,6 @@ describe('resolveScopedAssetPath', () => {
       path.join(DOCS_ROOT, 'q3', 'assets', 'images', '第一章', 'a.png'),
     );
     expect(resolveScopedAssetPath(DOCS_ROOT, GLOBAL_ROOT, 'q3', 'images/../../x.png')).toBeNull();
-  });
-});
-
-describe('folderNameFromHeading', () => {
-  it('keeps the words and drops what a folder cannot hold', () => {
-    expect(folderNameFromHeading('第二章：市場分析')).toBe('第二章：市場分析');
-    expect(folderNameFromHeading('2.1 Q3 / Q4 results')).toBe('2.1 Q3 Q4 results');
-    expect(folderNameFromHeading('...hidden')).toBe('hidden');
-    expect(folderNameFromHeading('///')).toBeNull();
   });
 });
 

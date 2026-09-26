@@ -101,7 +101,6 @@ export function validateAssetName(v: unknown): string | null {
   return trimmed;
 }
 
-/** Images, filed into one sub-folder per chapter. */
 export const IMAGES_DIR = 'images';
 /** Everything that is not an image — papers, data, notes the author works from. */
 export const REFERENCES_DIR = 'references';
@@ -113,27 +112,14 @@ export function isImageFilename(name: string): boolean {
   return dot > 0 && IMAGE_EXTENSIONS.has(name.slice(dot + 1).toLowerCase());
 }
 
-/** A chapter folder: the same character rules as a file name, no extension needed. */
-export function validateFolderName(v: unknown): string | null {
+/** A sub-folder of `images/`: the same character rules as a file name, no extension needed. */
+function validateFolderName(v: unknown): string | null {
   if (typeof v !== 'string') return null;
   const trimmed = v.trim();
   if (trimmed.length < 1 || trimmed.length > 80) return null;
   if (ASSET_FORBIDDEN_RE.test(trimmed)) return null;
   if (trimmed.startsWith('.') || trimmed.startsWith('~')) return null;
   return trimmed;
-}
-
-/** Turns a heading such as `第二章：市場分析` into a folder name it can be stored under. */
-export function folderNameFromHeading(text: string): string | null {
-  const cleaned = text
-    // biome-ignore lint/suspicious/noControlCharactersInRegex: same block list as file names
-    .replace(/[\x00-\x1F\x7F/\\:*?"<>|]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/^[.~\s]+/, '')
-    .trim()
-    .slice(0, 80)
-    .trim();
-  return validateFolderName(cleaned);
 }
 
 /** Which of the two collections a file belongs to. */
@@ -144,42 +130,39 @@ export type AssetPath = {
   path: string;
   name: string;
   kind: AssetKind;
-  /** The chapter an image is filed under; null when it has none. */
-  chapter: string | null;
 };
 
 /**
  * Validates the path of a file inside an assets folder. The shapes are
- * `images/<chapter>/<file>`, `images/<file>`, `references/<file>`, and a bare
- * `<file>` — where documents written before the split keep theirs.
+ * `images/<file>`, `references/<file>`, and two that only older projects have:
+ * a bare `<file>` from before images and references were split, and
+ * `images/<folder>/<file>` from when images were filed by chapter.
  */
 export function parseAssetPath(segments: string[]): AssetPath | null {
   const name = validateAssetName(segments[segments.length - 1]);
   if (!name) return null;
   if (segments.length === 1) {
-    return { path: name, name, kind: isImageFilename(name) ? 'image' : 'reference', chapter: null };
+    return { path: name, name, kind: isImageFilename(name) ? 'image' : 'reference' };
   }
   const [collection] = segments;
   if (collection === IMAGES_DIR) {
     if (!isImageFilename(name)) return null;
-    if (segments.length === 2)
-      return { path: `${IMAGES_DIR}/${name}`, name, kind: 'image', chapter: null };
-    const chapter = segments.length === 3 ? validateFolderName(segments[1]) : null;
-    if (!chapter) return null;
-    return { path: `${IMAGES_DIR}/${chapter}/${name}`, name, kind: 'image', chapter };
+    if (segments.length === 2) return { path: `${IMAGES_DIR}/${name}`, name, kind: 'image' };
+    const folder = segments.length === 3 ? validateFolderName(segments[1]) : null;
+    if (!folder || folder !== segments[1]) return null;
+    return { path: `${IMAGES_DIR}/${folder}/${name}`, name, kind: 'image' };
   }
   if (collection === REFERENCES_DIR && segments.length === 2) {
-    return { path: `${REFERENCES_DIR}/${name}`, name, kind: 'reference', chapter: null };
+    return { path: `${REFERENCES_DIR}/${name}`, name, kind: 'reference' };
   }
   return null;
 }
 
-/** Where an uploaded file goes: images into their chapter, anything else into references. */
-export function uploadPathFor(filename: string, chapter: string | null): AssetPath | null {
+/** Where an uploaded file goes: images into `images/`, anything else into `references/`. */
+export function uploadPathFor(filename: string): AssetPath | null {
   const name = validateAssetName(filename);
   if (!name) return null;
-  if (!isImageFilename(name)) return parseAssetPath([REFERENCES_DIR, name]);
-  return parseAssetPath(chapter ? [IMAGES_DIR, chapter, name] : [IMAGES_DIR, name]);
+  return parseAssetPath([isImageFilename(name) ? IMAGES_DIR : REFERENCES_DIR, name]);
 }
 
 export function resolveScopedAssetPath(
@@ -198,8 +181,8 @@ export function resolveScopedAssetPath(
 }
 
 /**
- * Rewrites quoted asset paths in a document's source — a moved file or a
- * renamed chapter — and reports how many references it changed.
+ * Rewrites quoted asset paths in a document's source after a file is renamed,
+ * and reports how many references it changed.
  */
 export function rewriteAssetReferences(
   source: string,

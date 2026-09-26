@@ -1,6 +1,9 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
   deleteDoc,
+  devScratchDir,
   devServerUrl,
   duplicateDoc,
   readDocSource,
@@ -120,75 +123,61 @@ test.describe('dev API — images and references', () => {
     original = await readDocSource('alpha');
   });
 
+  const legacyDir = path.join(devScratchDir, 'docs', 'alpha', 'assets', 'images', '舊章');
+
   test.afterEach(async ({ request }) => {
     await writeDocSource('alpha', original);
-    for (const p of [
-      'images/舊章/e2e-move.png',
-      'images/新章/e2e-move.png',
-      'images/改名後/e2e-move.png',
-      'references/e2e.html',
-    ]) {
+    for (const p of ['images/e2e-move.png', 'images/e2e-renamed.png', 'references/e2e.html']) {
       await request.delete(at(p));
     }
-    for (const chapter of ['舊章', '新章', '改名後']) {
-      await request.delete(`${at(`images/${chapter}`)}?folder=1`);
-    }
+    await fs.rm(legacyDir, { recursive: true, force: true });
   });
 
-  test('images live under chapters and everything else under references', async ({ request }) => {
-    expect((await request.post(at('images/舊章/e2e-move.png'), { data: TINY_PNG })).ok()).toBe(
-      true,
-    );
+  test('images live directly under images/ and everything else under references', async ({
+    request,
+  }) => {
+    expect((await request.post(at('images/e2e-move.png'), { data: TINY_PNG })).ok()).toBe(true);
     expect((await request.post(at('images/e2e.pdf'), { data: 'x' })).status()).toBe(400);
-    expect((await request.post(at('images/a/b/e2e.png'), { data: TINY_PNG })).status()).toBe(400);
+    expect((await request.post(at('images/舊章/e2e.png'), { data: TINY_PNG })).status()).toBe(400);
 
     const list = await (await request.get('/__assets/alpha')).json();
-    expect(list.chapters).toContain('舊章');
+    expect(list).not.toHaveProperty('chapters');
     expect(list.assets).toContainEqual(
       expect.objectContaining({
-        path: 'images/舊章/e2e-move.png',
+        path: 'images/e2e-move.png',
         kind: 'image',
-        chapter: '舊章',
-        importPath: './assets/images/舊章/e2e-move.png',
+        importPath: './assets/images/e2e-move.png',
       }),
     );
   });
 
-  test('moving an image to another chapter rewrites the import that uses it', async ({
-    request,
-  }) => {
-    await request.post(at('images/舊章/e2e-move.png'), { data: TINY_PNG });
-    await writeDocSource(
-      'alpha',
-      `import pixel from './assets/images/舊章/e2e-move.png';\n${original}`,
-    );
+  test('renaming an image rewrites the import that uses it', async ({ request }) => {
+    await request.post(at('images/e2e-move.png'), { data: TINY_PNG });
+    await writeDocSource('alpha', `import pixel from './assets/images/e2e-move.png';\n${original}`);
 
-    const moved = await request.patch(at('images/舊章/e2e-move.png'), {
-      data: { path: 'images/新章/e2e-move.png' },
+    const renamed = await request.patch(at('images/e2e-move.png'), {
+      data: { name: 'e2e-renamed.png' },
     });
-    expect(moved.ok()).toBe(true);
-    expect((await moved.json()).updated).toBe(1);
-    expect(await readDocSource('alpha')).toContain("from './assets/images/新章/e2e-move.png'");
-    expect((await request.get(at('images/新章/e2e-move.png'))).status()).toBe(200);
+    expect(renamed.ok()).toBe(true);
+    expect((await renamed.json()).updated).toBe(1);
+    expect(await readDocSource('alpha')).toContain("from './assets/images/e2e-renamed.png'");
+    expect((await request.get(at('images/e2e-renamed.png'))).status()).toBe(200);
   });
 
-  test('renaming a chapter rewrites every import inside it; a full chapter cannot be deleted', async ({
+  test('an image an older project filed by chapter is still listed and served', async ({
     request,
   }) => {
-    await request.post(at('images/新章/e2e-move.png'), { data: TINY_PNG });
-    await writeDocSource(
-      'alpha',
-      `import pixel from './assets/images/新章/e2e-move.png';\n${original}`,
+    await fs.mkdir(legacyDir, { recursive: true });
+    await fs.writeFile(path.join(legacyDir, 'e2e-legacy.png'), TINY_PNG);
+
+    const list = await (await request.get('/__assets/alpha')).json();
+    expect(list.assets).toContainEqual(
+      expect.objectContaining({
+        path: 'images/舊章/e2e-legacy.png',
+        importPath: './assets/images/舊章/e2e-legacy.png',
+      }),
     );
-
-    const full = await request.delete(`${at('images/新章')}?folder=1`);
-    expect(full.status()).toBe(409);
-
-    const renamed = await request.patch(`${at('images/新章')}?folder=1`, {
-      data: { name: '改名後' },
-    });
-    expect((await renamed.json()).updated).toBe(1);
-    expect(await readDocSource('alpha')).toContain("from './assets/images/改名後/e2e-move.png'");
+    expect((await request.get(at('images/舊章/e2e-legacy.png'))).status()).toBe(200);
   });
 
   test('an uploaded HTML file is served as a download, never rendered', async ({ request }) => {

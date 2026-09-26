@@ -7,7 +7,7 @@ description: Use this skill when the user wants to create, draft, author, or gen
 
 This skill owns the **workflow** for drafting a new document. The technical reference — file contract, page canvas, print type scale, vertical budget, tables, TOC — lives in the **`doc-authoring`** skill. Read it before writing code; don't duplicate its rules here.
 
-You only write files under `docs/<id>/` — and, for a document that shows code, the files it excerpts under `code/` (see `doc-authoring` → `references/code.md`). Never modify `package.json`, `mosage.config.ts`, or existing documents.
+You only write files under `docs/<id>/`. Never modify `package.json`, `mosage.config.ts`, or existing documents.
 
 **If the user already has the content written as Markdown, don't retype it into JSX.** `mosage import <file.md> --id <id>` produces a real document — `flow()` body, cover, contents, local images copied into the document's assets — which you then refine. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
 
@@ -86,7 +86,7 @@ While writing:
 - `useDocPageNumber()` / `useDocPageCount()` for the footer. Never hardcode.
 - Put body content in one `flow(<>…</>, { footer: Footer })` section; mark captions `data-od-keep-with-previous`. Only run budget math for fixed pages.
 - Where the user must supply data, leave `<ImagePlaceholder hint="…">` or an explicit `TODO:` in the copy — never invent numbers.
-- **Generated images.** Run `npx mosage images --json --doc <id>` (for a brand-new document, check `mode` and whether `documents` lists the id as `false`). When `mode` is `codex` or `openai` and the document is not switched off, leave an `<ImagePrompt>` wherever an illustration, photo, or cover image would strengthen the page — with its `chapter`, a careful `prompt`, and a real px size (see `references/assets.md` in `doc-authoring`). When `mode` is `off`, leave none.
+- **Generated images.** Run `npx mosage images --json --doc <id>` (for a brand-new document, check `mode` and whether `documents` lists the id as `false`). When `mode` is `codex` or `openai` and the document is not switched off, leave an `<ImagePrompt>` wherever an illustration, photo, or cover image would strengthen the page — with a careful `prompt` and a real px size (see `references/assets.md` in `doc-authoring`). When `mode` is `off`, leave none.
 
 ## Step 7 — Self-review
 
@@ -103,6 +103,6 @@ Tell the user:
 - **Every placeholder and `TODO:` you left**, and what data each one needs.
 - **Every `<ImagePrompt>` you left**, and how they get drawn: in Codex mode, open Codex in this project and ask it to generate the images (the `generate-images` skill); in OpenAI mode, the **Generate** buttons in the document's Assets tab, or `npx mosage images generate`.
 - That the **Download** menu exports a PDF at the true page size or a Word file (DOCX) to review in Word — or `mosage export <id> --format pdf|docx` for the same files without a browser.
-- That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images (filed by chapter) and reference files (參考文獻) go through the **Assets** page, where uploads are copied into the project.
+- That the **Design** button live-tweaks the palette and type scale and writes the result back to the source, and that images (圖片) and reference files (參考文獻) go through the **Assets** page, where uploads are copied into the project.
 
 Don't run the dev server yourself unless asked.

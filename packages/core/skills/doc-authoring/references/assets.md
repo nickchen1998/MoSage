@@ -6,21 +6,21 @@ Every assets folder — a document's own `docs/<id>/assets/`, or the project's s
 
 | Collection | Path inside `assets/` | What goes there |
 | --- | --- | --- |
-| Images (圖片) | `images/<chapter>/<file>` — or `images/<file>` when it belongs to no chapter | Pictures a page shows. One folder per chapter, named after the chapter heading (`第二章 市場分析`). |
+| Images (圖片) | `images/<file>` | Pictures a page shows, all in one folder. |
 | References (參考文獻) | `references/<file>` | Everything that is not an image: papers, PDFs, spreadsheets, notes, data. Material the document is written **from**. |
 
-Documents written before this split may still have files directly in `assets/`; they keep working where they are.
+Older projects may still have files directly in `assets/`, or images in sub-folders of `images/` from when they were filed by chapter; they keep working where they are. Put new images directly in `images/`.
 
 | Scope | Example | Import |
 | --- | --- | --- |
-| One document | `docs/<id>/assets/images/第二章 市場分析/chart.png` | `import chart from './assets/images/第二章 市場分析/chart.png'` |
+| One document | `docs/<id>/assets/images/chart.png` | `import chart from './assets/images/chart.png'` |
 | Shared across documents | `assets/images/logo.svg` (project root) | `import logo from '@assets/images/logo.svg'` |
 
-Imports resolve to a URL string at build time. For a pure-text document, don't create an `assets/` folder at all. When you add an image yourself, save it in the chapter folder of the chapter it illustrates.
+Imports resolve to a URL string at build time. For a pure-text document, don't create an `assets/` folder at all.
 
 ```tsx
 import logo from '@assets/images/logo.svg';
-import diagram from './assets/images/第一章 架構/architecture.png';
+import diagram from './assets/images/architecture.png';
 
 <img src={logo} alt="Acme" style={{ height: 28 }} />
 <img src={diagram} alt="Service topology" style={{ width: 642, display: 'block' }} />
@@ -53,7 +53,6 @@ import { ImagePrompt } from 'mosage';
 
 <ImagePrompt
   id="market-map"
-  chapter="第二章 市場分析"
   prompt="An isometric map of three market segments as city blocks, soft blue palette, no text"
   alt="Market segments"
   width={642}
@@ -61,8 +60,7 @@ import { ImagePrompt } from 'mosage';
 />
 ```
 
-- `id` — lowercase letters, digits, and dashes, unique in the document. It becomes the file name.
-- `chapter` — the chapter heading the image belongs to, exactly as the image folder is named. Leave it out for an image outside any chapter.
+- `id` — lowercase letters, digits, and dashes, unique in the document. It becomes the file name: `assets/images/<id>.png`.
 - `prompt` — written for an image model: subject, composition, style, palette. Say "no text" unless the image must contain words; captions belong in type, in a `<Figure>`.
 - `width` / `height` — the space it takes on the page, in px, like any image. The ratio also decides whether it is drawn landscape, portrait, or square.
 - Wrap it in `<Figure caption="…">` when it needs a numbered caption — the image lands inside the figure.

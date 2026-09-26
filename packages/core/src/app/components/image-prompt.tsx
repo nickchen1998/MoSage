@@ -5,7 +5,7 @@ export type ImagePromptProps = {
   id: string;
   /** What to draw, written for an image model: subject, style, composition, text to avoid. */
   prompt: string;
-  /** The chapter folder under `assets/images/` the finished image is filed in. */
+  /** @deprecated Ignored: images are no longer filed by chapter. */
   chapter?: string;
   alt?: string;
   /** The size the finished image takes on the page, in px. Also picks its aspect ratio. */
@@ -17,7 +17,7 @@ export type ImagePromptProps = {
 /**
  * Holds the place of an image that has not been drawn yet. Codex, or MoSage
  * itself through the OpenAI API, draws it from `prompt`, saves it under
- * `assets/images/<chapter>/<id>.png`, and replaces this element with an `<img>`
+ * `assets/images/<id>.png`, and replaces this element with an `<img>`
  * of the same size — so the page is laid out right before the image exists.
  */
 export function ImagePrompt({ id, prompt, width, height = 240, style }: ImagePromptProps) {

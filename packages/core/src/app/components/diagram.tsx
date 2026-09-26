@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Figure, type FigureProps } from './numbering';
+import type { LabelKind } from '../lib/labels';
+import { Figure } from './numbering';
 
 export type DiagramSource = {
   svg: string;
@@ -13,7 +14,7 @@ export type DiagramProps = {
   /** Caption text. Given one, the drawing is numbered like any other figure. */
   caption?: ReactNode;
   captionText?: string;
-  kind?: FigureProps['kind'];
+  kind?: LabelKind;
   id?: string;
   /**
    * Drawn width in CSS px. Defaults to the diagram's natural size, capped to
