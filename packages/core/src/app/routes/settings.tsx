@@ -293,46 +293,39 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
 function Usage({ pricesAsOf }: { pricesAsOf: string }) {
   const { data } = useLive(getUsage);
   if (!data) return null;
-  const rows = [
-    { label: 'This project', totals: data.project },
-    { label: 'All projects on this machine', totals: data.all },
-  ];
+  const { totals } = data;
   return (
     <div>
-      <p className="mb-2 font-medium text-sm">Usage</p>
+      <p className="font-medium text-sm">Usage</p>
+      <p className="mb-2 text-muted-foreground text-xs">Every project on this machine.</p>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-border border-b text-left text-muted-foreground text-xs">
-            <th className="py-1.5 font-normal" />
-            <th className="py-1.5 text-right font-normal">Images</th>
+          <tr className="border-border border-b text-muted-foreground text-xs">
+            <th className="py-1.5 text-left font-normal">Images</th>
             <th className="py-1.5 text-right font-normal">Input tokens</th>
             <th className="py-1.5 text-right font-normal">Output tokens</th>
             <th className="py-1.5 text-right font-normal">Estimated cost</th>
           </tr>
         </thead>
         <tbody className="tabular-nums">
-          {rows.map(({ label, totals }) => (
-            <tr key={label} className="border-border border-b">
-              <td className="py-1.5">{label}</td>
-              <td className="py-1.5 text-right">{totals.images}</td>
-              <td className="py-1.5 text-right">{formatTokens(totals.inputTokens)}</td>
-              <td className="py-1.5 text-right">{formatTokens(totals.outputTokens)}</td>
-              <td className="py-1.5 text-right">{formatUsd(totals.costUsd)}</td>
-            </tr>
-          ))}
+          <tr className="border-border border-b">
+            <td className="py-1.5">{totals.images}</td>
+            <td className="py-1.5 text-right">{formatTokens(totals.inputTokens)}</td>
+            <td className="py-1.5 text-right">{formatTokens(totals.outputTokens)}</td>
+            <td className="py-1.5 text-right">{formatUsd(totals.costUsd)}</td>
+          </tr>
         </tbody>
       </table>
       {data.recent.length > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-muted-foreground text-xs">
-            Recent images in this project
-          </summary>
+          <summary className="cursor-pointer text-muted-foreground text-xs">Recent images</summary>
           <ul className="mt-2 space-y-1 text-xs tabular-nums">
             {data.recent.map((entry) => (
-              <li key={`${entry.ts}-${entry.imageId}`} className="flex gap-3">
+              <li key={`${entry.ts}-${entry.project}-${entry.imageId}`} className="flex gap-3">
                 <span className="text-muted-foreground">{new Date(entry.ts).toLocaleString()}</span>
                 <span className="flex-1 truncate">
-                  {entry.docId} / {entry.imageId} · {entry.model} · {entry.quality}
+                  {entry.project} / {entry.docId} / {entry.imageId} · {entry.model} ·{' '}
+                  {entry.quality}
                 </span>
                 <span>
                   {formatTokens(entry.inputTokens)} in · {formatTokens(entry.outputTokens)} out

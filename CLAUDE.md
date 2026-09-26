@@ -43,7 +43,7 @@ pnpm core <指令>  # 只在 mosage 套件執行
 - **文件由虛擬模組探索。** `src/vite/mosage-plugin.ts` 以 glob 找出 `docs/*/index.{tsx,jsx,ts,js}`，產生 `virtual:mosage/docs`，並為每份文件附上熱更新用的 cache-bust token。
 - **檢視器是兩欄式外殼。** `src/app/routes/home-shell.tsx` 負責左側欄（數量、資料夾、主題切換），並透過 outlet context 把資料夾狀態交給各路由——路由不自己讀取 manifest。文件頁的結構相同：`src/app/components/doc-sidebar.tsx` 是左側的縮圖／大綱，中間捲動頁面，Design 面板停靠右側。
 - **資料夾存在 `docs/.folders.json`。** 這是框架唯一自己管理的可變狀態：開發模式透過 `/__folders` 即時讀取，靜態建置讀 `virtual:mosage/folders` 的快照。文件代號永遠不變，歸檔只修改對應關係。
-- **主題只是說明文件。** `themes-plugin.ts` 把 `themes/*.md` 的 frontmatter 與內文讀進 `virtual:mosage/themes`，並搭配可選的 `<id>.demo.tsx`。執行期不會強制套用主題，`meta.theme` 只用來顯示回到主題的連結。
+- **主題只是說明文件。** `themes-plugin.ts` 把 `themes/*.md` 的 frontmatter 與內文讀進 `virtual:mosage/themes`，並搭配可選的 `<id>.demo.tsx`；frontmatter 的 `orientation: landscape` 讓預覽用 A4 橫式。執行期不會強制套用主題，`meta.theme` 只用來顯示回到主題的連結。`template/themes/` 是 `mosage init` 內建的主題，和 `apps/demo/themes/` 的同名檔案必須完全相同（`cli/init.test.ts` 會檢查），改一邊就要複製到另一邊。
 
 ### 頁面與分頁
 

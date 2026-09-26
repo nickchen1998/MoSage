@@ -53,6 +53,7 @@ Keep this exact section order; adapt the bodies.
 name: <Human title, e.g. "Acme Corporate">
 description: <one-line elevator pitch>
 pageSize: A4
+orientation: <portrait | landscape — omit for portrait>
 mode: <light | dark — light for anything that prints>
 ---
 
@@ -85,7 +86,7 @@ Extra colors outside the `DesignSystem` shape (status green/amber/red, chart ser
 
 ## Page setup
 
-- Page size: A4 portrait (794 × 1123 px).
+- Page size: A4 portrait (794 × 1123 px), or A4 landscape (1123 × 794 px) with `orientation: landscape` in the frontmatter — documents using the theme then set `meta.orientation: 'landscape'`.
 - Margin: <n> px on all sides (<n> mm).
 - Leading: <n>.
 - Running footer: <what it shows, where it sits>.
@@ -166,7 +167,7 @@ Rules for the demo:
 ## Step 6 — Self-review
 
 - [ ] Both files exist and share the same stem.
-- [ ] Frontmatter has `name`, `description`, `pageSize`, `mode`.
+- [ ] Frontmatter has `name`, `description`, `pageSize`, `mode` — and `orientation: landscape` if the theme is landscape, or the gallery previews it as portrait.
 - [ ] The `design` const in the `.md` and in the demo are identical.
 - [ ] The palette background is white or near-white (see `references/design-system.md` — dark documents print badly).
 - [ ] Body type ≥ 14px; caption ≥ 10px; every size in the type scale is an even number of px.

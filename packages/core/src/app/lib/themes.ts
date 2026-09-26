@@ -6,8 +6,10 @@ export type ThemeMeta = {
   id: string;
   name: string;
   description: string;
-  /** Frontmatter hint — 'A4' | 'Letter' | … or '' when the theme doesn't say. */
+  /** Frontmatter hint — 'A4', or '' when the theme doesn't say. */
   pageSize: string;
+  /** Frontmatter hint — 'portrait' | 'landscape' | '' (portrait). */
+  orientation: string;
   /** Frontmatter hint — 'light' | 'dark' | '' */
   mode: string;
   body: string;

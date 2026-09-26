@@ -58,7 +58,7 @@ test.describe('generated images', () => {
   }) => {
     await request.patch('/__settings', { data: { imageGeneration: { mode: 'openai' } } });
     await writeDocSource('alpha', withPrompt(original, 'harbour'));
-    const before = (await (await request.get('/__settings/usage')).json()).project.images;
+    const before = (await (await request.get('/__settings/usage')).json()).totals.images;
 
     await openDoc(page, 'alpha');
     // The prompt holds the image's real size on the page before it exists.
@@ -80,8 +80,9 @@ test.describe('generated images', () => {
     await expect(viewer(page).locator('img[alt="Harbour"]')).toBeVisible();
 
     const usage = await (await request.get('/__settings/usage')).json();
-    expect(usage.project.images).toBe(before + 1);
+    expect(usage.totals.images).toBe(before + 1);
     expect(usage.recent[0]).toMatchObject({
+      project: path.basename(devScratchDir),
       docId: 'alpha',
       imageId: 'harbour',
       model: 'gpt-image-2',

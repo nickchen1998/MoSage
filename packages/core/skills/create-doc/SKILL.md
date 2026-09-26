@@ -15,7 +15,7 @@ You only write files under `docs/<id>/`. Never modify `package.json`, `mosage.co
 
 List files under `themes/`. If any theme markdown exists (anything other than `README.md`), call `AskUserQuestion` with each theme id as an option plus a final **"no theme — design from scratch"** option. (`AskUserQuestion` holds at most 4 options — with 4+ themes, offer the 3 most relevant plus "no theme"; the auto-added "Other" lets the user name an omitted one.)
 
-- If the user picks a theme: read `themes/<id>.md` end-to-end. Its palette, typography, page setup, and paste-ready components are now authoritative — copy them into the document, and set `meta.theme: '<id>'` in `index.tsx`. Skip the **visual direction** question in Step 2 (the theme already commits to one) and restate the theme name so the user can correct course. Page size comes from the theme's frontmatter unless the user overrides it.
+- If the user picks a theme: read `themes/<id>.md` end-to-end. Its palette, typography, page setup, and paste-ready components are now authoritative — copy them into the document, and set `meta.theme: '<id>'` in `index.tsx`. Skip the **visual direction** question in Step 2 (the theme already commits to one) and restate the theme name so the user can correct course. Orientation comes from the theme's frontmatter (`orientation: landscape`, else portrait) — set `meta.orientation` to match and skip the orientation question in Step 2.
 - If the user picks "no theme", or `themes/` has no theme files: continue unchanged.
 
 ## Step 1 — Gather the substance first

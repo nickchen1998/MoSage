@@ -39,6 +39,8 @@ export type UsageTotals = {
 
 export type UsageEntry = {
   ts: string;
+  /** The project's folder name. */
+  project: string;
   docId: string;
   imageId: string;
   model: string;
@@ -49,7 +51,7 @@ export type UsageEntry = {
   costUsd: number;
 };
 
-export type UsageResponse = { project: UsageTotals; all: UsageTotals; recent: UsageEntry[] };
+export type UsageResponse = { totals: UsageTotals; recent: UsageEntry[] };
 
 export type VersionResponse = { current: string; latest: string | null; updateAvailable: boolean };
 

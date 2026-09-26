@@ -20,6 +20,7 @@ type Frontmatter = {
   name: string;
   description: string;
   pageSize: string;
+  orientation: string;
   mode: string;
 };
 
@@ -56,6 +57,7 @@ export function parseFrontmatter(raw: string, themeId: string): { fm: Frontmatte
       name: data.name || themeId,
       description: data.description || '',
       pageSize: data.pageSize || '',
+      orientation: data.orientation || '',
       mode: data.mode || '',
     },
     body: body.trim(),
@@ -90,6 +92,7 @@ export function generateThemesModule(themes: ParsedTheme[], isDev: boolean): str
     name: t.frontmatter.name,
     description: t.frontmatter.description,
     pageSize: t.frontmatter.pageSize,
+    orientation: t.frontmatter.orientation,
     mode: t.frontmatter.mode,
     body: t.body,
     hasDemo: t.demoAbs !== null,

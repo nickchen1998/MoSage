@@ -11,17 +11,9 @@ const DETAIL_WIDTH = 260;
 export function ThemesGalleryPage() {
   return (
     <div>
-      <header className="border-border border-b px-8 py-6">
-        <h1 className="font-medium text-lg tracking-tight">Themes</h1>
-        <p className="mt-1 text-muted-foreground text-sm">
-          Every <code className="font-mono">.md</code> file under{' '}
-          <code className="font-mono">themes/</code>. A theme is documentation — palette, type
-          scale, and paste-ready components a document copies from.
-        </p>
-      </header>
-
+      <h1 className="sr-only">Themes</h1>
       {themes.length === 0 ? (
-        <div className="px-8 py-16 text-center">
+        <div className="py-16 text-center">
           <Palette className="mx-auto size-6 text-muted-foreground" />
           <p className="mt-3 font-medium text-sm">No themes yet</p>
           <p className="mt-1 text-muted-foreground text-xs">
@@ -30,7 +22,7 @@ export function ThemesGalleryPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-8 px-8 py-8 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
+        <div className="grid gap-8 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
           {themes.map((theme) => (
             <Link key={theme.id} to={`/themes/${theme.id}`} className="group flex flex-col gap-3">
               <div className="transition-shadow group-hover:shadow-lg">
@@ -66,7 +58,7 @@ export function ThemeDetailPage() {
   }
 
   const usedBy = docsByTheme(theme.id);
-  const chips = [theme.pageSize, theme.mode].filter(Boolean);
+  const chips = [theme.pageSize, theme.orientation, theme.mode].filter(Boolean);
 
   return (
     <div className="px-8 py-6">
