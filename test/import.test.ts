@@ -180,11 +180,14 @@ describe('htmlToMarkdown', () => {
 
 describe('splitManuscript', () => {
   it('gives each chapter the link definitions it uses', () => {
-    const { chapters } = splitManuscript('# 甲\n\n見 [網站][site]。\n\n# 乙\n\n無。\n\n[site]: https://example.com\n', {
-      split: true,
-      fallbackTitle: 'x',
-      frontMatterTitle: '前言素材',
-    });
+    const { chapters } = splitManuscript(
+      '# 甲\n\n見 [網站][site]。\n\n# 乙\n\n無。\n\n[site]: https://example.com\n',
+      {
+        split: true,
+        fallbackTitle: 'x',
+        frontMatterTitle: '前言素材',
+      },
+    );
     expect(chapters.map((c) => c.title)).toEqual(['甲', '乙']);
     expect(chapters[0].body).toContain('[site]: https://example.com');
     expect(chapters[1].body).toBe('無。');

@@ -10,8 +10,8 @@ import { exportManuscript, renderManuscript } from '../src/node/export/index.ts'
 import { buildMarkdown } from '../src/node/export/markdown.ts';
 import type { ManuscriptInput } from '../src/node/export/types.ts';
 import { importFile } from '../src/node/import/index.ts';
-import { resolveConfig } from '../src/shared/config.ts';
 import { CONFIG_FILE, Workspace } from '../src/node/workspace.ts';
+import { resolveConfig } from '../src/shared/config.ts';
 import { makePng } from './helpers.ts';
 
 const CHAPTER_ONE = `---
@@ -74,7 +74,10 @@ const CHAPTER_TWO = `# 第二章　回來
 
 let root: string;
 
-function input(overrides: Record<string, unknown> = {}, exportOverrides: Record<string, unknown> = {}): ManuscriptInput {
+function input(
+  overrides: Record<string, unknown> = {},
+  exportOverrides: Record<string, unknown> = {},
+): ManuscriptInput {
   return {
     config: resolveConfig({
       title: '港口之書',
@@ -175,7 +178,9 @@ describe('buildDocx', () => {
     const footers = await Promise.all(names.filter((n) => /footer\d*\.xml$/.test(n)).map(read));
     expect(footers.join('')).toMatch(/PAGE/);
     // Chapter two starts on a new page; so does the paragraph after <!-- pagebreak -->.
-    expect(doc).toMatch(/<w:pStyle w:val="Heading1"\/><w:pageBreakBefore\/><\/w:pPr><w:bookmarkStart w:name="_Toc\d+" w:id="\d+"\/><w:r><w:t xml:space="preserve">第二章/);
+    expect(doc).toMatch(
+      /<w:pStyle w:val="Heading1"\/><w:pageBreakBefore\/><\/w:pPr><w:bookmarkStart w:name="_Toc\d+" w:id="\d+"\/><w:r><w:t xml:space="preserve">第二章/,
+    );
     expect(doc.match(/<w:pageBreakBefore\/>/g)?.length).toBe(2);
     // Bookmarks for the TOC links have unique ids.
     const ids = [...doc.matchAll(/<w:bookmarkStart w:name="[^"]+" w:id="(\d+)"/g)].map((m) => m[1]);
@@ -234,7 +239,9 @@ describe('buildDocx', () => {
       '',
       '控制字元\u0007\u000b在這裡',
     ].join('\n');
-    const result = await unzip(await buildDocx({ ...input(), chapters: [{ id: 'x.md', source: odd }] }));
+    const result = await unzip(
+      await buildDocx({ ...input(), chapters: [{ id: 'x.md', source: odd }] }),
+    );
     const doc = await result.read('word/document.xml');
     expect(doc).toContain('[^missing]');
     expect(doc).toContain('☐ ');
