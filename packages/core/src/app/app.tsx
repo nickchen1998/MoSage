@@ -1,4 +1,4 @@
-import config from 'virtual:open-doc/config';
+import config from 'virtual:mosage/config';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { AssetsPage } from './routes/assets';
 import { Doc } from './routes/doc';

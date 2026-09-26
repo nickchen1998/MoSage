@@ -59,8 +59,9 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-simonliuyuwei@gmail.com.
+reported to the community leaders responsible for enforcement through a
+[private report on GitHub](https://github.com/nickchen1998/MoSage/security/advisories/new)
+or by contacting [@nickchen1998](https://github.com/nickchen1998).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

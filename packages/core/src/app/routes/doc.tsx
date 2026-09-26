@@ -1,4 +1,4 @@
-import appConfig from 'virtual:open-doc/config';
+import appConfig from 'virtual:mosage/config';
 import {
   ArrowLeft,
   BookOpen,
@@ -412,11 +412,11 @@ export function Doc() {
   }, []);
 
   // Tell the dev server where the reader is, so an agent can resolve "this
-  // page" from node_modules/.open-doc/current.json. See vite/current-plugin.ts.
+  // page" from node_modules/.mosage/current.json. See vite/current-plugin.ts.
   useEffect(() => {
     if (!import.meta.hot) return;
     if (!docId || !doc || pages.length === 0) return;
-    import.meta.hot.send('open-doc:current', {
+    import.meta.hot.send('mosage:current', {
       docId,
       pageIndex: currentPage - 1,
       totalPages: pages.length,
@@ -684,7 +684,7 @@ export function Doc() {
   );
 
   // The design panel writes back to source through the dev server, so it only
-  // exists while `open-doc dev` is running.
+  // exists while `mosage dev` is running.
   if (!import.meta.env.DEV || !docId) return view;
   return <DesignProvider docId={docId}>{view}</DesignProvider>;
 }

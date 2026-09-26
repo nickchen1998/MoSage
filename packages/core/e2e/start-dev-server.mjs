@@ -1,4 +1,4 @@
-// Boots `open-doc dev` for the e2e suite against a throwaway copy of the
+// Boots `mosage dev` for the e2e suite against a throwaway copy of the
 // fixture project (see scratch.mjs).
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -10,9 +10,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const coreRoot = path.resolve(here, '..');
 
 if (!existsSync(path.join(coreRoot, 'dist', 'cli', 'bin.js'))) {
-  console.error(
-    'packages/core/dist is missing. Run `pnpm --filter @open-document/core build` first.',
-  );
+  console.error('packages/core/dist is missing. Run `pnpm --filter mosage-core build` first.');
   process.exit(1);
 }
 if (!existsSync(path.join(fixtureDir, 'node_modules'))) {

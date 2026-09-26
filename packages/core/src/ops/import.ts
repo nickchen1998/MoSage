@@ -5,7 +5,7 @@ import { isOrientation, isPageSizeName, ORIENTATIONS, PAGE_SIZE_NAMES } from '..
 import { validateAssetName } from '../files/assets.ts';
 import { parseMarkdown } from '../import/markdown.ts';
 import { collectImageSources, generateDocumentSource, type ImportImage } from '../import/to-tsx.ts';
-import { DOC_ID_RE } from '../vite/open-doc-plugin.ts';
+import { DOC_ID_RE } from '../vite/mosage-plugin.ts';
 import type { ApiContext } from '../vite/routes/context.ts';
 import { createDocument, listDocIds, OpsError } from './documents.ts';
 
@@ -66,7 +66,7 @@ function identFor(index: number): string {
 }
 
 /**
- * Reads markdown and writes a real open-doc document: `flow()` body, inline
+ * Reads markdown and writes a real MoSage document: `flow()` body, inline
  * styles, a cover, and any local images copied into the document's own assets
  * folder. Nothing about the result is special-cased — it is the same shape an
  * agent would have written by hand, and every editing surface works on it.

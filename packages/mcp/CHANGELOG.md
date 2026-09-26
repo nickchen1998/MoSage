@@ -1,4 +1,4 @@
-# @open-document/mcp
+# mosage-mcp
 
 ## 0.3.2
 

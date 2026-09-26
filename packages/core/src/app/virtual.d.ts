@@ -1,4 +1,4 @@
-declare module 'virtual:open-doc/docs' {
+declare module 'virtual:mosage/docs' {
   import type { DocModule } from './lib/sdk';
 
   export const docIds: string[];
@@ -7,24 +7,24 @@ declare module 'virtual:open-doc/docs' {
   export function loadDoc(id: string): Promise<DocModule>;
 }
 
-declare module 'virtual:open-doc/themes' {
+declare module 'virtual:mosage/themes' {
   import type { ThemeDemoModule, ThemeMeta } from './lib/themes';
 
   export const themes: ThemeMeta[];
   export function loadThemeDemo(id: string): Promise<ThemeDemoModule>;
 }
 
-declare module 'virtual:open-doc/folders' {
+declare module 'virtual:mosage/folders' {
   import type { FoldersManifest } from './lib/sdk';
 
   const manifest: FoldersManifest;
   export default manifest;
 }
 
-declare module 'virtual:open-doc/config' {
-  import type { OpenDocConfig } from '../config';
+declare module 'virtual:mosage/config' {
+  import type { MoSageConfig } from '../config';
 
   type ResolvedBuild = { showDocBrowser: boolean; allowHtmlExport: boolean };
-  const config: OpenDocConfig & { build: ResolvedBuild; version: string };
+  const config: MoSageConfig & { build: ResolvedBuild; version: string };
   export default config;
 }

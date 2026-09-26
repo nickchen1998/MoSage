@@ -6,7 +6,7 @@ import { mountPrintCopy } from './export-pdf';
 import type { DocModule, PageGeometry } from './sdk';
 import type { ExpandedPage } from './use-doc-pages';
 
-export const BRIDGE_KEY = '__openDoc';
+export const BRIDGE_KEY = '__mosage';
 
 export type BridgeStatus = {
   docId: string;
@@ -21,7 +21,7 @@ export type BridgeReport = BridgeStatus & { findings: LayoutFinding[] };
 
 export type BridgeBundle = { filename: string; mimeType: string; base64: string };
 
-export type OpenDocBridge = {
+export type MoSageBridge = {
   version: 1;
   status(): BridgeStatus;
   /** Mounts the print copy and reads the layout back from it. */
@@ -42,7 +42,7 @@ type BridgeInput = {
   oversized: Array<{ section: number; block: number }>;
 };
 
-type GlobalWithBridge = typeof globalThis & { [BRIDGE_KEY]?: OpenDocBridge };
+type GlobalWithBridge = typeof globalThis & { [BRIDGE_KEY]?: MoSageBridge };
 
 function toBase64(bytes: Uint8Array): string {
   let binary = '';
@@ -65,7 +65,7 @@ function toBridge(bundle: FileBundle | null): BridgeBundle | null {
 
 /**
  * Publishes the rendered document to whoever is driving the page from outside —
- * `open-doc export`, `check_layout`, `render_page`. The viewer already owns the
+ * `mosage export`, `check_layout`, `render_page`. The viewer already owns the
  * measured page list and the print pipeline; the bridge just hands them to a
  * headless caller instead of to a Download button, so an agent sees exactly the
  * sheets a person would.

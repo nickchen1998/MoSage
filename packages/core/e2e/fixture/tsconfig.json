@@ -11,7 +11,7 @@
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["@open-document/core/env"]
+    "types": ["mosage-core/env"]
   },
-  "include": ["docs/**/*", "themes/**/*", "open-doc.config.ts"]
+  "include": ["docs/**/*", "themes/**/*", "mosage.config.ts"]
 }

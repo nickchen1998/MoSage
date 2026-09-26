@@ -14,7 +14,7 @@ import {
   TableOfContents,
   useDocPageCount,
   useDocPageNumber,
-} from '@open-document/core';
+} from 'mosage-core';
 import services from './data/services.csv';
 
 export const design: DesignSystem = {

@@ -1,23 +1,23 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/assets/preview-dark.png">
-  <img src=".github/assets/preview.png" alt="open-doc——為 agent 打造的文件框架。" width="100%">
+  <img src=".github/assets/preview.png" alt="MoSage——為 agent 打造的文件框架。" width="100%">
 </picture>
 
-# open-doc
+# MoSage
 
-[![CI](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml/badge.svg)](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@open-document/core?style=flat)](https://www.npmjs.com/package/@open-document/core)
-[![GitHub stars](https://img.shields.io/github/stars/simonliu-ai-product/open-doc?style=flat)](https://github.com/simonliu-ai-product/open-doc/stargazers)
+[![CI](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml/badge.svg)](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/mosage-core?style=flat)](https://www.npmjs.com/package/mosage-core)
+[![GitHub stars](https://img.shields.io/github/stars/nickchen1998/MoSage?style=flat)](https://github.com/nickchen1998/MoSage/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](https://opensource.org/licenses/MIT)
 
-[English](README.md) · **繁體中文** · [costaffs.app/tools/open-doc](https://costaffs.app/zhtw/tools/open-doc/)
+[English](README.md) · **繁體中文**
 
-**為 agent 打造的文件框架。** 用自然語言描述你要的報告，你的 coding agent 負責寫 React，open-doc 負責頁面尺寸、大綱、目錄、頁碼、列印版面與匯出。
+**為 agent 打造的文件框架。** 用自然語言描述你要的報告，你的 coding agent 負責寫 React，MoSage 負責頁面尺寸、大綱、目錄、頁碼、列印版面與匯出。
 
-如果說 [open-slide](https://github.com/1weiho/open-slide) 是給 agent 用的 Google Slides，那 open-doc 就是 Google Docs：概念相同，媒介不同。簡報是 1920 × 1080 的畫布；文件是一疊必須經得起印表機考驗的 **A4 紙**。
+如果說 [open-slide](https://github.com/1weiho/open-slide) 是給 agent 用的 Google Slides，那 MoSage 就是 Google Docs：概念相同，媒介不同。簡報是 1920 × 1080 的畫布；文件是一疊必須經得起印表機考驗的 **A4 紙**。
 
 ```bash
-npx @open-document/cli init my-docs
+npx mosage init my-docs
 ```
 
 <img src=".github/assets/viewer.png" alt="文件檢視器——左側頁面縮圖，中間是一張真正的 A4 紙，頁尾與頁碼由框架自動填入。" width="100%">
@@ -26,7 +26,7 @@ npx @open-document/cli init my-docs
 
 ## 為什麼要做這個
 
-報告是沒人想排版的產出。Agent 很會寫文字，但產出的 Word 檔慘不忍睹。open-doc 給 agent 一個它真正擅長的媒介——React——然後給你一份看起來像設計師做的 PDF。
+報告是沒人想排版的產出。Agent 很會寫文字，但產出的 Word 檔慘不忍睹。MoSage 給 agent 一個它真正擅長的媒介——React——然後給你一份看起來像設計師做的 PDF。
 
 ## 特色
 
@@ -40,11 +40,11 @@ Scaffolder 內建這些 skill：
 
 - **`/create-doc`** — 從頭到尾起草一份文件。先確立主題、讀者與**素材來源**（它不會杜撰你的數字），問四個界定範圍的問題，規劃頁面，然後寫出來。
 - **`/doc-authoring`** — 技術參考：檔案契約、頁面畫布、列印字級、決定分頁位置的垂直預算、表格、圖表、素材。
-- **`/current-doc`** — 解析「這一頁」「這個元素」。Dev server 會把你正在讀的位置寫進 `node_modules/.open-doc/current.json`，agent 就會改你正在看的那張紙，而不是反問你指的是哪一頁。
+- **`/current-doc`** — 解析「這一頁」「這個元素」。Dev server 會把你正在讀的位置寫進 `node_modules/.mosage/current.json`，agent 就會改你正在看的那張紙，而不是反問你指的是哪一頁。
 
 ### 🔌 MCP server，任何 agent framework 都能接
 
-`open-doc dev --mcp` 會在 UI 旁邊掛上 MCP 端點——23 個工具，涵蓋文件、精準的文字編輯、版面檢查與單頁截圖、Markdown 匯入、匯出、themes、assets 與資料夾。它是無狀態的 Streamable HTTP，client 直接指向 `http://localhost:5273/mcp` 即可，不需要 session handshake。
+`mosage dev --mcp` 會在 UI 旁邊掛上 MCP 端點——23 個工具，涵蓋文件、精準的文字編輯、版面檢查與單頁截圖、Markdown 匯入、匯出、themes、assets 與資料夾。它是無狀態的 Streamable HTTP，client 直接指向 `http://localhost:5273/mcp` 即可，不需要 session handshake。
 
 這些工具和瀏覽器共用同一份實作，所以 `write_document` / `write_text` 會接收你上次讀到的內容，遇到已被改動的檔案時回 `409` 拒絕寫入，而不是覆蓋掉先到的人。詳見 [packages/mcp](packages/mcp)。
 
@@ -90,10 +90,10 @@ import services from './data/services.csv';
 
 ### 👁️ 版面體檢——因為 agent 看不到頁面
 
-寫 React 的 agent 不會知道自己剛加的那段文字把最後三行擠出了紙張邊界。`open-doc check` 用真實頁面尺寸把每一頁算出來，然後告訴它：
+寫 React 的 agent 不會知道自己剛加的那段文字把最後三行擠出了紙張邊界。`mosage check` 用真實頁面尺寸把每一頁算出來，然後告訴它：
 
 ```
-$ open-doc check q3-infra-review
+$ mosage check q3-infra-review
 q3-infra-review 9 pages — 2 error(s), 1 warning(s)
   ✗ p.4   Content runs 37px past the bottom of the sheet and is clipped in the PDF.
           p: Spend grew 8% quarter over quarter, driven by…  @ 214:6
@@ -107,8 +107,8 @@ q3-infra-review 9 pages — 2 error(s), 1 warning(s)
 ### ⌨️ 無頭匯出——不開瀏覽器的下載選單
 
 ```bash
-open-doc export q3-infra-review --format pdf   # 也可以是 html、docx，或每頁一張 png
-open-doc export --all --out-dir out
+mosage export q3-infra-review --format pdf   # 也可以是 html、docx，或每頁一張 png
+mosage export --all --out-dir out
 ```
 
 和工具列走同一條 render pipeline，只是改由腳本驅動——報告因此可以由 CI 定時產出，而不是靠人去點。需要安裝 `playwright`（`pnpm add -D playwright && pnpm exec playwright install chromium`）；它是選用的 peer dependency，不是相依套件。
@@ -116,7 +116,7 @@ open-doc export --all --out-dir out
 ### 📥 Markdown 進來，文件出去
 
 ```bash
-open-doc import notes.md --id q3-notes --contents
+mosage import notes.md --id q3-notes --contents
 ```
 
 多數報告一開始都是 Markdown。匯入會把它變成一份真正的文件——`flow()` 內文、封面頁、會自己填的目錄、透過樣式化 `Th`/`Td` 呈現的 GFM 表格、本地圖片複製進該文件自己的 `assets/`——而且產出的就是一般手寫的 TSX，大綱、inspector 與設計面板全都照常運作。
@@ -155,12 +155,12 @@ open-doc import notes.md --id q3-notes --contents
 
 ### 🚀 容易部署
 
-`open-doc build` 產出純靜態網站——可部署到 Vercel、Cloudflare Pages、Netlify 或任何靜態主機。
+`mosage build` 產出純靜態網站——可部署到 Vercel、Cloudflare Pages、Netlify 或任何靜態主機。
 
 ## 開始使用
 
 ```bash
-npx @open-document/cli init my-docs
+npx mosage init my-docs
 cd my-docs
 pnpm dev
 ```
@@ -169,17 +169,17 @@ pnpm dev
 
 | 指令 | 作用 |
 | --- | --- |
-| `open-doc dev` | 開發伺服器與檢視器（`--mcp` 會掛上 MCP 端點） |
-| `open-doc build` / `preview` | 靜態網站 |
-| `open-doc check [ids…]` | 回報版面問題，有錯誤時以非零狀態碼結束 |
-| `open-doc export [ids…]` | 無頭產出 PDF / HTML / DOCX / PNG |
-| `open-doc import <file.md>` | Markdown → `docs/` 下的一份文件 |
+| `mosage dev` | 開發伺服器與檢視器（`--mcp` 會掛上 MCP 端點） |
+| `mosage build` / `preview` | 靜態網站 |
+| `mosage check [ids…]` | 回報版面問題，有錯誤時以非零狀態碼結束 |
+| `mosage export [ids…]` | 無頭產出 PDF / HTML / DOCX / PNG |
+| `mosage import <file.md>` | Markdown → `docs/` 下的一份文件 |
 
 ## 檔案契約
 
 ```tsx
 // docs/q3-review/index.tsx
-import type { DocMeta, DocPage } from '@open-document/core';
+import type { DocMeta, DocPage } from 'mosage-core';
 
 const Cover: DocPage = () => <div>…</div>;
 const Summary: DocPage = () => <div>…</div>;
@@ -198,16 +198,16 @@ pnpm + Turbo monorepo。
 
 | 路徑 | 說明 |
 | --- | --- |
-| [packages/core](packages/core) | `@open-document/core` — runtime（文件瀏覽器、頁面檢視器、大綱、匯出）、Vite plugin，以及 `open-doc` dev/build/preview CLI。 |
-| [packages/cli](packages/cli) | `@open-document/cli` — `npx @open-document/cli init` scaffolder 與專案範本。 |
-| [packages/mcp](packages/mcp) | `@open-document/mcp` — 走 Streamable HTTP 的 MCP server。選用；`open-doc dev --mcp` 會把它掛在 `/mcp`。 |
-| [apps/demo](apps/demo) | 透過 `workspace:*` 使用 `@open-document/core` 的範例工作區。Dogfood 目標。 |
+| [packages/core](packages/core) | `mosage-core` — runtime（文件瀏覽器、頁面檢視器、大綱、匯出）、Vite plugin，以及 `mosage` dev/build/preview CLI。 |
+| [packages/cli](packages/cli) | `mosage` — `npx mosage init` scaffolder 與專案範本。 |
+| [packages/mcp](packages/mcp) | `mosage-mcp` — 走 Streamable HTTP 的 MCP server。選用；`mosage dev --mcp` 會把它掛在 `/mcp`。 |
+| [apps/demo](apps/demo) | 透過 `workspace:*` 使用 `mosage-core` 的範例工作區。Dogfood 目標。 |
 
 ## 開發
 
 ```bash
 pnpm install
-pnpm dev        # 以本地的 @open-document/core 執行 demo
+pnpm dev        # 以本地的 mosage-core 執行 demo
 pnpm build      # 建置所有套件
 pnpm typecheck  # 跨整個相依圖執行 tsc
 pnpm check      # biome（格式化 + lint + 整理 import）
@@ -220,6 +220,8 @@ pnpm test:e2e   # playwright
 歡迎回報問題、提出功能建議與送出 PR——請先看 [CONTRIBUTING.md](CONTRIBUTING.md)，裡面有環境設定、CI 會跑的檢查，以及 changeset 的撰寫慣例。所有參與都適用 [行為準則](CODE_OF_CONDUCT.md)；安全性問題請走 [SECURITY.md](SECURITY.md) 的私下回報管道，不要開公開 issue。
 
 ## 致謝
+
+MoSage 源自 [Simon Liu](https://github.com/LiuYuWei) 的 [open-doc](https://github.com/simonliu-ai-product/open-doc)（MIT 授權），以其最新版本為基礎繼續開發，並加入 Word（.docx）匯出與雙頁／格狀檢視模式。
 
 整體架構——virtual module 的文件探索、scaffolder、以 skill 作為文件的做法——沿襲自 [@1weiho](https://github.com/1weiho) 的 [open-slide](https://github.com/1weiho/open-slide)。
 

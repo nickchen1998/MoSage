@@ -11,7 +11,7 @@ import { designPlugin } from './design-plugin.ts';
 import { diagramPlugin } from './diagram-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { mcpPlugin } from './mcp-plugin.ts';
-import { loadUserConfig, type OpenDocConfig, openDocPlugin } from './open-doc-plugin.ts';
+import { loadUserConfig, type MoSageConfig, mosagePlugin } from './mosage-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
 function findPackageRoot(fromFile: string): string {
@@ -39,9 +39,9 @@ const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  /** Mount the MCP endpoint (requires `@open-document/mcp`). */
+  /** Mount the MCP endpoint (requires `mosage-mcp`). */
   mcp?: boolean;
-  config?: OpenDocConfig;
+  config?: MoSageConfig;
   mode?: 'serve' | 'build';
   /**
    * Drive the app from a headless browser rather than a person. Leaves out the
@@ -71,7 +71,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       locTagsPlugin({ userCwd, docsDir }),
       react(),
       tailwindcss(),
-      openDocPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      mosagePlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
       designPlugin({ userCwd, docsDir }),
       apiPlugin({ userCwd, docsDir, assetsDir, coreVersion: CORE_VERSION }),
@@ -96,15 +96,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'clsx',
         'tailwind-merge',
       ],
-      // The app source ships inside node_modules/@open-document/core/src/app, so
+      // The app source ships inside node_modules/mosage-core/src/app, so
       // Vite's dep scanner traverses it as a third-party dep and tries to
       // bundle the virtual imports with esbuild. Mark them external.
       esbuildOptions: {
         plugins: [
           {
-            name: 'open-doc:virtual-externals',
+            name: 'mosage:virtual-externals',
             setup(build) {
-              build.onResolve({ filter: /^virtual:open-doc\// }, (args) => ({
+              build.onResolve({ filter: /^virtual:mosage\// }, (args) => ({
                 path: args.path,
                 external: true,
               }));

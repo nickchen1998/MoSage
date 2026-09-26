@@ -30,7 +30,7 @@ Rules:
 When a page needs a real image **the user has to provide** — a chart from their data, a product screenshot, a signed diagram — leave a typed placeholder instead of inventing a stand-in:
 
 ```tsx
-import { ImagePlaceholder } from '@open-document/core';
+import { ImagePlaceholder } from 'mosage-core';
 
 <ImagePlaceholder hint="Revenue by segment, Q1–Q3 2026 — export from the finance dashboard" height={200} />
 ```

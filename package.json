@@ -1,5 +1,5 @@
 {
-  "name": "open-doc-monorepo",
+  "name": "mosage-monorepo",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@11.9.0",
@@ -16,13 +16,13 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter @open-document/core test:e2e",
-    "core": "pnpm --filter @open-document/core",
-    "cli": "pnpm --filter @open-document/cli",
-    "mcp": "pnpm --filter @open-document/mcp",
+    "test:e2e": "pnpm --filter mosage-core test:e2e",
+    "core": "pnpm --filter mosage-core",
+    "cli": "pnpm --filter mosage",
+    "mcp": "pnpm --filter mosage-mcp",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=@open-document/core --filter=@open-document/cli --filter=@open-document/mcp && changeset publish"
+    "release": "turbo run build --filter=mosage-core --filter=mosage --filter=mosage-mcp && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",

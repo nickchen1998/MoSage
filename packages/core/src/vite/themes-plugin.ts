@@ -3,14 +3,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
 import { normalizePath, type Plugin } from 'vite';
-import type { OpenDocConfig } from '../config.ts';
+import type { MoSageConfig } from '../config.ts';
 
 export type ThemesPluginOptions = {
   userCwd: string;
-  config: OpenDocConfig;
+  config: MoSageConfig;
 };
 
-const THEMES_VMOD = 'virtual:open-doc/themes';
+const THEMES_VMOD = 'virtual:mosage/themes';
 
 function resolved(id: string): string {
   return `\0${id}`;
@@ -107,7 +107,7 @@ export function generateThemesModule(themes: ParsedTheme[], isDev: boolean): str
     })
     .join('\n');
 
-  return `// virtual:open-doc/themes — generated
+  return `// virtual:mosage/themes — generated
 export const themes = ${JSON.stringify(meta)};
 
 export async function loadThemeDemo(id) {
@@ -127,7 +127,7 @@ export function themesPlugin(opts: ThemesPluginOptions): Plugin {
   let isDev = false;
 
   return {
-    name: 'open-doc:themes',
+    name: 'mosage:themes',
     config(_c, env) {
       isDev = env.command === 'serve';
     },

@@ -5,7 +5,7 @@ import {
   flow,
   useDocPageCount,
   useDocPageNumber,
-} from '@open-document/core';
+} from 'mosage-core';
 import type { CSSProperties } from 'react';
 
 export const meta: DocMeta = {

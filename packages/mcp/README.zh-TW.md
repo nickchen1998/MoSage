@@ -1,12 +1,12 @@
-# @open-document/mcp
+# mosage-mcp
 
 [English](README.md) · **繁體中文**
 
-open-doc 工作區的 MCP server。任何支援 Model Context Protocol 的 agent framework 都能列出、讀取、寫入與歸檔文件——而且因為它跑在 dev server 上，agent 動作的同時，瀏覽器裡的頁面會即時熱更新。
+MoSage 工作區的 MCP server。任何支援 Model Context Protocol 的 agent framework 都能列出、讀取、寫入與歸檔文件——而且因為它跑在 dev server 上，agent 動作的同時，瀏覽器裡的頁面會即時熱更新。
 
 ```bash
-pnpm add -D @open-document/mcp
-open-doc dev --mcp
+pnpm add -D mosage-mcp
+mosage dev --mcp
 ```
 
 ```
@@ -68,12 +68,12 @@ open-doc dev --mcp
 
 ## 嵌入使用
 
-一般情況用 `open-doc dev --mcp` 就夠了。要自行掛載：
+一般情況用 `mosage dev --mcp` 就夠了。要自行掛載：
 
 ```ts
-import { createOpenDocMcpMiddleware } from '@open-document/mcp';
+import { createMoSageMcpMiddleware } from 'mosage-mcp';
 
-app.use('/mcp', createOpenDocMcpMiddleware({ userCwd: process.cwd() }));
+app.use('/mcp', createMoSageMcpMiddleware({ userCwd: process.cwd() }));
 ```
 
-若執行環境偏好 `Request` 進、`Response` 出，`createOpenDocMcpHandler` 會回傳 web 標準的 `{ fetch }` 形式。
+若執行環境偏好 `Request` 進、`Response` 出，`createMoSageMcpHandler` 會回傳 web 標準的 `{ fetch }` 形式。

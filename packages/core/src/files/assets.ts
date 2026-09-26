@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { DOC_ID_RE } from '../vite/open-doc-plugin.ts';
+import { DOC_ID_RE } from '../vite/mosage-plugin.ts';
 
 export const GLOBAL_SCOPE = '@global';
 export const ASSET_MAX_BYTES = 25 * 1024 * 1024;

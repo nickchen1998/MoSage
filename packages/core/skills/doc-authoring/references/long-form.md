@@ -12,7 +12,7 @@ before serializing, so a PDF never contains a blank number.
 ## Footnotes
 
 ```tsx
-import { Footnote } from '@open-document/core';
+import { Footnote } from 'mosage-core';
 
 <p style={p}>
   Spend grew 8% quarter over quarter
@@ -48,7 +48,7 @@ inline instead of at the foot of the page.
 ## Figures and tables
 
 ```tsx
-import { Figure } from '@open-document/core';
+import { Figure } from 'mosage-core';
 
 <Figure id="topology" caption="Service topology, Q3 2026">
   <img src={diagram} alt="Service topology" style={{ width: '100%', display: 'block' }} />
@@ -67,7 +67,7 @@ import { Figure } from '@open-document/core';
 ## Cross-references
 
 ```tsx
-import { Ref } from '@open-document/core';
+import { Ref } from 'mosage-core';
 
 <p style={p}>The shape in <Ref to="topology" /> is what the table hides.</p>
 ```
@@ -78,7 +78,7 @@ target sits on another sheet. Force it either way with `showPage`.
 **Never write "see Figure 3 on page 12" by hand.** Both numbers move.
 
 A reference to an id nothing declares renders `[?the-id]` on the page and is
-reported by `open-doc check` as an error. That is deliberate: a silent blank is
+reported by `mosage check` as an error. That is deliberate: a silent blank is
 worse than a visible hole.
 
 ## What things are called
@@ -97,7 +97,7 @@ export const meta: DocMeta = {
 ## Data
 
 ```tsx
-import { DataTable } from '@open-document/core';
+import { DataTable } from 'mosage-core';
 import services from './data/services.csv';
 
 <DataTable

@@ -3,16 +3,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
 import { loadConfigFromFile, normalizePath, type Plugin, type ViteDevServer } from 'vite';
-import type { OpenDocConfig } from '../config.ts';
+import type { MoSageConfig } from '../config.ts';
 
-export type { OpenDocConfig };
+export type { MoSageConfig };
 
 export const DOC_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
 
-const CONFIG_FILE = 'open-doc.config.ts';
-const DOCS_VMOD = 'virtual:open-doc/docs';
-const CONFIG_VMOD = 'virtual:open-doc/config';
-const FOLDERS_VMOD = 'virtual:open-doc/folders';
+const CONFIG_FILE = 'mosage.config.ts';
+const DOCS_VMOD = 'virtual:mosage/docs';
+const CONFIG_VMOD = 'virtual:mosage/config';
+const FOLDERS_VMOD = 'virtual:mosage/folders';
 
 type FoldersManifest = {
   folders: unknown[];
@@ -35,9 +35,9 @@ async function readFoldersManifest(file: string): Promise<FoldersManifest> {
   }
 }
 
-export type OpenDocPluginOptions = {
+export type MoSagePluginOptions = {
   userCwd: string;
-  config: OpenDocConfig;
+  config: MoSageConfig;
   coreVersion: string;
 };
 
@@ -144,7 +144,7 @@ export async function generateDocsModule(
     ? `
 const docImportTokens = ${importTokens};
 if (import.meta.hot) {
-  import.meta.hot.on('open-doc:doc-changed', (data) => {
+  import.meta.hot.on('mosage:doc-changed', (data) => {
     const ids = Array.isArray(data?.docIds) ? data.docIds : data?.docId ? [data.docId] : [];
     const token = Date.now();
     for (const id of ids) {
@@ -164,7 +164,7 @@ if (import.meta.hot) {
     })
     .join('\n');
 
-  const code = `// virtual:open-doc/docs — generated
+  const code = `// virtual:mosage/docs — generated
 export const docIds = ${ids};
 export const docCreatedAt = ${JSON.stringify(createdAtMap)};
 export const docThemes = ${JSON.stringify(themesMap)};
@@ -180,7 +180,7 @@ ${cases}
   return { code, ignored };
 }
 
-export function openDocPlugin(opts: OpenDocPluginOptions): Plugin {
+export function mosagePlugin(opts: MoSagePluginOptions): Plugin {
   const { userCwd, config, coreVersion } = opts;
   const docsDir = config.docsDir ?? 'docs';
   const docsRoot = path.resolve(userCwd, docsDir);
@@ -208,12 +208,12 @@ export function openDocPlugin(opts: OpenDocPluginOptions): Plugin {
       if (mod) server.moduleGraph.invalidateModule(mod);
       const docIds = Array.from(pendingDocChanges);
       pendingDocChanges.clear();
-      server.ws.send({ type: 'custom', event: 'open-doc:doc-changed', data: { docIds } });
+      server.ws.send({ type: 'custom', event: 'mosage:doc-changed', data: { docIds } });
     }, 100);
   };
 
   return {
-    name: 'open-doc',
+    name: 'mosage',
     config(_c, env) {
       isDev = env.command === 'serve';
       return { server: { fs: { allow: [userCwd] } } };
@@ -300,7 +300,7 @@ export function openDocPlugin(opts: OpenDocPluginOptions): Plugin {
           foldersTimer = null;
           const mod = server.moduleGraph.getModuleById(resolved(FOLDERS_VMOD));
           if (mod) server.moduleGraph.invalidateModule(mod);
-          server.ws.send({ type: 'custom', event: 'open-doc:files-changed', data: {} });
+          server.ws.send({ type: 'custom', event: 'mosage:files-changed', data: {} });
         }, 100);
       };
       server.watcher.add(foldersManifestPath);
@@ -313,7 +313,7 @@ export function openDocPlugin(opts: OpenDocPluginOptions): Plugin {
   };
 }
 
-export async function loadUserConfig(userCwd: string): Promise<OpenDocConfig> {
+export async function loadUserConfig(userCwd: string): Promise<MoSageConfig> {
   const file = path.join(userCwd, CONFIG_FILE);
   if (!existsSync(file)) return {};
   const loaded = await loadConfigFromFile(
@@ -322,5 +322,5 @@ export async function loadUserConfig(userCwd: string): Promise<OpenDocConfig> {
     userCwd,
     'silent',
   );
-  return (loaded?.config ?? {}) as OpenDocConfig;
+  return (loaded?.config ?? {}) as MoSageConfig;
 }

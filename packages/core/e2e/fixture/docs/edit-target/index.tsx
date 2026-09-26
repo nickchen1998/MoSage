@@ -1,4 +1,4 @@
-import type { DesignSystem, DocMeta, DocPage } from '@open-document/core';
+import type { DesignSystem, DocMeta, DocPage } from 'mosage-core';
 import type { CSSProperties } from 'react';
 
 export const meta: DocMeta = {

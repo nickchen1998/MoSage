@@ -1,11 +1,11 @@
-export type OpenDocBuildConfig = {
+export type MoSageBuildConfig = {
   /** Ship the document browser (`/`) in the static build. Defaults to true. */
   showDocBrowser?: boolean;
   /** Offer the "Export HTML" button in the static build. Defaults to true. */
   allowHtmlExport?: boolean;
 };
 
-export type OpenDocConfig = {
+export type MoSageConfig = {
   base?: string;
   /**
    * Where the viewer's back affordance goes. Unset it points at this app's own
@@ -18,5 +18,5 @@ export type OpenDocConfig = {
   assetsDir?: string;
   port?: number;
   allowedHosts?: string[] | true;
-  build?: OpenDocBuildConfig;
+  build?: MoSageBuildConfig;
 };

@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { extractMeta, generateDocsModule } from './open-doc-plugin.ts';
+import { extractMeta, generateDocsModule } from './mosage-plugin.ts';
 
-const DOCS_ROOT = path.resolve('/tmp/open-doc-fixture/docs');
+const DOCS_ROOT = path.resolve('/tmp/mosage-fixture/docs');
 
 function entry(id: string): string {
   return path.join(DOCS_ROOT, id, 'index.tsx');
@@ -46,7 +46,7 @@ describe('generateDocsModule', () => {
   it('emits a cache-busting import token per doc in dev', async () => {
     const { code } = await generateDocsModule([entry('q3-report')], DOCS_ROOT, true);
     expect(code).toContain('docImportTokens');
-    expect(code).toContain('open-doc:doc-changed');
+    expect(code).toContain('mosage:doc-changed');
   });
 
   it('emits plain static imports for the production build', async () => {

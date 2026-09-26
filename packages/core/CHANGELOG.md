@@ -1,4 +1,4 @@
-# @open-document/core
+# mosage-core
 
 ## 0.6.0
 

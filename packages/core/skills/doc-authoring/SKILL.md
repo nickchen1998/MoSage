@@ -1,9 +1,9 @@
 ---
 name: doc-authoring
-description: Technical reference for writing or editing open-doc pages — file contract, the A4/B4/A3 page canvas, print type scale, the vertical budget that decides where a page breaks, tables, charts, table of contents, page numbers, running headers/footers, and assets. Consult this whenever you are about to write or modify any file under `docs/<id>/`, including from inside the `create-doc` workflow, or for any ad-hoc document edit. Triggers on phrases like "edit the report", "fix this page", "add a section", "change the margins", "add a table", "page numbers", "table of contents", "how do documents work here".
+description: Technical reference for writing or editing MoSage pages — file contract, the A4/B4/A3 page canvas, print type scale, the vertical budget that decides where a page breaks, tables, charts, table of contents, page numbers, running headers/footers, and assets. Consult this whenever you are about to write or modify any file under `docs/<id>/`, including from inside the `create-doc` workflow, or for any ad-hoc document edit. Triggers on phrases like "edit the report", "fix this page", "add a section", "change the margins", "add a table", "page numbers", "table of contents", "how do documents work here".
 ---
 
-# Authoring open-doc pages
+# Authoring MoSage pages
 
 This skill is the **technical reference** for everything inside `docs/<id>/index.tsx`. It owns no workflow:
 
@@ -33,15 +33,15 @@ Themes are produced by the `create-theme` skill and are pure documentation: copy
 
 - Put the document under `docs/<kebab-case-id>/`.
 - Entry is `docs/<id>/index.tsx`. Images/fonts go under `docs/<id>/assets/`.
-- Do **not** touch `package.json`, `open-doc.config.ts`, or other documents.
-- Do not add dependencies. Only `react`, `@open-document/core`, and standard web APIs are available.
+- Do **not** touch `package.json`, `mosage.config.ts`, or other documents.
+- Do not add dependencies. Only `react`, `mosage-core`, and standard web APIs are available.
 - A document is **one `index.tsx` plus `assets/`** — nothing else. Helper components and constants live inside `index.tsx`; no sibling `.tsx` files, no `README.md`.
 
 ## File contract
 
 ```tsx
 // docs/<id>/index.tsx
-import type { DocMeta, DocPage } from '@open-document/core';
+import type { DocMeta, DocPage } from 'mosage-core';
 
 const Cover: DocPage = () => <div>…</div>;
 const Body: DocPage = () => <div>…</div>;
@@ -65,7 +65,7 @@ export default [Cover, Body] satisfies DocPage[];
 ## Two ways to fill pages
 
 ```tsx
-import { flow, type DocEntry } from '@open-document/core';
+import { flow, type DocEntry } from 'mosage-core';
 
 const Body = flow(
   <>
@@ -172,7 +172,7 @@ flowchart TD
 ```
 
 ```tsx
-import { Diagram } from '@open-document/core';
+import { Diagram } from 'mosage-core';
 import architecture from './architecture.mmd';
 
 <Diagram chart={architecture} caption="請求路徑" width={420} />
@@ -189,12 +189,12 @@ in Mermaid's syntax — subgraphs, class diagrams, sequence diagrams — is not
 supported, and a bad diagram fails the build with the line to fix.
 
 Keep `width` inside the text block: a drawing wider than the column is a layout
-fault, and `open-doc check` reports it as one.
+fault, and `mosage check` reports it as one.
 
 ## Table of contents
 
 ```tsx
-import { TableOfContents } from '@open-document/core';
+import { TableOfContents } from 'mosage-core';
 
 const Contents: DocPage = () => (
   <div style={page}>
@@ -209,7 +209,7 @@ Page numbers come from the scan, so they are always correct — **never hand-wri
 ## Page numbers, headers, footers
 
 ```tsx
-import { useDocPageCount, useDocPageNumber } from '@open-document/core';
+import { useDocPageCount, useDocPageNumber } from 'mosage-core';
 
 const Footer = () => {
   const page = useDocPageNumber();
@@ -230,7 +230,7 @@ const Footer = () => {
 ## Starter template
 
 ```tsx
-import { type DesignSystem, type DocMeta, type DocPage, useDocPageCount, useDocPageNumber } from '@open-document/core';
+import { type DesignSystem, type DocMeta, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage-core';
 
 export const design: DesignSystem = {
   palette: {
@@ -359,7 +359,7 @@ A document is not a slide deck. Long-form copy is the point — but it still has
 - **Inspect mode** (the "Inspect" button, dev only): click any element on a page to edit its text in place — the change is written straight back into `docs/<id>/index.tsx` — or leave a note for the agent, which is stored as a `@doc-comment` marker and processed by the `apply-comments` skill.
 - **Download menu** — PDF (true page size), self-contained HTML, and DOCX for review in Word.
 - **Word export** — DOCX reflows the text instead of copying the sheets, so write structure, not position: real `h1`–`h3` become Word headings, `<Footnote>` a Word footnote, `<TableOfContents />` a contents field, a flow `footer` a running footer with live page numbers, and tables, lists, and links their Word equivalents. Inside a `<Figure>`, anything that is not an image or a table — a chart drawn with divs — is exported as a picture of itself.
-- **Headless render** — `open-doc export <id> --format pdf|html|docx|png` produces the same output from a script, and `open-doc check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
+- **Headless render** — `mosage export <id> --format pdf|html|docx|png` produces the same output from a script, and `mosage check <id>` reports layout faults. Both drive the real viewer in a headless browser, so what they produce is what the Download menu produces.
 - **Design panel** (the "Design" button in the document view, dev only): live-tweaks the `design` const — palette, fonts, type scale, margin, leading, radius — previewing on the real pages and writing the values back into `docs/<id>/index.tsx` on save.
 
 ### Writing for the inspector
@@ -388,7 +388,7 @@ The panel rewrites the `design` object in place through an AST edit, so keep its
 You cannot see the pages you just wrote. The framework can:
 
 ```bash
-open-doc check <id>     # every document if you omit the id; exits non-zero on errors
+mosage check <id>     # every document if you omit the id; exits non-zero on errors
 ```
 
 It renders each sheet at true page size and reports what a reader would call a
@@ -403,7 +403,7 @@ confirms it.
 
 ## Self-review before finishing
 
-- [ ] `open-doc check <id>` reports no errors.
+- [ ] `mosage check <id>` reports no errors.
 - [ ] `docs/<id>/index.tsx` `export default`s a non-empty `DocEntry[]`, with body content in a `flow()` section rather than hand-split pages.
 - [ ] Every page's root fills `100% × 100%` and sets `boxSizing: 'border-box'` with the margin as padding.
 - [ ] **For every fixed page, sum (font_size × line_height × lines) + gaps + 2×margin ≤ page height.** If close, split — or move the content into the flow section. No `overflow: auto` escape hatches.
@@ -431,5 +431,5 @@ confirms it.
 - ❌ Fake headings (`<div>` styled like a title) — they vanish from the outline.
 - ❌ A slide-deck voice: 6-word bullets and 100px type. This is a document.
 - ❌ Tables built from `%` widths that overflow the text block, or with more than ~7 columns on portrait A4.
-- ❌ Installing packages, editing `package.json` / `open-doc.config.ts` / other documents.
+- ❌ Installing packages, editing `package.json` / `mosage.config.ts` / other documents.
 - ❌ Inventing data, sources, or citations.

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import type { ServerResponse } from 'node:http';
 import path from 'node:path';
 import type { Connect } from 'vite';
-import { DOC_ID_RE } from '../open-doc-plugin.ts';
+import { DOC_ID_RE } from '../mosage-plugin.ts';
 
 export type ApiContext = {
   userCwd: string;

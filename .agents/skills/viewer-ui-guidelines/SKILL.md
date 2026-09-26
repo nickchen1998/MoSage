@@ -1,9 +1,9 @@
 ---
 name: viewer-ui-guidelines
-description: Design and accessibility rules for the open-doc viewer chrome — the browser shell, sidebars, thumbnail rail, outline, assets and design panels, inspector overlay, and menus. Use when building or reviewing UI under packages/core/src/app that surrounds a document. Does not apply to the printed page itself, which is governed by print-layout-review.
+description: Design and accessibility rules for the MoSage viewer chrome — the browser shell, sidebars, thumbnail rail, outline, assets and design panels, inspector overlay, and menus. Use when building or reviewing UI under packages/core/src/app that surrounds a document. Does not apply to the printed page itself, which is governed by print-layout-review.
 ---
 
-# open-doc viewer UI
+# MoSage viewer UI
 
 The chrome is everything that is **not** the sheet: the shell, the rails, the panels, the menus. It has one job — keep the paper the loudest thing on screen and get out of the way. Judge it against that, not against how interesting it looks in a screenshot.
 

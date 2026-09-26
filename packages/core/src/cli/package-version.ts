@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PACKAGE_NAME = '@open-document/core';
+const PACKAGE_NAME = 'mosage-core';
 
 /**
  * Walks up for this package's own `package.json` instead of assuming a fixed

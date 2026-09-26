@@ -12,5 +12,5 @@ export default defineConfig({
   clean: true,
   dts: true,
   shims: false,
-  external: ['@open-document/core'],
+  external: ['mosage-core'],
 });

@@ -70,7 +70,7 @@ export function collectOutline(root: ParentNode): OutlineEntry[] {
 // Shared through globalThis for the same reason as the page context: the
 // viewer writes the outline from the source copy of this module, while a
 // document's `<TableOfContents>` reads it from the published bundle.
-const GLOBAL_KEY = '__open_doc_outline_store__';
+const GLOBAL_KEY = '__mosage_outline_store__';
 type OutlineStore = { snapshot: OutlineEntry[]; listeners: Set<() => void> };
 type GlobalWithStore = typeof globalThis & { [GLOBAL_KEY]?: OutlineStore };
 const g = globalThis as GlobalWithStore;

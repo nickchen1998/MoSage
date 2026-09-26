@@ -120,10 +120,10 @@ export function useAssetCount(): number {
         cancelled = true;
       };
     }
-    import.meta.hot.on('open-doc:files-changed', read);
+    import.meta.hot.on('mosage:files-changed', read);
     return () => {
       cancelled = true;
-      import.meta.hot?.off('open-doc:files-changed', read);
+      import.meta.hot?.off('mosage:files-changed', read);
     };
   }, []);
 

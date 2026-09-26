@@ -10,7 +10,7 @@ import {
   writeManifest,
 } from '../../files/folders.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
-import { DOC_ID_RE } from '../open-doc-plugin.ts';
+import { DOC_ID_RE } from '../mosage-plugin.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
 // GET    /__folders            list manifest

@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils';
 import { Menu, MenuItem, MenuSeparator } from '../ui/menu';
 import { IconPicker } from './icon-picker';
 
-export const DOC_DND_MIME = 'application/x-open-doc-id';
+export const DOC_DND_MIME = 'application/x-mosage-id';
 
 export type FolderRow =
   | { kind: 'all' }

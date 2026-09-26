@@ -1,23 +1,23 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/assets/preview-dark.png">
-  <img src=".github/assets/preview.png" alt="open-doc — the document framework built for agents." width="100%">
+  <img src=".github/assets/preview.png" alt="MoSage — the document framework built for agents." width="100%">
 </picture>
 
-# open-doc
+# MoSage
 
-[![CI](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml/badge.svg)](https://github.com/simonliu-ai-product/open-doc/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/@open-document/core?style=flat)](https://www.npmjs.com/package/@open-document/core)
-[![GitHub stars](https://img.shields.io/github/stars/simonliu-ai-product/open-doc?style=flat)](https://github.com/simonliu-ai-product/open-doc/stargazers)
+[![CI](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml/badge.svg)](https://github.com/nickchen1998/MoSage/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/mosage-core?style=flat)](https://www.npmjs.com/package/mosage-core)
+[![GitHub stars](https://img.shields.io/github/stars/nickchen1998/MoSage?style=flat)](https://github.com/nickchen1998/MoSage/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](https://opensource.org/licenses/MIT)
 
-**English** · [繁體中文](README.zh-TW.md) · [costaffs.app/tools/open-doc](https://costaffs.app/tools/open-doc/)
+**English** · [繁體中文](README.zh-TW.md)
 
-**The document framework built for agents.** Describe the report you need in natural language — your coding agent writes the React. open-doc handles the page geometry, the outline, the table of contents, page numbers, print layout, and export.
+**The document framework built for agents.** Describe the report you need in natural language — your coding agent writes the React. MoSage handles the page geometry, the outline, the table of contents, page numbers, print layout, and export.
 
-If [open-slide](https://github.com/1weiho/open-slide) is Google Slides for agents, open-doc is Google Docs: same idea, different medium. A deck is a 1920 × 1080 canvas; a document is a stack of **A4 sheets** that has to survive a printer.
+If [open-slide](https://github.com/1weiho/open-slide) is Google Slides for agents, MoSage is Google Docs: same idea, different medium. A deck is a 1920 × 1080 canvas; a document is a stack of **A4 sheets** that has to survive a printer.
 
 ```bash
-npx @open-document/cli init my-docs
+npx mosage init my-docs
 ```
 
 <img src=".github/assets/viewer.png" alt="The document viewer — page thumbnails on the left, a real A4 sheet in the middle, running footer and page numbers filled in by the framework." width="100%">
@@ -26,7 +26,7 @@ npx @open-document/cli init my-docs
 
 ## Why
 
-Reports are the output nobody wants to format. Agents write excellent prose and terrible Word documents. open-doc gives the agent a medium it's actually good at — React — and gives you a PDF that looks like a designer made it.
+Reports are the output nobody wants to format. Agents write excellent prose and terrible Word documents. MoSage gives the agent a medium it's actually good at — React — and gives you a PDF that looks like a designer made it.
 
 ## Highlights
 
@@ -40,11 +40,11 @@ Skills ship with the scaffolder:
 
 - **`/create-doc`** — drafts a document end to end. Establishes topic, audience, and *source material* first (it will not invent your numbers), asks four scoping questions, plans the pages, then writes them.
 - **`/doc-authoring`** — the technical reference: file contract, page canvas, print type scale, the vertical budget that decides where pages break, tables, charts, assets.
-- **`/current-doc`** — resolves "this page" and "this element". The dev server publishes where you are reading to `node_modules/.open-doc/current.json`, so your agent edits the sheet you are looking at instead of asking which one you mean.
+- **`/current-doc`** — resolves "this page" and "this element". The dev server publishes where you are reading to `node_modules/.mosage/current.json`, so your agent edits the sheet you are looking at instead of asking which one you mean.
 
 ### 🔌 An MCP server, so any agent framework can drive it
 
-`open-doc dev --mcp` mounts an MCP endpoint next to the UI — 23 tools covering documents, surgical text edits, layout checks and page screenshots, Markdown import, export, themes, assets, and folders. It is stateless Streamable HTTP, so a client just points at `http://localhost:5273/mcp` with no session handshake.
+`mosage dev --mcp` mounts an MCP endpoint next to the UI — 23 tools covering documents, surgical text edits, layout checks and page screenshots, Markdown import, export, themes, assets, and folders. It is stateless Streamable HTTP, so a client just points at `http://localhost:5273/mcp` with no session handshake.
 
 The tools and the browser share one implementation, so `write_document` / `write_text` take the content you last read and refuse a stale write with `409` rather than overwriting whoever got there first. See [packages/mcp](packages/mcp).
 
@@ -90,10 +90,10 @@ import services from './data/services.csv';
 
 ### 👁️ Layout checks, because an agent can't see the page
 
-An agent writing React has no idea whether the paragraph it just added pushed the last three lines off the sheet. `open-doc check` renders every page at true size and tells it:
+An agent writing React has no idea whether the paragraph it just added pushed the last three lines off the sheet. `mosage check` renders every page at true size and tells it:
 
 ```
-$ open-doc check q3-infra-review
+$ mosage check q3-infra-review
 q3-infra-review 9 pages — 2 error(s), 1 warning(s)
   ✗ p.4   Content runs 37px past the bottom of the sheet and is clipped in the PDF.
           p: Spend grew 8% quarter over quarter, driven by…  @ 214:6
@@ -107,8 +107,8 @@ Clipped content, blank sheets, stranded headings, type too small to print, image
 ### ⌨️ Headless export — the Download menu without a browser
 
 ```bash
-open-doc export q3-infra-review --format pdf   # or html, docx, or one png per page
-open-doc export --all --out-dir out
+mosage export q3-infra-review --format pdf   # or html, docx, or one png per page
+mosage export --all --out-dir out
 ```
 
 Same render pipeline as the toolbar, driven from a script — so a report can be produced by CI on a schedule instead of by a person clicking. Needs `playwright` installed (`pnpm add -D playwright && pnpm exec playwright install chromium`); it is an optional peer, not a dependency.
@@ -116,7 +116,7 @@ Same render pipeline as the toolbar, driven from a script — so a report can be
 ### 📥 Markdown in, document out
 
 ```bash
-open-doc import notes.md --id q3-notes --contents
+mosage import notes.md --id q3-notes --contents
 ```
 
 Most reports start life as Markdown. The importer turns one into a real document — `flow()` body, cover page, self-filling contents, GFM tables through styled `Th`/`Td`, local images copied into the document's own `assets/` — and the output is ordinary authored TSX, so the outline, the inspector, and the design panel all work on it exactly as on a hand-written page.
@@ -155,12 +155,12 @@ A left sidebar holds every view — Documents, Themes, Assets — plus folders y
 
 ### 🚀 Deploy-friendly
 
-`open-doc build` outputs a plain static site — deploy to Vercel, Cloudflare Pages, Netlify, or any static host.
+`mosage build` outputs a plain static site — deploy to Vercel, Cloudflare Pages, Netlify, or any static host.
 
 ## Get started
 
 ```bash
-npx @open-document/cli init my-docs
+npx mosage init my-docs
 cd my-docs
 pnpm dev
 ```
@@ -169,17 +169,17 @@ Open http://localhost:5273. From there, drive it through your agent — or edit 
 
 | Command | What it does |
 | --- | --- |
-| `open-doc dev` | Dev server + viewer (`--mcp` to mount the MCP endpoint) |
-| `open-doc build` / `preview` | Static site |
-| `open-doc check [ids…]` | Report layout faults; non-zero exit on errors |
-| `open-doc export [ids…]` | Headless PDF / HTML / DOCX / PNG |
-| `open-doc import <file.md>` | Markdown → a document under `docs/` |
+| `mosage dev` | Dev server + viewer (`--mcp` to mount the MCP endpoint) |
+| `mosage build` / `preview` | Static site |
+| `mosage check [ids…]` | Report layout faults; non-zero exit on errors |
+| `mosage export [ids…]` | Headless PDF / HTML / DOCX / PNG |
+| `mosage import <file.md>` | Markdown → a document under `docs/` |
 
 ## The file contract
 
 ```tsx
 // docs/q3-review/index.tsx
-import type { DocMeta, DocPage } from '@open-document/core';
+import type { DocMeta, DocPage } from 'mosage-core';
 
 const Cover: DocPage = () => <div>…</div>;
 const Summary: DocPage = () => <div>…</div>;
@@ -198,16 +198,16 @@ pnpm + Turbo monorepo.
 
 | Path | Description |
 | --- | --- |
-| [packages/core](packages/core) | `@open-document/core` — runtime (document browser, page viewer, outline, export), Vite plugin, and the `open-doc` dev/build/preview CLI. |
-| [packages/cli](packages/cli) | `@open-document/cli` — `npx @open-document/cli init` scaffolder + project template. |
-| [packages/mcp](packages/mcp) | `@open-document/mcp` — MCP server over Streamable HTTP. Opt-in; `open-doc dev --mcp` mounts it at `/mcp`. |
-| [apps/demo](apps/demo) | Example workspace consuming `@open-document/core` via `workspace:*`. Dogfood target. |
+| [packages/core](packages/core) | `mosage-core` — runtime (document browser, page viewer, outline, export), Vite plugin, and the `mosage` dev/build/preview CLI. |
+| [packages/cli](packages/cli) | `mosage` — `npx mosage init` scaffolder + project template. |
+| [packages/mcp](packages/mcp) | `mosage-mcp` — MCP server over Streamable HTTP. Opt-in; `mosage dev --mcp` mounts it at `/mcp`. |
+| [apps/demo](apps/demo) | Example workspace consuming `mosage-core` via `workspace:*`. Dogfood target. |
 
 ## Development
 
 ```bash
 pnpm install
-pnpm dev        # runs the demo against the local @open-document/core
+pnpm dev        # runs the demo against the local mosage-core
 pnpm build      # builds all packages
 pnpm typecheck  # tsc across the graph
 pnpm check      # biome (format + lint + organize imports)
@@ -220,6 +220,8 @@ pnpm test:e2e   # playwright
 Bug reports, feature requests, and pull requests are welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md) for the setup, the checks CI runs, and the changeset convention. Participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md); security issues go through [SECURITY.md](SECURITY.md), not the public tracker.
 
 ## Credits
+
+MoSage started as a fork of [open-doc](https://github.com/simonliu-ai-product/open-doc) by [Simon Liu](https://github.com/LiuYuWei) (MIT) and continues from its latest release, adding the Word (.docx) export and the two-up / grid view modes.
 
 The architecture — virtual-module document discovery, the scaffolder, the skills-as-documentation approach — follows [open-slide](https://github.com/1weiho/open-slide) by [@1weiho](https://github.com/1weiho).
 

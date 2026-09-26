@@ -1,12 +1,12 @@
-# @open-document/mcp
+# mosage-mcp
 
 **English** · [繁體中文](README.zh-TW.md)
 
-An MCP server for an open-doc workspace. Any agent framework that speaks Model Context Protocol can list, read, write, and file documents — and because it runs on the dev server, the page in the browser hot-reloads as the agent works.
+An MCP server for an MoSage workspace. Any agent framework that speaks Model Context Protocol can list, read, write, and file documents — and because it runs on the dev server, the page in the browser hot-reloads as the agent works.
 
 ```bash
-pnpm add -D @open-document/mcp
-open-doc dev --mcp
+pnpm add -D mosage-mcp
+mosage dev --mcp
 ```
 
 ```
@@ -68,12 +68,12 @@ The tools write to the user's disk, so the endpoint defends itself:
 
 ## Embedding
 
-`open-doc dev --mcp` covers the usual case. To mount it yourself:
+`mosage dev --mcp` covers the usual case. To mount it yourself:
 
 ```ts
-import { createOpenDocMcpMiddleware } from '@open-document/mcp';
+import { createMoSageMcpMiddleware } from 'mosage-mcp';
 
-app.use('/mcp', createOpenDocMcpMiddleware({ userCwd: process.cwd() }));
+app.use('/mcp', createMoSageMcpMiddleware({ userCwd: process.cwd() }));
 ```
 
-`createOpenDocMcpHandler` returns the web-standard `{ fetch }` form for runtimes that want a `Request` in and a `Response` out.
+`createMoSageMcpHandler` returns the web-standard `{ fetch }` form for runtimes that want a `Request` in and a `Response` out.

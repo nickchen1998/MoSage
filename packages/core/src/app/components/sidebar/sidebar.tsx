@@ -1,4 +1,4 @@
-import config from 'virtual:open-doc/config';
+import config from 'virtual:mosage/config';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { Folder, FolderIcon } from '../../lib/sdk';
@@ -12,7 +12,7 @@ export const DRAFT_ID = 'draft';
 export const THEMES_ID = '__themes__';
 export const ASSETS_ID = '__assets__';
 
-export const FOLDER_DND_MIME = 'application/x-open-doc-folder-id';
+export const FOLDER_DND_MIME = 'application/x-mosage-folder-id';
 
 type Props = {
   folders: Folder[];
@@ -88,7 +88,7 @@ export function Sidebar({
   return (
     <aside className="flex h-full w-[16.5rem] shrink-0 flex-col border-border border-r bg-background">
       <div className="flex items-center justify-between px-4 pt-4 pb-3">
-        <h1 className="font-semibold text-base tracking-tight">open-doc</h1>
+        <h1 className="font-semibold text-base tracking-tight">MoSage</h1>
         <div className="-mr-1 flex items-center gap-0.5">
           <ThemeToggle />
         </div>

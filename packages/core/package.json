@@ -1,7 +1,7 @@
 {
-  "name": "@open-document/core",
+  "name": "mosage-core",
   "version": "0.6.0",
-  "description": "Runtime and CLI for open-doc — write documents in docs/, we handle the pages, print layout, and export.",
+  "description": "Runtime and CLI for MoSage — write documents in docs/, we handle the pages, print layout, and export.",
   "type": "module",
   "exports": {
     ".": {
@@ -21,7 +21,7 @@
     }
   },
   "bin": {
-    "open-doc": "./bin.js"
+    "mosage": "./bin.js"
   },
   "files": [
     "bin.js",
@@ -50,17 +50,17 @@
   ],
   "license": "MIT",
   "author": {
-    "name": "Simon Liu",
-    "url": "https://github.com/LiuYuWei"
+    "name": "CHENBOHAN",
+    "url": "https://github.com/nickchen1998"
   },
-  "homepage": "https://github.com/simonliu-ai-product/open-doc",
+  "homepage": "https://github.com/nickchen1998/MoSage",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonliu-ai-product/open-doc.git",
+    "url": "git+https://github.com/nickchen1998/MoSage.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/simonliu-ai-product/open-doc/issues"
+    "url": "https://github.com/nickchen1998/MoSage/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -99,5 +99,11 @@
     "playwright": {
       "optional": true
     }
-  }
+  },
+  "contributors": [
+    {
+      "name": "Simon Liu",
+      "url": "https://github.com/LiuYuWei"
+    }
+  ]
 }

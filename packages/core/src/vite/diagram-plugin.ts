@@ -18,7 +18,7 @@ const DIAGRAM_RE = /\.(mmd|mermaid)$/i;
  */
 export function diagramPlugin(): Plugin {
   return {
-    name: 'open-doc:diagram',
+    name: 'mosage:diagram',
     enforce: 'pre',
     async load(id) {
       const [file, query] = id.split('?');

@@ -1,10 +1,10 @@
 {
-  "name": "@open-document/cli",
+  "name": "mosage",
   "version": "0.1.2",
-  "description": "Scaffold an open-doc workspace with agent skills preconfigured.",
+  "description": "Scaffold a MoSage workspace with agent skills preconfigured.",
   "type": "module",
   "bin": {
-    "open-doc": "dist/cli.js"
+    "mosage": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -29,17 +29,17 @@
   ],
   "license": "MIT",
   "author": {
-    "name": "Simon Liu",
-    "url": "https://github.com/LiuYuWei"
+    "name": "CHENBOHAN",
+    "url": "https://github.com/nickchen1998"
   },
-  "homepage": "https://github.com/simonliu-ai-product/open-doc",
+  "homepage": "https://github.com/nickchen1998/MoSage",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonliu-ai-product/open-doc.git",
+    "url": "git+https://github.com/nickchen1998/MoSage.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/simonliu-ai-product/open-doc/issues"
+    "url": "https://github.com/nickchen1998/MoSage/issues"
   },
   "publishConfig": {
     "access": "public"
@@ -54,5 +54,11 @@
     "@types/prompts": "^2.4.9",
     "tsdown": "^0.22.14",
     "typescript": "^5.9.3"
-  }
+  },
+  "contributors": [
+    {
+      "name": "Simon Liu",
+      "url": "https://github.com/LiuYuWei"
+    }
+  ]
 }

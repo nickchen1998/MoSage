@@ -1,4 +1,4 @@
-# @open-document/cli
+# mosage
 
 ## 0.1.2
 

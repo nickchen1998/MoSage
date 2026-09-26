@@ -92,7 +92,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   if (!existsSync(TEMPLATE_DIR)) {
     throw new Error(
-      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter @open-document/cli build\` first.`,
+      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter mosage build\` first.`,
     );
   }
 
@@ -114,8 +114,8 @@ export async function init(opts: InitOptions): Promise<void> {
     pkg.name = name ?? basename(target);
     pkg.version = '0.0.0';
     pkg.private = true;
-    if (pkg.dependencies?.['@open-document/core']) {
-      pkg.dependencies['@open-document/core'] = coreVersionRange();
+    if (pkg.dependencies?.['mosage-core']) {
+      pkg.dependencies['mosage-core'] = coreVersionRange();
     }
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   }
@@ -141,7 +141,7 @@ export async function init(opts: InitOptions): Promise<void> {
 
   const cdTarget = dir === '.' ? basename(target) : dir;
   process.stdout.write(
-    `\n${chalk.green.bold('✔ Created open-doc workspace')} ${chalk.dim(`in ${target}`)}\n`,
+    `\n${chalk.green.bold('✔ Created MoSage workspace')} ${chalk.dim(`in ${target}`)}\n`,
   );
 
   let installed = false;

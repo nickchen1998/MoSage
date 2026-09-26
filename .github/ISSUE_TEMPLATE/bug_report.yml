@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with the open-doc runtime, CLI, MCP server, or scaffolder.
+description: Report a problem with the MoSage runtime, CLI, MCP server, or scaffolder.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -21,7 +21,7 @@ body:
       label: Steps to reproduce
       description: Minimal, numbered steps. A link to a repo or sandbox is ideal.
       placeholder: |
-        1. `npx @open-doc/cli init repro`
+        1. `npx mosage init repro`
         2. `cd repro && pnpm dev`
         3. Open http://localhost:5173, open the document and …
     validations:
@@ -43,15 +43,15 @@ body:
     id: package
     attributes:
       label: Affected package
-      description: e.g. `@open-doc/core`, `@open-doc/cli`, `@open-doc/mcp`, or "scaffolded project".
+      description: e.g. `mosage-core`, `mosage`, `mosage-mcp`, or "scaffolded project".
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: Output of `npm ls @open-doc/core` (or the CLI version you ran).
-      placeholder: "@open-doc/core@0.1.0"
+      description: Output of `npm ls mosage-core` (or the CLI version you ran).
+      placeholder: "mosage-core@0.1.0"
     validations:
       required: true
   - type: input

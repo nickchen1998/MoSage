@@ -14,7 +14,7 @@ import {
   validateAssetName,
 } from '../../files/assets.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
-import { DOC_ID_RE } from '../open-doc-plugin.ts';
+import { DOC_ID_RE } from '../mosage-plugin.ts';
 import { type ApiContext, json, readBody, resolveDocEntry } from './context.ts';
 
 // GET    /__assets/:scope                list assets in a document or @global

@@ -1,9 +1,4 @@
-import {
-  type DesignSystem,
-  type DocPage,
-  useDocPageCount,
-  useDocPageNumber,
-} from '@open-document/core';
+import { type DesignSystem, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage-core';
 import type { CSSProperties, ReactNode } from 'react';
 
 export const design: DesignSystem = {

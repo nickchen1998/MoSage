@@ -544,7 +544,7 @@ export function writeDocx(model: DocxModel, now = new Date()): Uint8Array {
   part(
     'docProps/app.xml',
     `${CONTENT}.extended-properties+xml`,
-    `${XML_DECLARATION}<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>open-doc</Application></Properties>`,
+    `${XML_DECLARATION}<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>MoSage</Application></Properties>`,
   );
 
   const extensions = new Map<string, string>();

@@ -70,7 +70,7 @@ function isDocSourceFile(id: string, docsRootPosix: string): boolean {
 export function locTagsPlugin(opts: LocTagsPluginOptions): Plugin {
   const docsRoot = path.resolve(opts.userCwd, opts.docsDir ?? 'docs').replace(/\\/g, '/');
   return {
-    name: 'open-doc:loc-tags',
+    name: 'mosage:loc-tags',
     apply: 'serve',
     enforce: 'pre',
     transform(code, id) {
