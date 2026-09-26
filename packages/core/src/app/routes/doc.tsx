@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BookOpen,
   Check,
+  CodeXml,
   Download,
   FilePen,
   FileText,
@@ -22,6 +23,9 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { CodeExportCheck } from '../components/code/code-export-check';
+import { CodeHighlights } from '../components/code/code-highlights';
+import { CodePanel, unpushedEntries } from '../components/code/code-panel';
 import { DesignPanel } from '../components/design-panel/design-panel';
 import { DesignProvider } from '../components/design-panel/design-provider';
 import { DocSearch } from '../components/doc-search';
@@ -32,6 +36,7 @@ import { ThemeToggle } from '../components/theme-toggle';
 import { Menu, MenuItem } from '../components/ui/menu';
 import { useAgentBridge } from '../lib/agent-bridge';
 import { exportDocAsPdf } from '../lib/export-pdf';
+import { LABEL_ID_ATTR, useDocLabels } from '../lib/labels';
 import { type OutlineEntry, useDocOutline } from '../lib/outline';
 import { describeSelection, type PageSelection, resolveSelection } from '../lib/page-range';
 import { nextFrame, waitForFonts } from '../lib/print-ready';
@@ -124,6 +129,10 @@ export function Doc() {
   const [selection, setSelection] = useState<PageSelection>({ kind: 'all' });
   const [customRange, setCustomRange] = useState('');
   const [designOpen, setDesignOpen] = useState(false);
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  const [codeCheck, setCodeCheck] = useState<DownloadFormat | null>(null);
+  const [exportAfterPush, setExportAfterPush] = useState<DownloadFormat | null>(null);
   const [inspecting, setInspecting] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useViewMode(docId);
@@ -134,6 +143,8 @@ export function Doc() {
   const geometry = useMemo(() => resolvePageGeometry(doc?.meta), [doc?.meta]);
   const { pages, measuring, overflowing } = useDocPages(doc, geometry);
   const outline = useDocOutline();
+  const codeEntries = useDocLabels('code');
+  const unpushedCode = import.meta.env.DEV ? unpushedEntries(codeEntries) : [];
 
   useAgentBridge({ docId: docId ?? '', doc, pages, geometry, measuring, oversized: overflowing });
 
@@ -315,8 +326,12 @@ export function Doc() {
     return onPage[0]?.id ?? null;
   }, [outline, currentPage]);
 
-  const runDownload = async (format: DownloadFormat) => {
+  const runDownload = async (format: DownloadFormat, opts: { codeChecked?: boolean } = {}) => {
     if (!doc || !docId || download) return;
+    if (!opts.codeChecked && unpushedCode.length > 0) {
+      setCodeCheck(format);
+      return;
+    }
 
     /*
      * The pages are chosen here, once, and every exporter is handed the subset
@@ -349,6 +364,30 @@ export function Doc() {
     } finally {
       setDownload(null);
     }
+  };
+
+  // After "Push, then export": the push reloads every excerpt with its new
+  // link, the pages re-measure, and only then is there something to export.
+  useEffect(() => {
+    if (!exportAfterPush) return;
+    const giveUp = setTimeout(() => setExportAfterPush(null), 20_000);
+    return () => clearTimeout(giveUp);
+  }, [exportAfterPush]);
+  useEffect(() => {
+    if (!exportAfterPush || measuring || unpushedCode.length > 0) return;
+    const format = exportAfterPush;
+    setExportAfterPush(null);
+    // Out of the effect: the exporters mount their print copy with flushSync,
+    // which React refuses while it is still committing.
+    setTimeout(() => void runDownload(format, { codeChecked: true }), 0);
+  });
+
+  const selectCode = (id: string, page: number) => {
+    setSelectedCode(id);
+    choosePage(page);
+    scrollRef.current
+      ?.querySelector(`[${LABEL_ID_ATTR}="${CSS.escape(id)}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   /* What the menu is about to do, so nobody has to count commas themselves. */
@@ -549,7 +588,10 @@ export function Doc() {
           {import.meta.env.DEV && (
             <button
               type="button"
-              onClick={() => setDesignOpen((open) => !open)}
+              onClick={() => {
+                setDesignOpen((open) => !open);
+                setCodeOpen(false);
+              }}
               className={cn(
                 'flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-accent',
                 designOpen && 'bg-accent',
@@ -557,6 +599,32 @@ export function Doc() {
             >
               <Palette className="size-3.5" />
               Design
+            </button>
+          )}
+          {import.meta.env.DEV && codeEntries.length > 0 && (
+            <button
+              type="button"
+              aria-pressed={codeOpen}
+              onClick={() => {
+                setCodeOpen((open) => !open);
+                setDesignOpen(false);
+              }}
+              className={cn(
+                'flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-accent',
+                codeOpen && 'bg-accent',
+              )}
+            >
+              <CodeXml className="size-3.5" />
+              程式碼
+              {unpushedCode.length > 0 && (
+                <span
+                  role="status"
+                  aria-label={`${unpushedCode.length} not pushed`}
+                  className="min-w-4 rounded-full bg-changed px-1 text-center text-[0.625rem] text-background leading-4"
+                >
+                  {unpushedCode.length}
+                </span>
+              )}
             </button>
           )}
           <Menu
@@ -661,12 +729,46 @@ export function Doc() {
               </PageFrame>
             ))}
           </div>
+          {codeOpen && (
+            <CodeHighlights
+              containerRef={scrollRef}
+              entries={codeEntries}
+              selectedId={selectedCode}
+              layoutKey={`${scale}:${viewMode}:${columns}:${pages.length}`}
+            />
+          )}
         </div>
         {inspecting && docId && (
           <Inspector docId={docId} containerRef={scrollRef} onExit={() => setInspecting(false)} />
         )}
         {designOpen && <DesignPanel onClose={() => setDesignOpen(false)} />}
+        {codeOpen && (
+          <CodePanel
+            entries={codeEntries}
+            docTitle={doc.meta?.title ?? docId ?? ''}
+            selectedId={selectedCode}
+            onSelect={(entry) => selectCode(entry.id, entry.page)}
+            onClose={() => setCodeOpen(false)}
+          />
+        )}
       </div>
+      {codeCheck && (
+        <CodeExportCheck
+          entries={unpushedCode}
+          format={codeCheck}
+          docTitle={doc.meta?.title ?? docId ?? ''}
+          onCancel={() => setCodeCheck(null)}
+          onExportAnyway={() => {
+            const format = codeCheck;
+            setCodeCheck(null);
+            void runDownload(format, { codeChecked: true });
+          }}
+          onPushed={() => {
+            setExportAfterPush(codeCheck);
+            setCodeCheck(null);
+          }}
+        />
+      )}
     </div>
   );
 

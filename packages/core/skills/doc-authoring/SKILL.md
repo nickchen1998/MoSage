@@ -22,6 +22,7 @@ Read the matching reference **before** using a primitive:
 | Tables, stat rows, inline charts | rendering data of any kind | `references/tables-and-charts.md` |
 | Assets, references, `<ImagePrompt>`, `<ImagePlaceholder>` | importing images, reading the user's reference files, leaving an image to be generated or supplied | `references/assets.md` |
 | Footnotes, `<Figure>`, `<Ref>`, `<DataTable>` | any note, numbered figure, cross-reference, or `.csv` | `references/long-form.md` |
+| `code/`, `<CodeExcerpt>`, `<CodeList>`, `mosage code` | showing code the document explains, linked to GitHub or GitLab | `references/code.md` |
 
 ## Themes
 
@@ -154,9 +155,13 @@ contents list does. Read `references/long-form.md` before using any of them.
 - **`<DataTable rows={…}>`** — a print-shaped table from an imported `.csv`.
 - **`<Diagram chart={…} caption>`** — an architecture or flow drawing from an
   imported `.mmd`. Given a caption it numbers as a figure, like `<Figure>`.
+- **`<CodeExcerpt src={…} lines caption>`** — lines of a file in `code/`, with
+  the file's own line numbers and a link to that commit on GitHub or GitLab.
+  Numbered in its own sequence; `<CodeList />` is the appendix. Read
+  `references/code.md` first.
 
-`meta.labels` sets what they are called (`圖`, `表`) — the numbering itself is
-structural.
+`meta.labels` sets what they are called (`圖`, `表`, `程式`) — the numbering
+itself is structural.
 
 ## Diagrams
 
@@ -420,7 +425,8 @@ confirms it.
 - [ ] All imported assets exist on disk (`docs/<id>/assets/images/…`, or root `assets/` via `@assets/...`), and each image sits in the folder of the chapter it illustrates.
 - [ ] Every `<ImagePrompt>` is in a document that has generated images switched on (`npx mosage images --json`), with a unique `id`, a `chapter` matching the heading, and a real px size.
 - [ ] Every `<ImagePlaceholder>` marks a real image the user must supply — not decorative filler.
-- [ ] Nothing outside `docs/<id>/` was edited.
+- [ ] Code is shown with `<CodeExcerpt>` from a file in `code/`, never pasted; `npx mosage code` reports nothing unpushed, or the user knows why.
+- [ ] Nothing outside `docs/<id>/` was edited, apart from the files in `code/` the document excerpts.
 
 ## Anti-patterns
 

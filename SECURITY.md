@@ -19,7 +19,7 @@ MoSage 還在 1.0 之前，安全性修正只會發佈在最新版的 `mosage`�
 ## 回報前可以先了解的設計前提
 
 - **`mosage dev` 是本機的寫作工具，不是對外服務。**
-  開發伺服器提供 `/__docs`、`/__edit`、`/__comments`、`/__design`、`/__assets`、`/__folders`、`/__settings`、`/__images` 等端點，用來讀寫專案資料夾裡的檔案與設定。
+  開發伺服器提供 `/__docs`、`/__edit`、`/__comments`、`/__design`、`/__assets`、`/__folders`、`/__settings`、`/__images`、`/__code` 等端點，用來讀寫專案資料夾裡的檔案與設定。
   它們只在 `mosage dev` 時存在，`mosage build` 與 `mosage preview` 的輸出不會包含。以下情況屬於弱點，歡迎回報：
   - 請求能讀寫專案資料夾以外的檔案；
   - 能繞過寫入請求的來源檢查（`validateMutationRequest`）；
@@ -27,6 +27,9 @@ MoSage 還在 1.0 之前，安全性修正只會發佈在最新版的 `mosage`�
   - 上傳到素材的檔案（例如 `.html`、`.svg`）能在開發伺服器的來源執行腳本。
 - **OpenAI API 金鑰只存在本機。**
   金鑰存在專案外的 `~/.mosage/credentials.json`（權限 0600），開發伺服器只會回傳遮罩後的末四碼。任何能讓瀏覽器或其他網站讀到完整金鑰的方式，都屬於弱點。
+- **推送 `code/` 用的是使用者自己的 git 登入。**
+  `/__code/connect` 與 `/__code/push` 會以使用者的身分執行 `git clone`／`git push`，git 的憑證由 git 自己管理，MoSage 不保存也不回傳任何權杖；git 需要輸入帳密時直接失敗，不會等待輸入。
+  讓其他網站觸發推送、把 `code/` 以外的檔案推送出去、或從 `/__code/file` 讀到 `code/` 以外的檔案，都屬於弱點。
 - **文件本身就是程式碼。**
   每份文件都是會被執行的 React 元件，所以「惡意的 `docs/<代號>/index.tsx` 能執行程式」是預期行為，不是弱點。
   從不信任的來源取得專案時，請像對待任何程式碼一樣先檢查過。

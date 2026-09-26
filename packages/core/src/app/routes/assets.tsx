@@ -1,6 +1,7 @@
 import {
   ChevronDown,
   ChevronRight,
+  CodeXml,
   FolderPlus,
   Image as ImageIcon,
   Library,
@@ -9,9 +10,18 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
-import { type DragEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type DragEvent,
+  Fragment,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AssetPreview } from '../components/asset-preview';
 import { ImageCard, ReferenceRow, UNSORTED_LABEL } from '../components/assets/asset-items';
+import { CodePane } from '../components/code/code-tree';
 import {
   type Asset,
   type AssetList,
@@ -23,7 +33,9 @@ import {
   uploadAsset,
   useAssets,
 } from '../lib/assets';
+import { getCodeTree } from '../lib/code-api';
 import { docIds, useDocTitles } from '../lib/docs';
+import { useLive } from '../lib/settings-api';
 import { cn } from '../lib/utils';
 
 /** What the right-hand pane shows. `chapter: undefined` is every image in the scope. */
@@ -31,7 +43,11 @@ type Selection =
   | { scope: string; collection: 'images'; chapter?: string | null }
   | { scope: string; collection: 'references' };
 
-const sameSelection = (a: Selection, b: Selection) =>
+/** The project's `code/` repository, beside the asset scopes. */
+type PaneSelection = Selection | { collection: 'code' };
+
+const sameSelection = (a: PaneSelection, b: Selection) =>
+  a.collection !== 'code' &&
   a.scope === b.scope &&
   a.collection === b.collection &&
   (a.collection === 'references' || (b.collection === 'images' && a.chapter === b.chapter));
@@ -39,10 +55,11 @@ const sameSelection = (a: Selection, b: Selection) =>
 export function AssetsPage() {
   const scopes = useMemo(() => [GLOBAL_SCOPE, ...[...docIds].sort()], []);
   const titles = useDocTitles();
-  const [selection, setSelection] = useState<Selection>({
+  const [selection, setSelection] = useState<PaneSelection>({
     scope: GLOBAL_SCOPE,
     collection: 'images',
   });
+  const code = useLive(getCodeTree);
   const labelOf = (scope: string) =>
     scope === GLOBAL_SCOPE ? 'Project (shared)' : (titles[scope] ?? scope);
 
@@ -55,22 +72,39 @@ export function AssetsPage() {
           className="w-64 flex-none overflow-y-auto border-border border-r bg-background px-2 py-3"
         >
           {scopes.map((scope) => (
-            <ScopeBranch
-              key={scope}
-              scope={scope}
-              label={labelOf(scope)}
-              selection={selection}
-              onSelect={setSelection}
-              defaultOpen={scope === GLOBAL_SCOPE}
-            />
+            <Fragment key={scope}>
+              <ScopeBranch
+                scope={scope}
+                label={labelOf(scope)}
+                selection={selection}
+                onSelect={setSelection}
+                defaultOpen={scope === GLOBAL_SCOPE}
+              />
+              {scope === GLOBAL_SCOPE && (
+                <div className="mb-1">
+                  <TreeRow
+                    depth={0}
+                    label="程式碼"
+                    count={code.data?.files.length}
+                    icon={<CodeXml className="size-3.5 flex-none" />}
+                    selected={selection.collection === 'code'}
+                    onSelect={() => setSelection({ collection: 'code' })}
+                  />
+                </div>
+              )}
+            </Fragment>
           ))}
         </nav>
-        <FolderPane
-          key={`${selection.scope}/${selection.collection}`}
-          selection={selection}
-          scopeLabel={labelOf(selection.scope)}
-          onSelect={setSelection}
-        />
+        {selection.collection === 'code' ? (
+          <CodePane />
+        ) : (
+          <FolderPane
+            key={`${selection.scope}/${selection.collection}`}
+            selection={selection}
+            scopeLabel={labelOf(selection.scope)}
+            onSelect={setSelection}
+          />
+        )}
       </div>
     </div>
   );
@@ -139,7 +173,7 @@ function ScopeBranch({
 }: {
   scope: string;
   label: string;
-  selection: Selection;
+  selection: PaneSelection;
   onSelect: (selection: Selection) => void;
   defaultOpen: boolean;
 }) {
@@ -148,7 +182,7 @@ function ScopeBranch({
   const [imagesOpen, setImagesOpen] = useState(true);
   const images = list?.assets.filter((a) => a.kind === 'image') ?? [];
   const references = list?.assets.filter((a) => a.kind === 'reference') ?? [];
-  const isOpen = open || selection.scope === scope;
+  const isOpen = open || (selection.collection !== 'code' && selection.scope === scope);
   const is = (s: Selection) => sameSelection(selection, s);
 
   return (

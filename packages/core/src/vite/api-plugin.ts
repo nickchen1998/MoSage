@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { Plugin } from 'vite';
 import { registerAssetRoutes } from './routes/assets.ts';
+import { registerCodeRoutes } from './routes/code.ts';
 import { type ApiPluginOptions, makeContext } from './routes/context.ts';
 import { registerDocRoutes } from './routes/docs.ts';
 import { registerEditRoutes } from './routes/edit.ts';
@@ -24,6 +25,7 @@ export function apiPlugin(opts: ApiPluginOptions): Plugin {
       registerEditRoutes(server, ctx);
       registerSettingsRoutes(server, ctx);
       registerImageRoutes(server, ctx);
+      registerCodeRoutes(server, ctx);
 
       // Files that land on disk without going through the API — an image Codex
       // drew, a PDF dropped into references/ by hand — still refresh the panels.

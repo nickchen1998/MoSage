@@ -10,7 +10,10 @@ export type ImageGenerationSettings = {
   documents: Record<string, boolean>;
 };
 
-export type ProjectSettings = { imageGeneration: ImageGenerationSettings };
+export type ProjectSettings = {
+  imageGeneration: ImageGenerationSettings;
+  code: { remote: string | null; host: 'github' | 'gitlab' | null };
+};
 
 export type KeyStatus =
   | { configured: false }
@@ -75,7 +78,7 @@ export type ImagesResponse = { mode: ImageGenerationMode; prompts: PendingImage[
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string };
 
-async function call<T>(url: string, init?: RequestInit): Promise<Result<T>> {
+export async function call<T>(url: string, init?: RequestInit): Promise<Result<T>> {
   try {
     const res = await fetch(url, init);
     const body = (await res.json().catch(() => ({}))) as T & { error?: string };
@@ -86,7 +89,7 @@ async function call<T>(url: string, init?: RequestInit): Promise<Result<T>> {
   }
 }
 
-const jsonInit = (method: string, body?: unknown): RequestInit => ({
+export const jsonInit = (method: string, body?: unknown): RequestInit => ({
   method,
   headers: { 'content-type': 'application/json' },
   ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -116,7 +119,7 @@ export const generateImage = (docId: string, id: string) =>
 export const placeImage = (docId: string, id: string) =>
   call<{ file: string }>('/__images/place', jsonInit('POST', { docId, id }));
 
-/** Re-runs `load` whenever the dev server reports that settings or files changed. */
+/** Re-runs `load` whenever the dev server reports that settings, files or code/ changed. */
 export function useLive<T>(load: () => Promise<Result<T>>): {
   data: T | null;
   error: string | null;
@@ -143,9 +146,11 @@ export function useLive<T>(load: () => Promise<Result<T>>): {
     if (!hot) return;
     hot.on('mosage:settings-changed', reload);
     hot.on('mosage:files-changed', reload);
+    hot.on('mosage:code-changed', reload);
     return () => {
       hot.off('mosage:settings-changed', reload);
       hot.off('mosage:files-changed', reload);
+      hot.off('mosage:code-changed', reload);
     };
   }, [reload]);
 

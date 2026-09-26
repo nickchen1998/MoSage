@@ -9,7 +9,9 @@ export type LayoutRule =
   | 'oversized-block'
   | 'orphan-heading'
   | 'tiny-text'
-  | 'broken-image';
+  | 'broken-image'
+  | 'bad-code-excerpt'
+  | 'unpushed-code';
 
 export type LayoutSeverity = 'error' | 'warn';
 
@@ -201,6 +203,41 @@ export function diagnosePages(
         severity: 'error',
         message: `Cross-reference points at "${el.getAttribute('data-od-ref-unresolved')}", which no figure, table, or footnote declares.`,
         element: snippet(el),
+        loc: locOf(el),
+      });
+    }
+
+    for (const el of Array.from(frame.querySelectorAll<HTMLElement>('[data-od-code-error]')).slice(
+      0,
+      perPageLimit,
+    )) {
+      findings.push({
+        page,
+        rule: 'bad-code-excerpt',
+        severity: 'error',
+        message: `Code excerpt: ${el.getAttribute('data-od-code-error')}.`,
+        element: snippet(el),
+        loc: locOf(el),
+      });
+    }
+
+    // Not a layout fault, but found the same way: what is printed against what
+    // the printed link opens.
+    for (const el of Array.from(
+      frame.querySelectorAll<HTMLElement>(
+        '[data-od-code-status="changed"], [data-od-code-status="new"]',
+      ),
+    ).slice(0, perPageLimit)) {
+      const file = el.getAttribute('data-od-code');
+      findings.push({
+        page,
+        rule: 'unpushed-code',
+        severity: 'warn',
+        message:
+          el.getAttribute('data-od-code-status') === 'changed'
+            ? `${file} changed since it was pushed — the printed link opens the old lines. Run \`mosage code push\`.`
+            : `${file} is not on GitHub or GitLab yet — the excerpt prints without a link. Run \`mosage code push\`.`,
+        element: `code: ${file}`,
         loc: locOf(el),
       });
     }
