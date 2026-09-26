@@ -1,5 +1,11 @@
 # mosage
 
+## 0.9.1
+
+### Patch Changes
+
+- [#19](https://github.com/nickchen1998/MoSage/pull/19) [`9c08cf9`](https://github.com/nickchen1998/MoSage/commit/9c08cf9f16896a0c7067cf80120d124ca0c902bb) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 標示實際需要的 Node.js 版本（22.18 以上或 24.11 以上）；在不支援的版本上安裝時，npm 會先提出警告，而不是執行到一半才出錯。
+
 ## 0.9.0
 
 ### Minor Changes
