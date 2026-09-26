@@ -12,7 +12,7 @@ import { type ApiContext, json, readBody } from './context.ts';
 // POST   /__docs/:id/duplicate  copy the folder to a fresh id { newId? }
 // DELETE /__docs/:id            delete the document folder from disk
 //
-// The work itself lives in `ops/` so the MCP server runs the same code.
+// The work itself lives in `ops/` so the CLI runs the same code.
 
 export function registerDocRoutes(server: ViteDevServer, ctx: ApiContext): void {
   server.middlewares.use('/__docs', async (req, res, next) => {

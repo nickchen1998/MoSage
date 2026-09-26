@@ -1,51 +1,29 @@
-# mosage-core
+# mosage
 
-**English** · [繁體中文](README.zh-TW.md)
-
-Runtime and CLI for [MoSage](https://github.com/nickchen1998/MoSage) — write documents in `docs/`, we handle the pages, the outline, and the export.
+讓 AI coding agent 幫你做出要印出來、要交出去的文件：報告、企劃書、白皮書、手冊。
+Agent 把內容寫成頁面，MoSage 負責紙張尺寸、分頁、目錄與頁碼，並匯出 PDF、可編輯的 Word 或 HTML。
 
 ```bash
 npx mosage init my-docs
+cd my-docs
+npm run dev        # http://localhost:5273
 ```
 
-## What's in here
+接著在同一個資料夾開啟 Claude Code 或 Codex，描述你要的文件即可。
 
-- **Runtime** — document browser, paged viewer with outline sidebar and zoom, PDF export (true `@page` size), self-contained HTML export.
-- **Vite plugin** — discovers `docs/*/index.tsx`, serves them through a virtual module, hot-reloads edits.
-- **CLI** — `mosage dev | build | preview | sync:skills`. `dev --mcp` also mounts [`mosage-mcp`](../mcp) at `/mcp`.
-- **Ops layer** — `mosage-core/ops`: document, theme, asset, and folder operations independent of transport. The dev API and the MCP server both call these, so validation and conflict checks exist once.
-- **Skills** — `create-doc` and `doc-authoring`, synced into your workspace so your coding agent knows the rules.
+## 這個套件包含
 
-## Public API
+- **CLI**：`mosage init`（建立專案）、`dev`、`check`（版面檢查）、`export`（PDF／Word／HTML／PNG）、`import`（Markdown 轉文件）、`build`、`preview`、`sync:skills`
+- **檢視器**：真實尺寸的頁面、縮圖與大綱、單頁／雙頁／格狀檢視、Inspect（直接改字或留言給 AI）、Design 面板
+- **文件元件**：`flow()` 自動分頁、`TableOfContents`、`Footnote`、`Figure`／`Ref` 編號與交互參照、`DataTable`（讀 CSV）、頁碼 hooks
+- **AI skills**：`create-doc`、`doc-authoring`、`current-doc`、`apply-comments`、`create-theme`
 
-```tsx
-import {
-  type DesignSystem,
-  type DocMeta,
-  type DocPage,
-  ImagePlaceholder,
-  PAGE_SIZE_NAMES,
-  PAGE_SIZES,
-  TableOfContents,
-  resolvePageGeometry,
-  useDocOutline,
-  useDocPageCount,
-  useDocPageNumber,
-} from 'mosage-core';
+`mosage check` 與 `mosage export` 會用無頭 Chromium 渲染，第一次使用前請安裝 Playwright：
+
+```bash
+npm i -D playwright && npx playwright install chromium
 ```
 
-## Config
+完整說明與範例：<https://github.com/nickchen1998/MoSage>
 
-`mosage.config.ts` at the workspace root:
-
-```ts
-import type { MoSageConfig } from 'mosage-core';
-
-export default {
-  docsDir: 'docs',
-  assetsDir: 'assets',
-  port: 5273,
-} satisfies MoSageConfig;
-```
-
-MIT
+MoSage 以 [open-doc](https://github.com/simonliu-ai-product/open-doc)（Simon Liu，MIT）為基礎開發。授權：MIT。

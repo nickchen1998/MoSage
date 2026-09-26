@@ -16,13 +16,11 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "pnpm --filter mosage-core test:e2e",
-    "core": "pnpm --filter mosage-core",
-    "cli": "pnpm --filter mosage",
-    "mcp": "pnpm --filter mosage-mcp",
+    "test:e2e": "pnpm --filter mosage test:e2e",
+    "core": "pnpm --filter mosage",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "turbo run build --filter=mosage-core --filter=mosage --filter=mosage-mcp && changeset publish"
+    "release": "turbo run build --filter=mosage && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.7",

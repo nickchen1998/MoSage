@@ -13,9 +13,9 @@ import { DOC_ID_RE } from '../vite/mosage-plugin.ts';
 import type { ApiContext } from '../vite/routes/context.ts';
 
 /**
- * Operations shared by the dev API and the MCP server. Everything here takes an
- * `ApiContext` and touches disk directly — no HTTP, so an agent calling a tool
- * and a browser calling `/__docs` end up in exactly the same code.
+ * Operations shared by the dev API and the CLI. Everything here takes an
+ * `ApiContext` and touches disk directly — no HTTP, so a command and a browser
+ * calling `/__docs` end up in exactly the same code.
  */
 
 export class OpsError extends Error {

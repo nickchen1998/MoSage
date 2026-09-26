@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { viewer } from './helpers.ts';
 
 test.describe('document browser', () => {
   test('lists every fixture document with its display title', async ({ page }) => {
@@ -13,7 +14,8 @@ test.describe('document browser', () => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Alpha Report', exact: true }).click();
     await expect(page).toHaveURL(/\/d\/alpha$/);
-    await expect(page.getByText('Alpha page one')).toBeVisible({ timeout: 30_000 });
+    // Thumbnails are page frames too; look inside the main viewer only.
+    await expect(viewer(page).getByText('Alpha page one')).toBeVisible({ timeout: 30_000 });
   });
 
   test('the theme badge links to the theme page', async ({ page }) => {

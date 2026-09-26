@@ -12,7 +12,7 @@ before serializing, so a PDF never contains a blank number.
 ## Footnotes
 
 ```tsx
-import { Footnote } from 'mosage-core';
+import { Footnote } from 'mosage';
 
 <p style={p}>
   Spend grew 8% quarter over quarter
@@ -48,7 +48,7 @@ inline instead of at the foot of the page.
 ## Figures and tables
 
 ```tsx
-import { Figure } from 'mosage-core';
+import { Figure } from 'mosage';
 
 <Figure id="topology" caption="Service topology, Q3 2026">
   <img src={diagram} alt="Service topology" style={{ width: '100%', display: 'block' }} />
@@ -67,7 +67,7 @@ import { Figure } from 'mosage-core';
 ## Cross-references
 
 ```tsx
-import { Ref } from 'mosage-core';
+import { Ref } from 'mosage';
 
 <p style={p}>The shape in <Ref to="topology" /> is what the table hides.</p>
 ```
@@ -97,7 +97,7 @@ export const meta: DocMeta = {
 ## Data
 
 ```tsx
-import { DataTable } from 'mosage-core';
+import { DataTable } from 'mosage';
 import services from './data/services.csv';
 
 <DataTable

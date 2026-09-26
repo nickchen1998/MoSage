@@ -1,7 +1,6 @@
 /**
  * Document operations, independent of transport. The dev API serves them over
- * HTTP for the browser; `mosage-mcp` exposes the same functions as MCP tools
- * so an agent and a person act on one implementation.
+ * HTTP for the browser, and the CLI calls them directly.
  */
 
 export {

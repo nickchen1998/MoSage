@@ -1,15 +1,15 @@
 ---
 name: doc-runtime-patterns
-description: Implementation patterns for the mosage-core runtime — the split between the viewer and the published bundle, virtual modules, the flow pipeline, the ops layer, dev-only plugins, and the React/perf rules that matter when a page is measured offscreen before it is drawn. Use when writing or refactoring anything under packages/core/src, packages/mcp/src, or when reviewing a PR that touches them. Not for authoring documents under docs/ — that's the create-doc / doc-authoring skills.
+description: Implementation patterns for the mosage runtime — the split between the viewer and the published bundle, virtual modules, the flow pipeline, the ops layer, dev-only plugins, and the React/perf rules that matter when a page is measured offscreen before it is drawn. Use when writing or refactoring anything under packages/core/src, or when reviewing a PR that touches them. Not for authoring documents under docs/ — that's the create-doc / doc-authoring skills.
 ---
 
 # MoSage runtime patterns
 
-Rules for code that ships inside `mosage-core` (and the MCP server that sits on top of it). They exist because this runtime has two properties most React apps don't: **it runs twice in the same tab**, and **it measures the DOM before it paints**.
+Rules for code that ships inside `mosage`. They exist because this runtime has two properties most React apps don't: **it runs twice in the same tab**, and **it measures the DOM before it paints**.
 
 ## 1. The two-copies rule (highest impact)
 
-The viewer imports `src/app/**` directly. A user's document imports the built `dist` bundle through `mosage-core`. Both are alive in the same page.
+The viewer imports `src/app/**` directly. A user's document imports the built `dist` bundle through `mosage`. Both are alive in the same page.
 
 - Anything that must be **shared** across that boundary — React context, the outline store — is stashed on `globalThis`. See `app/lib/page-context.tsx` and `app/lib/outline.ts`.
 - A new shared singleton that uses a plain module-level `let`, a plain `createContext`, or a module-scoped `Map` **will silently split in two**: the viewer writes one copy, the document reads the other, and nothing throws.
@@ -38,12 +38,11 @@ Adding a break rule means: extend `paginateBlocks`, add a case to `flow.test.ts`
 
 ## 4. Mutations live in `src/ops/`
 
-`vite/routes/docs.ts` and the MCP tools are two transports over one implementation.
+`vite/routes/docs.ts` and the CLI are two callers of one implementation.
 
 - A validation rule, conflict check, or id-collision guard is written **once**, in `ops/`.
 - Errors are `OpsError` with the status the transport should report — a route never invents its own status text.
-- New mutating capability = a function in `ops/` + a thin route + a thin MCP tool. Logic inline in a route is a review block: it ships to one caller and not the other.
-- `mosage-mcp` is resolved dynamically by `vite/mcp-plugin.ts` through a variable specifier. Core must never take a static import on it — the peer relationship points the other way. Missing install warns and disables `/mcp`; it is never fatal.
+- New mutating capability = a function in `ops/` + a thin route. Logic inline in a route is a review block: it ships to one caller and not the other.
 
 ## 5. Dev-only endpoints are a trust boundary
 

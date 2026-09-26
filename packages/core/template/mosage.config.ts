@@ -1,4 +1,4 @@
-import type { MoSageConfig } from 'mosage-core';
+import type { MoSageConfig } from 'mosage';
 
 const mosageConfig: MoSageConfig = {};
 

@@ -15,7 +15,7 @@ function generate(markdown: string, opts: Record<string, unknown> = {}) {
 describe('generateDocumentSource', () => {
   it('emits a module the framework can load', () => {
     const { source } = generate('# Report\n\nBody copy.\n');
-    expect(source).toContain("from 'mosage-core'");
+    expect(source).toContain("from 'mosage'");
     expect(source).toContain('export const design: DesignSystem');
     expect(source).toContain('export const meta: DocMeta');
     expect(source).toContain(`createdAt: '${CREATED_AT}'`);

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with the MoSage runtime, CLI, MCP server, or scaffolder.
+description: Report a problem with the MoSage runtime, CLI, or project template.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -43,15 +43,15 @@ body:
     id: package
     attributes:
       label: Affected package
-      description: e.g. `mosage-core`, `mosage`, `mosage-mcp`, or "scaffolded project".
+      description: e.g. `mosage`, or "scaffolded project".
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: Output of `npm ls mosage-core` (or the CLI version you ran).
-      placeholder: "mosage-core@0.1.0"
+      description: Output of `npm ls mosage` (or the CLI version you ran).
+      placeholder: "mosage@0.1.0"
     validations:
       required: true
   - type: input

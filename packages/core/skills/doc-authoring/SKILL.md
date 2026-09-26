@@ -34,14 +34,14 @@ Themes are produced by the `create-theme` skill and are pure documentation: copy
 - Put the document under `docs/<kebab-case-id>/`.
 - Entry is `docs/<id>/index.tsx`. Images/fonts go under `docs/<id>/assets/`.
 - Do **not** touch `package.json`, `mosage.config.ts`, or other documents.
-- Do not add dependencies. Only `react`, `mosage-core`, and standard web APIs are available.
+- Do not add dependencies. Only `react`, `mosage`, and standard web APIs are available.
 - A document is **one `index.tsx` plus `assets/`** — nothing else. Helper components and constants live inside `index.tsx`; no sibling `.tsx` files, no `README.md`.
 
 ## File contract
 
 ```tsx
 // docs/<id>/index.tsx
-import type { DocMeta, DocPage } from 'mosage-core';
+import type { DocMeta, DocPage } from 'mosage';
 
 const Cover: DocPage = () => <div>…</div>;
 const Body: DocPage = () => <div>…</div>;
@@ -65,7 +65,7 @@ export default [Cover, Body] satisfies DocPage[];
 ## Two ways to fill pages
 
 ```tsx
-import { flow, type DocEntry } from 'mosage-core';
+import { flow, type DocEntry } from 'mosage';
 
 const Body = flow(
   <>
@@ -172,7 +172,7 @@ flowchart TD
 ```
 
 ```tsx
-import { Diagram } from 'mosage-core';
+import { Diagram } from 'mosage';
 import architecture from './architecture.mmd';
 
 <Diagram chart={architecture} caption="請求路徑" width={420} />
@@ -194,7 +194,7 @@ fault, and `mosage check` reports it as one.
 ## Table of contents
 
 ```tsx
-import { TableOfContents } from 'mosage-core';
+import { TableOfContents } from 'mosage';
 
 const Contents: DocPage = () => (
   <div style={page}>
@@ -209,7 +209,7 @@ Page numbers come from the scan, so they are always correct — **never hand-wri
 ## Page numbers, headers, footers
 
 ```tsx
-import { useDocPageCount, useDocPageNumber } from 'mosage-core';
+import { useDocPageCount, useDocPageNumber } from 'mosage';
 
 const Footer = () => {
   const page = useDocPageNumber();
@@ -230,7 +230,7 @@ const Footer = () => {
 ## Starter template
 
 ```tsx
-import { type DesignSystem, type DocMeta, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage-core';
+import { type DesignSystem, type DocMeta, type DocPage, useDocPageCount, useDocPageNumber } from 'mosage';
 
 export const design: DesignSystem = {
   palette: {
@@ -394,8 +394,7 @@ mosage check <id>     # every document if you omit the id; exits non-zero on err
 It renders each sheet at true page size and reports what a reader would call a
 mistake — content clipped by the page edge, a blank sheet, a heading stranded at
 the foot of a page, type too small to print, an image that never loaded — each
-with the `line:column` in your source. Agents driving the MCP server call
-`check_layout` for the same report, and `render_page` for a PNG of one sheet.
+with the `line:column` in your source.
 
 **Run it after writing a document and after any edit that changes how much text
 is on a page.** The checklist below is what you reason about; `check` is what

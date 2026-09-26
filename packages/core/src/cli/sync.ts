@@ -66,14 +66,14 @@ export async function detectSkillsDrift(
 
 export async function syncSkills(
   builtinDir: string,
-  opts: { dryRun?: boolean } = {},
+  opts: { dryRun?: boolean; quiet?: boolean } = {},
   userCwd = process.cwd(),
 ): Promise<void> {
   const drift = await detectSkillsDrift(builtinDir, userCwd);
   const stale = drift.filter((d) => d.status !== 'unchanged');
 
   if (stale.length === 0) {
-    process.stdout.write(`${chalk.green('✔')} Skills already up to date.\n`);
+    if (!opts.quiet) process.stdout.write(`${chalk.green('✔')} Skills already up to date.\n`);
     return;
   }
 
@@ -88,7 +88,9 @@ export async function syncSkills(
       await fs.mkdir(path.dirname(dst), { recursive: true });
       await fs.cp(path.join(builtinDir, name), dst, { recursive: true });
     }
-    process.stdout.write(`${chalk.green('✔')} ${name} ${chalk.dim(`(${status})`)}\n`);
+    if (!opts.quiet) {
+      process.stdout.write(`${chalk.green('✔')} ${name} ${chalk.dim(`(${status})`)}\n`);
+    }
   }
 
   if (opts.dryRun) {

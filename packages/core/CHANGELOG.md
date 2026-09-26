@@ -1,4 +1,4 @@
-# mosage-core
+# mosage
 
 ## 0.7.0
 

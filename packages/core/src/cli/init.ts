@@ -2,13 +2,13 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { cp, mkdir, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
+import prompts from 'prompts';
 import { gitInitAndCommit } from './git.ts';
-import type { PackageManager } from './package-manager.ts';
+import { detectPackageManager, PACKAGE_MANAGERS, type PackageManager } from './package-manager.ts';
+import { packageRoot, readCoreVersion } from './package-version.ts';
+import { syncSkills } from './sync.ts';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const TEMPLATE_DIR = resolve(HERE, '..', 'template');
 const IS_WINDOWS = process.platform === 'win32';
 
 export interface InitOptions {
@@ -39,12 +39,6 @@ export async function isDirNonEmpty(target: string): Promise<boolean> {
   return entries.some((e) => !e.startsWith('.'));
 }
 
-declare const __CORE_VERSION_AT_BUILD__: string;
-
-function coreVersionRange(): string {
-  return `^${__CORE_VERSION_AT_BUILD__}`;
-}
-
 async function linkOrCopy(relSrc: string, dst: string): Promise<void> {
   await rm(dst, { recursive: true, force: true });
   if (IS_WINDOWS) {
@@ -54,26 +48,12 @@ async function linkOrCopy(relSrc: string, dst: string): Promise<void> {
   await symlink(relSrc, dst);
 }
 
-// The template carries one copy of the skills under `.agents/skills`; Claude
-// Code reads `.claude/skills`. Link the two so both agents see one source.
-async function materializeTemplateLinks(target: string): Promise<void> {
+// Claude Code reads CLAUDE.md; the template's instructions live in AGENTS.md
+// (read by Codex and others). Point one at the other.
+async function linkClaudeMd(target: string): Promise<void> {
   const claudeMd = join(target, 'CLAUDE.md');
   if (!existsSync(claudeMd) && existsSync(join(target, 'AGENTS.md'))) {
     await linkOrCopy('AGENTS.md', claudeMd);
-  }
-
-  const agentsSkills = join(target, '.agents', 'skills');
-  if (!existsSync(agentsSkills)) return;
-
-  const claudeSkills = join(target, '.claude', 'skills');
-  await mkdir(claudeSkills, { recursive: true });
-
-  for (const entry of await readdir(agentsSkills, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    await linkOrCopy(
-      join('..', '..', '.agents', 'skills', entry.name),
-      join(claudeSkills, entry.name),
-    );
   }
 }
 
@@ -90,10 +70,10 @@ async function runInstall(pm: PackageManager, cwd: string): Promise<void> {
 export async function init(opts: InitOptions): Promise<void> {
   const { dir, force, name, packageManager, install, git } = opts;
 
-  if (!existsSync(TEMPLATE_DIR)) {
-    throw new Error(
-      `Template missing at ${TEMPLATE_DIR}. If you are running from source, run \`pnpm --filter mosage build\` first.`,
-    );
+  const root = packageRoot();
+  const templateDir = root ? join(root, 'template') : '';
+  if (!root || !existsSync(templateDir)) {
+    throw new Error('Project template not found — reinstall mosage.');
   }
 
   const target = resolve(process.cwd(), dir);
@@ -103,8 +83,9 @@ export async function init(opts: InitOptions): Promise<void> {
     throw new Error(`Target ${target} is not empty. Pass --force to scaffold into it anyway.`);
   }
 
-  await cp(TEMPLATE_DIR, target, { recursive: true });
-  await materializeTemplateLinks(target);
+  await cp(templateDir, target, { recursive: true });
+  await linkClaudeMd(target);
+  await syncSkills(join(root, 'skills'), { quiet: true }, target);
 
   const pkgPath = join(target, 'package.json');
   if (existsSync(pkgPath)) {
@@ -114,8 +95,8 @@ export async function init(opts: InitOptions): Promise<void> {
     pkg.name = name ?? basename(target);
     pkg.version = '0.0.0';
     pkg.private = true;
-    if (pkg.dependencies?.['mosage-core']) {
-      pkg.dependencies['mosage-core'] = coreVersionRange();
+    if (pkg.dependencies?.mosage) {
+      pkg.dependencies.mosage = `^${await readCoreVersion()}`;
     }
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
   }
@@ -181,4 +162,119 @@ export async function init(opts: InitOptions): Promise<void> {
   }
   const devCommand = packageManager === 'npm' ? 'npm run dev' : `${packageManager} dev`;
   process.stdout.write(`  ${chalk.cyan(devCommand)}\n`);
+}
+
+// --- `mosage init` command-line handling -----------------------------------
+
+interface InitCliFlags {
+  force?: boolean;
+  name?: string;
+  useNpm?: boolean;
+  usePnpm?: boolean;
+  useYarn?: boolean;
+  useBun?: boolean;
+  install?: boolean;
+  git?: boolean;
+}
+
+function onCancel(): never {
+  process.stdout.write(chalk.dim('\nCancelled.\n'));
+  process.exit(130);
+}
+
+function packageManagerFromFlags(flags: InitCliFlags): PackageManager | undefined {
+  const picks: PackageManager[] = [];
+  if (flags.useNpm) picks.push('npm');
+  if (flags.usePnpm) picks.push('pnpm');
+  if (flags.useYarn) picks.push('yarn');
+  if (flags.useBun) picks.push('bun');
+
+  if (picks.length > 1) {
+    throw new Error(
+      `Only one of --use-npm / --use-pnpm / --use-yarn / --use-bun may be specified (got ${picks
+        .map((p) => `--use-${p}`)
+        .join(', ')}).`,
+    );
+  }
+  return picks[0];
+}
+
+export async function runInit(dirArg: string | undefined, flags: InitCliFlags): Promise<void> {
+  const isTTY = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+
+  let dir = dirArg;
+  let force = flags.force ?? false;
+  let packageManager = packageManagerFromFlags(flags);
+
+  if (isTTY && dir === undefined) {
+    const answers = await prompts(
+      { type: 'text', name: 'dir', message: 'Target directory', initial: '.' },
+      { onCancel },
+    );
+    dir = answers.dir;
+  }
+
+  if (dir !== undefined) {
+    const safe = sanitizeDirName(dir);
+    if (safe !== dir) {
+      if (!isTTY) {
+        throw new Error(
+          `Target directory "${dir}" contains characters that break shell commands (spaces, quotes, etc.). Try "${safe}" instead.`,
+        );
+      }
+      const answers = await prompts(
+        { type: 'text', name: 'dir', message: 'Directory name', initial: safe },
+        { onCancel },
+      );
+      dir = sanitizeDirName(answers.dir ?? safe);
+    }
+  }
+
+  if (isTTY && packageManager === undefined && flags.install !== false) {
+    const detected = detectPackageManager();
+    const answers = await prompts(
+      {
+        type: 'select',
+        name: 'packageManager',
+        message: 'Package manager',
+        choices: PACKAGE_MANAGERS.map((pm) => ({ title: pm, value: pm })),
+        initial: PACKAGE_MANAGERS.indexOf(detected),
+      },
+      { onCancel },
+    );
+    packageManager = answers.packageManager as PackageManager | undefined;
+  }
+
+  const resolvedDir = dir ?? '.';
+  const target = resolve(process.cwd(), resolvedDir);
+
+  if (!force && (await isDirNonEmpty(target))) {
+    if (!isTTY) {
+      throw new Error(`Target ${target} is not empty. Pass --force to scaffold into it anyway.`);
+    }
+    const { overwrite } = await prompts(
+      {
+        type: 'confirm',
+        name: 'overwrite',
+        message: `${chalk.yellow(target)} is not empty. Scaffold into it anyway?`,
+        initial: false,
+      },
+      { onCancel },
+    );
+    if (!overwrite) {
+      process.stdout.write(chalk.dim('Aborted.\n'));
+      return;
+    }
+    force = true;
+  }
+
+  const opts: InitOptions = {
+    dir: resolvedDir,
+    force,
+    name: flags.name,
+    packageManager: packageManager ?? detectPackageManager(),
+    install: flags.install !== false,
+    git: flags.git !== false,
+  };
+  await init(opts);
 }
