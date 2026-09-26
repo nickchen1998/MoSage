@@ -85,6 +85,9 @@ const DOCX_IMAGE_TYPES = new Set(['png', 'jpg', 'gif', 'bmp']);
 const BULLETS = ['•', '◦', '▪'];
 const ORDERED_FORMATS = [LevelFormat.DECIMAL, LevelFormat.LOWER_LETTER, LevelFormat.LOWER_ROMAN];
 
+/** Styles with no space above; after a table they get some. */
+const NO_SPACE_BEFORE = new Set(['BodyText', 'ListParagraph', 'ListContinue', 'Quote', 'Callout']);
+
 const twips = (mm: number) => Math.round(mm * TWIPS_PER_MM);
 const halfPoints = (pt: number) => Math.max(2, Math.round(pt * 2));
 
@@ -208,6 +211,8 @@ class DocxBuilder {
   private bookmarkCount = 0;
   /** A page break is due before the next body paragraph. */
   private breakNext = false;
+  /** The last body block was a table: the next paragraph needs air above it. */
+  private afterTable = false;
 
   constructor(private readonly input: ManuscriptInput) {
     const config = input.config;
@@ -418,6 +423,13 @@ class DocxBuilder {
     if (ctx.body && this.breakNext) {
       extra = { ...extra, pageBreakBefore: true };
       this.breakNext = false;
+    }
+    if (ctx.body && this.afterTable) {
+      this.afterTable = false;
+      // Only for styles without space above of their own (not headings, figures…).
+      if (!options.spacing && NO_SPACE_BEFORE.has(options.style)) {
+        extra = { ...extra, spacing: { before: Math.round(this.charTwips * 0.75) } };
+      }
     }
     if (!options.numbering && !options.indent && ctx.indent > 0) {
       extra = { ...extra, indent: { left: ctx.indent + this.styleIndent(options.style) } };
@@ -717,6 +729,7 @@ class DocxBuilder {
         },
       }),
     );
+    if (ctx.body) this.afterTable = true;
     return out;
   }
 

@@ -196,6 +196,15 @@ describe('buildDocx', () => {
     expect(await read('word/settings.xml')).not.toContain('updateFields');
   });
 
+  it('uses English labels for English books', async () => {
+    const { read } = await unzip(await buildDocx(input({ language: 'en-US' })));
+    const doc = await read('word/document.xml');
+    expect(doc).toContain('>Contents<');
+    expect(doc).toContain('>Warning<');
+    expect(doc).toContain('[Image: 不存在的圖]');
+    expect(await read('word/styles.xml')).toContain('w:val="en-US"');
+  });
+
   it('gives each chapter its own running header in chapter mode', async () => {
     const { read, names } = await unzip(await buildDocx(input({}, { header: 'chapter' })));
     const headers = await Promise.all(names.filter((n) => /header\d*\.xml$/.test(n)).map(read));
