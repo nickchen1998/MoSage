@@ -8,3 +8,4 @@
 - 圖片統一放在 `assets/images/`，素材頁與文件的 Assets 分頁不再有章節分類；`<ImagePrompt>` 生成的圖片存成 `assets/images/<id>.png`，`chapter` 屬性保留但不再使用。以前按章節放在 `images/<資料夾>/` 的圖片照常顯示與引用
 - 文件檢視器移除全螢幕模式、「符合頁面」與「實際大小」按鈕（點百分比仍可回到 100%）
 - 下載選單的「This page」改為「Current」，選項後不再顯示頁數，下方說明改為具體列出要下載的頁面
+- `mosage init` 的 `AGENTS.md` 更新：拿掉已移除的 HTML 匯出與「預設 A4」的說法，補上 `create-theme`、`apply-comments`、`generate-images` 三個 skills、`check`／`export`／`images` 指令與目前的檢視器功能

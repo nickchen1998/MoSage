@@ -8,13 +8,13 @@
 pnpm + Turbo 的 monorepo。
 
 - **`packages/core`**（npm 名稱 `mosage`，唯一發佈的套件）
-  - `src/app/`：瀏覽器端——文件列表、檢視器、大綱、主題、素材、Design 面板、PDF／Word 匯出
-  - `src/vite/`：Vite 設定與外掛——文件探索、開發 API、Design、資料檔、圖表、主題
+  - `src/app/`：瀏覽器端——文件列表、檢視器、大綱、主題、素材、設定頁、Inspect、Design 面板、PDF／Word 匯出
+  - `src/vite/`：Vite 設定與外掛——文件探索、開發 API、Design、Inspect 的原始碼位置、目前頁面回報、資料檔、圖表、主題
   - `src/cli/`：`mosage` 指令（`init`、`dev`、`build`、`preview`、`check`、`export`、`import`、`images`、`upgrade`、`sync:skills`）
   - `src/ops/`：文件操作，CLI 與開發伺服器路由共用
   - `src/render/`：以無頭 Chromium 驅動真正的檢視器
   - `src/images/`：AI 生圖——`<ImagePrompt>` 的解析與替換、OpenAI Images API、價格表與用量紀錄
-  - 其餘：`src/import/`（Markdown 匯入）、`src/data/`、`src/diagram/`、`src/editing/`、`src/files/`（素材路徑、專案設定、使用者資料）、`src/http/`、`src/versions.ts`（版本比較與更新檢查）
+  - 其餘：`src/import/`（Markdown 匯入）、`src/data/`、`src/diagram/`、`src/editing/`、`src/files/`（素材路徑、專案設定、使用者資料）、`src/http/`、`src/config.ts`（`mosage.config.ts` 的型別，由 `mosage-plugin.ts` 讀取）、`src/versions.ts`（版本比較與更新檢查）
   - `template/`：`mosage init` 的專案範本；`skills/`：隨套件發佈的 skills；`e2e/`：Playwright 測試與 fixture 專案
 - **`apps/demo`**：用 `workspace:*` 引用 `mosage` 的範例專案，不發佈。`pnpm dev:demo` 啟動。
 - 共用設定：`biome.json`、`turbo.json`、`pnpm-workspace.yaml`、`vitest.config.ts`，各套件各有 tsconfig。
@@ -33,7 +33,9 @@ pnpm core <指令>  # 只在 mosage 套件執行
 ```
 
 - 修改 `packages/core/src` 之後，**先 `pnpm core build` 再測範例專案**：文件引用的是建置後的 `dist`，不是原始碼。
-- 發佈走 changesets：修改 `packages/*` 的 PR 附上 `pnpm changeset`，合併後由 CI 產生版本 PR，版本 PR 合併即發佈。不要手動修改版本號或 `CHANGELOG.md`。
+- 發佈走 changesets：修改 `packages/*` 的 PR 附上 `pnpm changeset`，合併後 `release.yml` 產生版本 PR，版本 PR 合併即發佈。不要手動修改版本號或 `CHANGELOG.md`。
+  - repo 若沒有開放 Actions 建立 PR，action 只會推送 `changeset-release/main`，版本 PR 要手動從這個分支開。
+  - 發佈用 npm Trusted Publishing（OIDC）並附 provenance，不需要 npm 權杖，也不要把 `NPM_TOKEN` 加回 workflow。
 
 ## 架構要點
 
@@ -41,7 +43,8 @@ pnpm core <指令>  # 只在 mosage 套件執行
 
 - **執行時同時存在兩份 core。** 檢視器直接載入 `src/app/**`，文件則透過 `mosage` 載入建置後的 `dist`。兩邊必須共用的單例（React context、大綱 store）都掛在 `globalThis` 上，參考 `src/app/lib/page-context.tsx` 與 `src/app/lib/outline.ts`。新增共用單例時要照同樣做法，否則會在不知不覺中分裂成兩份。
 - **文件由虛擬模組探索。** `src/vite/mosage-plugin.ts` 以 glob 找出 `docs/*/index.{tsx,jsx,ts,js}`，產生 `virtual:mosage/docs`，並為每份文件附上熱更新用的 cache-bust token。
-- **檢視器是兩欄式外殼。** `src/app/routes/home-shell.tsx` 負責左側欄（數量、資料夾、主題切換），並透過 outlet context 把資料夾狀態交給各路由——路由不自己讀取 manifest。文件頁的結構相同：`src/app/components/doc-sidebar.tsx` 是左側的縮圖／大綱，中間捲動頁面，Design 面板停靠右側。
+- **檢視器是兩欄式外殼。** `src/app/routes/home-shell.tsx` 負責左側欄（數量、資料夾、主題切換），並透過 outlet context 把資料夾狀態交給各路由——路由不自己讀取 manifest。文件頁的結構相同：`src/app/components/doc-sidebar.tsx` 是左側的縮圖／大綱／素材，中間捲動頁面（連續、雙頁、格狀三種版面，`lib/view-mode.ts`），Design 面板停靠右側。
+- **目前頁面寫到磁碟給代理讀。** `src/vite/current-plugin.ts`（僅開發模式）在檢視器換頁或 Inspect 選取元素時寫入 `node_modules/.mosage/current.json`，`current-doc` skill 靠它解析「這一頁」。
 - **資料夾存在 `docs/.folders.json`。** 這是框架唯一自己管理的可變狀態：開發模式透過 `/__folders` 即時讀取，靜態建置讀 `virtual:mosage/folders` 的快照。文件代號永遠不變，歸檔只修改對應關係。
 - **主題只是說明文件。** `themes-plugin.ts` 把 `themes/*.md` 的 frontmatter 與內文讀進 `virtual:mosage/themes`，並搭配可選的 `<id>.demo.tsx`；frontmatter 的 `orientation: landscape` 讓預覽用 A4 橫式。執行期不會強制套用主題，`meta.theme` 只用來顯示回到主題的連結。`template/themes/` 是 `mosage init` 內建的主題，和 `apps/demo/themes/` 的同名檔案必須完全相同（`cli/init.test.ts` 會檢查），改一邊就要複製到另一邊。
 
@@ -90,7 +93,7 @@ pnpm core <指令>  # 只在 mosage 套件執行
 - **素材分兩類。** 每個 assets 資料夾（文件的 `docs/<id>/assets/` 與專案共用的 `assets/`）裡，圖片直接放在 `images/`，其他檔案放在 `references/`，介面上稱為「圖片」與「參考文獻」。舊版的兩種形狀照常可讀：直接放在 `assets/` 根目錄的檔案，以及以前按章節分類時的 `images/<資料夾>/`；新上傳一律不建立子資料夾。合法路徑由 `src/files/assets.ts` 的 `parseAssetPath` 判斷，路由與上傳都經過它。
 - **改名會改寫 import。** 素材改名時，`vite/routes/assets.ts` 會用 `rewriteAssetReferences` 改寫引用它的文件原始碼（文件範圍只改該文件，共用範圍改所有文件）。
 - **素材以開發伺服器自己的來源提供，回應標頭決定能不能在頁面內顯示。** `assetResponseHeaders` 只讓不會執行腳本的類型 inline 顯示；SVG 加上 sandbox 的 CSP；其他類型（包括上傳的 `.html`）一律當下載處理，因為在這個來源執行的頁面可以呼叫寫入專案的 API。
-- **設定分兩處。** 專案層級的選擇（生圖方式、模型、品質、各文件開關）存在 `.mosage/settings.json`，隨專案提交（`src/files/settings.ts`）。個人資料放在專案外的 `MOSAGE_HOME`（預設 `~/.mosage`，`src/files/user-data.ts`）：`credentials.json`（OpenAI 金鑰，權限 0600）與 `openai-usage.jsonl`（每次生圖的 token 與預估花費）。API 永遠只回傳遮罩過的金鑰。測試一律把 `MOSAGE_HOME` 指到暫存資料夾。
+- **設定分兩處。** 專案層級的選擇（生圖方式、模型、品質、各文件開關）存在 `.mosage/settings.json`，隨專案提交（`src/files/settings.ts`）。個人資料放在專案外的 `MOSAGE_HOME`（預設 `~/.mosage`，`src/files/user-data.ts`）：`credentials.json`（OpenAI 金鑰，權限 0600）與 `openai-usage.jsonl`（每次生圖的 token 與預估花費，由 `src/images/usage.ts` 讀寫）。API 永遠只回傳遮罩過的金鑰。測試一律把 `MOSAGE_HOME` 指到暫存資料夾。
 - **生成的圖片先以 `<ImagePrompt>` 佔位。** 它在頁面上佔用最後圖片的實際尺寸，所以分頁在圖片存在前就是對的。`src/images/prompts.ts` 用 Babel 找出這些元素，並在圖片存到 `assets/images/<id>.png` 後，把元素換成同尺寸、以 import 引用的 `<img>`，沒有其他 prompt 時也移除 `ImagePrompt` 的 import。`ops/images.ts` 是開發路由（`/__images`）與 CLI（`mosage images`）共用的入口；Codex 模式下由 `generate-images` skill 畫圖後呼叫 `mosage images place`。
 - **OpenAI 的呼叫與費用各自獨立。** `src/images/openai.ts` 呼叫 Images API（`MOSAGE_OPENAI_BASE_URL` 可指向測試用的假伺服器，e2e 用 `e2e/mock-openai.mjs`）；`src/images/pricing.ts` 是價格表與費用估算，價格變動時只改這裡。
 - **介面文字大小只縮放操作介面。** 介面一律用 rem（`lib/ui-scale.ts` 設定根字級），頁面內容一律用 px，列印時根字級回到 16px，所以這個設定永遠碰不到紙張與匯出。新增介面元素時不要用 `text-[Npx]` 這類固定 px 的字級。
@@ -105,6 +108,7 @@ e2e 使用 fixture 專案，不是範例專案。`packages/core/e2e/fixture` 是
 - **commit 前 Biome 必須通過**（`pnpm check`，或用 `pnpm check:fix` 自動修正）。
 - **匯出只有 PDF 與 Word（DOCX）。** 不要加回 HTML、PNG 或其他格式。
 - **不要隨意新增相依套件。** `mosage` 會安裝進每個使用者的專案，每多一個套件都會增加安裝負擔。
+- **使用者專案的代理說明在 `template/AGENTS.md`。** `mosage init` 會把專案的 `CLAUDE.md` 連到它。檢視器功能、指令或 skills 有增減時要一起更新，否則使用者的代理會照著過時的說明做事。
 - **兩種 skills 不要混用。**
   - `packages/core/skills/` 隨套件發佈，給使用者在 `docs/` 撰寫文件用，也是這些 skills 唯一的來源——`mosage init` 與 `mosage sync:skills` 會把它們複製到專案，沒有其他副本需要同步。
   - `.agents/skills/` 是開發這個 repo 用的規範：`doc-runtime-patterns`（core 的實作規則）、`print-layout-review`（版面與列印品質）、`viewer-ui-guidelines`（檢視器介面與無障礙）。`.claude/skills/` 以 symlink 指向它們。
