@@ -7,7 +7,7 @@ description: Use this skill when the user wants to create, draft, author, or gen
 
 This skill owns the **workflow** for drafting a new document. The technical reference — file contract, page canvas, print type scale, vertical budget, tables, TOC — lives in the **`doc-authoring`** skill. Read it before writing code; don't duplicate its rules here.
 
-You only write files under `docs/<id>/`. Never modify `package.json`, `mosage.config.ts`, or existing documents.
+You only write files under `docs/<id>/` — and, for a document that shows code, the files it excerpts under `code/` (see `doc-authoring` → `references/code.md`). Never modify `package.json`, `mosage.config.ts`, or existing documents.
 
 **If the user already has the content written as Markdown, don't retype it into JSX.** `mosage import <file.md> --id <id>` produces a real document — `flow()` body, cover, contents, local images copied into the document's assets — which you then refine. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
 

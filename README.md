@@ -74,6 +74,20 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 
 生成的圖片會存進對應章節的資料夾，並自動換掉原本的 `<ImagePrompt>`。
 
+### 程式碼節錄，連到 GitHub／GitLab
+
+技術文件裡的程式碼放在專案的 `code/` 資料夾（它是獨立的 git 儲存庫），文件用 `<CodeExcerpt>` 節錄其中幾行：
+
+- 紙上印的是原始檔案的行號，中間可以省略幾行；每段節錄像圖表一樣自動編號（「程式 2」），`<Ref>` 可以引用。
+- 每段節錄附上 GitHub 或 GitLab 的連結，固定在推送當時的 commit——之後程式再改，連結打開的仍是紙上那幾行。`<CodeList>` 在附錄列出所有節錄的檔案、頁碼與連結。
+- 文件頁的**程式碼**面板標出哪些節錄已推送、在本機改過、或還沒推送，可以直接輸入 commit 訊息推送；匯出前如果有節錄沒推送，會先提醒你。推送用的是這台電腦本來的 git 登入，MoSage 不保存權杖。
+- 素材頁的**程式碼**分類可以瀏覽整個儲存庫的目錄，每個檔案標出和已推送版本的差異，點開就能預覽。
+
+```bash
+npx mosage code connect https://github.com/<帳號>/<儲存庫>   # 或 GitLab 的網址
+npx mosage code push -m "新增訂單清洗的節錄"
+```
+
 ### 設定
 
 **Settings** 頁可以調整介面文字大小（只影響操作介面，不影響頁面與匯出）、AI 生圖，並顯示目前版本。
@@ -126,6 +140,9 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `mosage images` | 列出等待生成的 `<ImagePrompt>`（`--json` 給 AI 讀） |
 | `mosage images generate` | 用 OpenAI API 生成圖片（`--doc`、`--id`） |
 | `mosage images place <文件> [id]` | 把已存好的圖片換進頁面（Codex 畫完圖後使用） |
+| `mosage code` | `code/` 儲存庫的狀態：連到哪裡、推送到哪個 commit、哪些檔案還沒推送（`--json`） |
+| `mosage code connect [網址]` | 把 `code/` 連到 GitHub 或 GitLab 儲存庫（不給網址則還原專案記錄的那個；自架主機加 `--host`） |
+| `mosage code push` | 提交並推送 `code/`，讓節錄的連結指向紙上的內容（`-m` 指定訊息） |
 | `mosage upgrade` | 更新到最新版，並同步 React 版本與 skills |
 | `mosage build` / `mosage preview` | 輸出與預覽靜態網站 |
 | `mosage sync:skills` | 更新專案裡的 AI skills |

@@ -16,6 +16,11 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-border: var(--border);
+  /* A code excerpt that differs from what its link opens, and one not pushed at all. */
+  --color-changed: var(--changed);
+  --color-changed-muted: var(--changed-muted);
+  --color-unpushed: var(--unpushed);
+  --color-unpushed-muted: var(--unpushed-muted);
 
   --radius-md: 6px;
 }
@@ -31,6 +36,10 @@
   --primary: oklch(0.185 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --border: oklch(0.9 0 0);
+  --changed: oklch(0.5 0.14 50);
+  --changed-muted: oklch(0.97 0.03 70);
+  --unpushed: oklch(0.46 0.16 262);
+  --unpushed-muted: oklch(0.96 0.025 250);
 }
 
 .dark {
@@ -44,6 +53,10 @@
   --primary: oklch(0.97 0 0);
   --primary-foreground: oklch(0.16 0 0);
   --border: oklch(0.28 0 0);
+  --changed: oklch(0.8 0.12 65);
+  --changed-muted: oklch(0.3 0.05 60);
+  --unpushed: oklch(0.78 0.1 255);
+  --unpushed-muted: oklch(0.3 0.05 258);
 }
 
 @layer base {

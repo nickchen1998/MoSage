@@ -231,6 +231,39 @@ export async function run(argv: string[]): Promise<void> {
       await placeImages(docId, id);
     });
 
+  const code = program
+    .command('code')
+    .description('The code/ repository that code excerpts link to on GitHub or GitLab');
+  code
+    .command('status', { isDefault: true })
+    .description('Show the repository and which files differ from what is pushed')
+    .option('--json', 'machine-readable output')
+    .action(async (flags: { json?: boolean }) => {
+      const { showCode } = await import('./code.ts');
+      await showCode(flags);
+    });
+  code
+    .command('connect [url]')
+    .description('Connect code/ to a GitHub or GitLab repository (no url: restore the saved one)')
+    .addOption(
+      new Option('--host <host>', 'for a self-hosted server on another domain').choices([
+        'github',
+        'gitlab',
+      ]),
+    )
+    .action(async (url: string | undefined, flags: { host?: string }) => {
+      const { connectCodeRepo } = await import('./code.ts');
+      await connectCodeRepo(url, flags);
+    });
+  code
+    .command('push')
+    .description('Commit everything in code/ and push it, so excerpt links open what is printed')
+    .option('-m, --message <message>', 'commit message')
+    .action(async (flags: { message?: string }) => {
+      const { pushCodeRepo } = await import('./code.ts');
+      await pushCodeRepo(flags);
+    });
+
   program
     .command('upgrade')
     .description('Update this project to the latest MoSage and sync its skills')

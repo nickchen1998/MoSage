@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import type { InlineConfig } from 'vite';
 import { apiPlugin } from './api-plugin.ts';
+import { codePlugin } from './code-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { dataPlugin } from './data-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
@@ -65,6 +66,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     plugins: [
       dataPlugin(),
       diagramPlugin(),
+      codePlugin({ userCwd, docsDir }),
       locTagsPlugin({ userCwd, docsDir }),
       react(),
       tailwindcss(),
@@ -93,17 +95,14 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'tailwind-merge',
       ],
       // The app source ships inside node_modules/mosage/src/app, so
-      // Vite's dep scanner traverses it as a third-party dep and tries to
-      // bundle the virtual imports with esbuild. Mark them external.
-      esbuildOptions: {
+      // Vite's dep optimizer treats it as a third-party dep and tries to
+      // bundle the virtual imports. Mark them external.
+      rolldownOptions: {
         plugins: [
           {
             name: 'mosage:virtual-externals',
-            setup(build) {
-              build.onResolve({ filter: /^virtual:mosage\// }, (args) => ({
-                path: args.path,
-                external: true,
-              }));
+            resolveId(id) {
+              return id.startsWith('virtual:mosage/') ? { id, external: true } : null;
             },
           },
         ],

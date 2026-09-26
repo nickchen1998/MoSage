@@ -33,6 +33,7 @@ docs/
       images/      圖片，每個章節一個資料夾
       references/  參考文獻：PDF、資料、筆記等撰寫時參考的檔案
 assets/            多份文件共用的圖片與參考文獻（結構同上）
+code/              文件節錄的程式碼；獨立的 git 儲存庫，推送到 GitHub 或 GitLab
 themes/            可重複使用的主題：內建函文、會議紀錄、橫式信封、直式信封
 .mosage/           專案設定（AI 生圖方式等），會一起提交
 mosage.config.ts   專案設定
@@ -47,6 +48,7 @@ mosage.config.ts   專案設定
 | `npx mosage export <文件> --format docx` | 匯出 Word；`--format pdf`（預設）匯出 PDF |
 | `npx mosage import notes.md` | 把 Markdown 轉成一份文件 |
 | `npx mosage images` | 列出等待生成的圖片；`images generate` 用 OpenAI API 生成 |
+| `npx mosage code` | `code/` 的推送狀態；`code connect <網址>` 連到 GitHub／GitLab，`code push` 推送 |
 | `npx mosage upgrade` | 更新到最新版的 MoSage（`npm run dev` 時按 `u` + Enter 也可以） |
 | `npm run build` | 輸出靜態網站 |
 
