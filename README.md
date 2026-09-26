@@ -16,6 +16,8 @@ MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁�
 
 ## 三分鐘上手
 
+需要 Node.js 22（22.18 以上）或 24（24.11 以上）。
+
 ```bash
 npx mosage init my-docs    # 建立專案（預設會安裝相依套件並初始化 git）
 cd my-docs
