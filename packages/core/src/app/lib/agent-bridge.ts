@@ -65,7 +65,7 @@ function toBridge(bundle: FileBundle | null): BridgeBundle | null {
 
 /**
  * Publishes the rendered document to whoever is driving the page from outside —
- * `mosage export`, `check_layout`, `render_page`. The viewer already owns the
+ * `mosage export` and `mosage check`. The viewer already owns the
  * measured page list and the print pipeline; the bridge just hands them to a
  * headless caller instead of to a Download button, so an agent sees exactly the
  * sheets a person would.

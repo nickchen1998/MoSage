@@ -1,68 +1,98 @@
-# MoSage — Framework Repo Guide
+# MoSage 開發指引
 
-You are working on the **MoSage framework** — the runtime, CLI, and tooling that ship to npm.
+這個 repo 是 MoSage 框架本身：發佈到 npm 的 `mosage` 套件，包含檢視器、Vite 外掛、CLI、專案範本與 skills。
+在使用者專案裡撰寫文件的規範不在這裡，而在 `packages/core/skills/` 的 `create-doc`、`doc-authoring` 等 skills——那些是給 `docs/` 底下的檔案用的，不是給框架用的。
 
-(Document-authoring guidance lives in the `create-doc` / `doc-authoring` skills under `packages/core/skills/`. Those are for editing files inside `docs/`, not for editing the framework.)
+## 結構
 
-## Layout
+pnpm + Turbo 的 monorepo。
 
-pnpm + Turbo monorepo.
+- **`packages/core`**（npm 名稱 `mosage`，唯一發佈的套件）
+  - `src/app/`：瀏覽器端——文件列表、檢視器、大綱、主題、素材、Design 面板、PDF／HTML／Word 匯出
+  - `src/vite/`：Vite 設定與外掛——文件探索、開發 API、Design、資料檔、圖表、主題
+  - `src/cli/`：`mosage` 指令（`init`、`dev`、`build`、`preview`、`check`、`export`、`import`、`sync:skills`）
+  - `src/ops/`：文件操作，CLI 與開發伺服器路由共用
+  - `src/render/`：以無頭 Chromium 驅動真正的檢視器
+  - 其餘：`src/import/`（Markdown 匯入）、`src/data/`、`src/diagram/`、`src/editing/`、`src/files/`、`src/http/`
+  - `template/`：`mosage init` 的專案範本；`skills/`：隨套件發佈的 skills；`e2e/`：Playwright 測試與 fixture 專案
+- **`apps/demo`**：用 `workspace:*` 引用 `mosage` 的範例專案，不發佈。`pnpm dev:demo` 啟動。
+- 共用設定：`biome.json`、`turbo.json`、`pnpm-workspace.yaml`、`vitest.config.ts`，各套件各有 tsconfig。
 
-| Path | Package | Role |
-| --- | --- | --- |
-| `packages/core` | `mosage` | The one published package. Runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML/Word export), Vite plugins, dev API, headless render/diagnostics, Markdown import, the `mosage` CLI (including `init`), the project template in `template/`, canonical skills. |
-| `apps/demo` | private | Local consumer of `mosage` via `workspace:*`. Dogfood target — `pnpm dev:demo`. |
-
-Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `vitest.config.ts`, `tsconfig` per package.
-
-## Workflow
+## 常用指令
 
 ```bash
-pnpm dev          # turbo: runs the demo against local core
-pnpm build        # build all packages
-pnpm typecheck    # tsc across the graph
-pnpm check        # biome (format + lint + organize imports)
-pnpm check:fix    # auto-fix what biome can
-pnpm test         # vitest
-pnpm test:e2e     # playwright (builds core first, boots the e2e fixture project)
+pnpm dev          # 用本機的 mosage 啟動範例專案
+pnpm build        # 建置所有套件
+pnpm typecheck    # TypeScript 型別檢查
+pnpm check        # Biome（格式、lint、import 排序）
+pnpm check:fix    # 自動修正 Biome 能處理的問題
+pnpm test         # Vitest
+pnpm test:e2e     # Playwright（先建置 core，再啟動 e2e fixture 專案）
+pnpm core <指令>  # 只在 mosage 套件執行
 ```
 
-Run a script in the package: `pnpm core <script>`.
+- 修改 `packages/core/src` 之後，**先 `pnpm core build` 再測範例專案**：文件引用的是建置後的 `dist`，不是原始碼。
+- 發佈走 changesets：修改 `packages/*` 的 PR 附上 `pnpm changeset`，合併後由 CI 產生版本 PR，版本 PR 合併即發佈。不要手動修改版本號或 `CHANGELOG.md`。
 
-Releases go through changesets: `pnpm changeset` on any PR touching `packages/*`, then CI opens the release PR and publishes on merge. Never bump versions or edit `CHANGELOG.md` by hand.
+## 架構要點
 
-**After changing `packages/core/src`, rebuild it (`pnpm core build`) before testing the demo** — documents import the published `dist` bundle, not the source.
+### 執行期
 
-## Architecture notes
+- **執行時同時存在兩份 core。** 檢視器直接載入 `src/app/**`，文件則透過 `mosage` 載入建置後的 `dist`。兩邊必須共用的單例（React context、大綱 store）都掛在 `globalThis` 上，參考 `src/app/lib/page-context.tsx` 與 `src/app/lib/outline.ts`。新增共用單例時要照同樣做法，否則會在不知不覺中分裂成兩份。
+- **文件由虛擬模組探索。** `src/vite/mosage-plugin.ts` 以 glob 找出 `docs/*/index.{tsx,jsx,ts,js}`，產生 `virtual:mosage/docs`，並為每份文件附上熱更新用的 cache-bust token。
+- **檢視器是兩欄式外殼。** `src/app/routes/home-shell.tsx` 負責左側欄（數量、資料夾、主題切換），並透過 outlet context 把資料夾狀態交給各路由——路由不自己讀取 manifest。文件頁的結構相同：`src/app/components/doc-sidebar.tsx` 是左側的縮圖／大綱，中間捲動頁面，Design 面板停靠右側。
+- **資料夾存在 `docs/.folders.json`。** 這是框架唯一自己管理的可變狀態：開發模式透過 `/__folders` 即時讀取，靜態建置讀 `virtual:mosage/folders` 的快照。文件代號永遠不變，歸檔只修改對應關係。
+- **主題只是說明文件。** `themes-plugin.ts` 把 `themes/*.md` 的 frontmatter 與內文讀進 `virtual:mosage/themes`，並搭配可選的 `<id>.demo.tsx`。執行期不會強制套用主題，`meta.theme` 只用來顯示回到主題的連結。
 
-- **Two copies of core exist at runtime.** The viewer imports `src/app/**`; a document imports the built `dist` bundle via `mosage`. Anything that must be *shared* between them (React context, the outline store) is stashed on `globalThis` — see `src/app/lib/page-context.tsx` and `src/app/lib/outline.ts`. A new shared singleton must follow the same pattern or it will silently split in two.
-- **Documents are discovered through a virtual module.** `src/vite/mosage-plugin.ts` globs `docs/*/index.{tsx,jsx,ts,js}` and generates `virtual:mosage/docs`, plus a cache-bust token per doc for hot reload.
-- **The outline is a DOM scan, not a parse.** `collectOutline()` walks rendered page frames for headings. The viewer scans after fonts settle; every exporter scans its own offscreen copy before reading it, then restores the previous snapshot.
-- **Two kinds of page entries.** `DocModule.default` is `DocEntry[]`: a component is one fixed sheet, a `flow()` section is continuous content the framework paginates. `lib/flow.ts` holds the pure packer (`paginateBlocks`, unit-tested), `lib/flow-measure.ts` does the offscreen DOM measurement, `lib/use-doc-pages.ts` joins them into the rendered page list that the viewer, the thumbnails, and both exporters all consume. Anything that used to read `doc.default` directly must go through `useDocPages`.
-- **Page geometry is one function, over a closed set of sheets.** `PAGE_SIZE_NAMES` (`app/lib/sdk.ts`) is the single source of truth — A4, JIS B4, A3 — and `PageSizeName` is derived from it, so adding a size means editing one tuple and `PAGE_SIZES`; every boundary that accepts a size (the CLI's `--page-size`, `ops/import.ts`) reads that tuple rather than restating the list. `resolvePageGeometry(meta)` owns the CSS-pixel size *and* the `@page` descriptor, and falls back to portrait A4 for anything off the list so a stale document still renders. Never hardcode 794 × 1123 anywhere else.
-- **Document operations live in `src/ops/`, not in the routes.** `routes/docs.ts` and the CLI both call the same functions, so a conflict check or a validation rule is written once. An `OpsError` carries the HTTP status the transport should report. Anything new that mutates a document belongs there, not inline in a route.
-- **Dev-only endpoints live behind `apply: 'serve'`.** `api-plugin.ts` mounts `/__assets/*` (routes under `vite/routes/`), `design-plugin.ts` mounts `/__design`. Every mutating handler calls `validateMutationRequest` first — these write to the user's disk. Path safety for assets is centralized in `files/assets.ts`; never join a user-supplied name onto a directory by hand.
-- **The inspector edits source, not the DOM.** `loc-tags-plugin.ts` stamps `data-od-loc="line:col"` onto host JSX in document sources (dev only); the overlay reads that attribute, and `/__edit/*` (routes/edit.ts) applies the change through `editing/edit-ops.ts` (single text child only — anything else is refused) or writes a `@doc-comment` marker via `editing/comments.ts`. Markers are base64url JSON so a note can hold quotes and newlines.
-- **The design panel edits source, not state.** `design-plugin.ts` parses `docs/<id>/index.tsx` with Babel, replaces only the `design` object's byte range, and rewrites the file. It accepts literal objects only; anything else is reported back to the panel rather than overwritten. Round-trip tests live in `design-plugin.test.ts` — extend them when you touch the serializer.
-- **The browser is a two-pane shell.** `routes/home-shell.tsx` owns the left sidebar (nav counts, folders, theme toggle) and hands folder state to the routes through the outlet context — a route never fetches the manifest itself. The document view mirrors it: `components/doc-sidebar.tsx` is the left rail (page thumbnails / outline), the pages scroll in the middle, and the design panel docks right.
-- **Folders live in `docs/.folders.json`.** The manifest is the only mutable state the framework owns; dev reads it live through `/__folders`, a static build reads the snapshot baked into `virtual:mosage/folders`. Document ids never move — filing a document only edits assignments.
-- **e2e runs against a fixture project, not the demo.** `packages/core/e2e/fixture` is a real workspace package (`docs/`, `themes/`, an `mosage.config.ts`); `e2e/scratch.mjs` copies it into `e2e/.scratch/<name>` per run so tests that write to disk never dirty the committed sources. `pnpm test:e2e` builds core first, which is where CI's build coverage comes from. Thumbnails are page frames too — anything counting sheets must scope to `[data-od-viewer]`.
-- **Headless rendering drives the real viewer.** `render/session.ts` boots a Vite server (or reuses `ctx.serverOrigin`), opens `/d/<id>` in Chromium, and talks to `window.__mosage` — the bridge `app/lib/agent-bridge.ts` installs from the document route. `export`, `check`, `check_layout`, and `render_page` therefore all go through the same measured page list and the same print pipeline the Download menu uses; nothing re-implements layout on the Node side. Playwright is resolved through a variable specifier and declared only as an optional peer, and `render/session.ts` describes its API with local structural types so the published `.d.ts` never references it.
-- **A page-level fault is found in the DOM, not inferred.** `app/lib/diagnostics.ts` walks the print copy at true sheet size and compares element rects against the page box. It is pure DOM work with no framework knowledge, which is why it catches faults in hand-written and generated documents alike. Findings carry the `data-od-loc` of the offending element — the same tag the inspector uses — so a report points at a source line.
-- **`measuring` is derived, never stored.** `use-doc-pages.ts` compares the plan's `sections` identity against the current ones. A `useState` flag set from the effect reads false for one commit after a document loads, and in that window an unpaginated flow section looks like a single page — which silently corrupted the outline scan and every headless read.
-- **Markdown import produces ordinary authored TSX.** `import/markdown.ts` is a hand-written parser (no dependency — `core` ships to every user) and `import/to-tsx.ts` renders blocks as inline-styled JSX with real heading tags and plain JSX text. Nothing about an imported document is special-cased: the outline, the inspector's text edits, and the design panel all work on it because it is shaped like a document a person would have written.
-- **Numbering is a scan, like the outline.** `app/lib/labels.ts` walks rendered page frames for `data-od-label` and numbers figures, tables, and footnote markers per kind, in document order; `app/lib/scan.ts` runs it together with `collectOutline` so the two always describe the same copy. `<Figure>`, `<Ref>`, `<ListOf>`, and the footnote marker read that store, which means they are blank on the first render pass and correct on the next — the same lifecycle `<TableOfContents>` already had. The two call sites — the viewer effect and `mountOffscreen` in `export-dom.ts`, which every exporter draws its copy through — go through `scanDocument`/`captureScan`/`restoreScan`; never scan one without the other.
-- **Footnotes are lifted before measurement, not collected during render.** `app/lib/footnotes.ts` walks a flow block's element tree and swaps each `<Footnote>` for a marker, returning the notes; `flow-measure.ts` measures them in the component that prints them, and `paginateBlocks` charges their height (plus the area's chrome, once per page) against the page budget. That ordering is the whole point: the space notes take is space the packer must not give to body content. The cost is that a `<Footnote>` hidden inside a helper component's body is invisible to the walk. Fixed pages use the runtime `FootnoteCollector` in `DocPageProvider` instead, with an explicit `<Footnotes />`; note bodies live in a ref there, never in state, because a `ReactNode` is a new object every render and storing one would make every commit look like a change.
-- **Measure from the container's own box.** `stackedHeights` in `flow-measure.ts` takes offsets from `getBoundingClientRect`, not `offsetTop`: every measurement container shares one positioned host, so `offsetTop` is host-relative while the container's height is not, and mixing them measures the last node of every container after the first as zero.
-- **Data files are modules, not fetches.** `vite/data-plugin.ts` loads `.csv`/`.tsv` into an array of objects at build time (`data/delimited.ts` is the hand-written parser — no dependency; `core` ships to every user). Nothing may load document data asynchronously: the packer measures the real DOM to decide page breaks, so data that arrives a tick later arrives after the layout is decided.
-- **Diagrams are compiled, not drawn in the browser.** `vite/diagram-plugin.ts` turns `import chart from './x.mmd'` into a themed SVG string at build time, through the hand-written parser, layered layout, and renderer in `src/diagram/` (no dependency — `core` ships to every user). The reason is the packer, exactly as with `.csv`: a drawing that renders a tick later renders after the page break is decided. The renderer emits `--od-*` variables rather than literal colours, which is why a diagram prints in the document's own ink; anything new it draws must do the same. Text is measured without a DOM (`measureText`), since there is no browser in the plugin.
-- **DOCX reflows; it does not reproduce sheets.** `lib/export-docx.ts` lays every flow section out again as one continuous column — no page breaks, no repeated footers, no stripped top margins — in which each block is a page frame for the sheet it printed on (`FlowBlock`'s `sheet`), so the copy's own scan quotes the same pages the PDF does. `lib/docx/extract.ts` reads that DOM (computed styles, measured gaps) into a model that `lib/docx/write.ts` turns into WordprocessingML, zipped with the `fflate` core already ships. Running footers are drawn once more with sentinel page numbers, which become `PAGE`/`NUMPAGES` fields; a flow section's footer is also drawn as its first two sheets, so one hidden or different on the opening page becomes Word's first-page footer. The packer's block hints (`blockHints` in `flow-measure.ts`) become `keepNext`/`pageBreakBefore`, so headings keep with what follows in Word as they do on the page. Word styles are voted from the rendered text, so a paragraph carries direct formatting only where it departs from its style. The writer is pure and unit-tested; the extractor is covered by e2e.
-- **Themes are documentation.** `themes-plugin.ts` reads `themes/*.md` frontmatter + body into `virtual:mosage/themes` and pairs each with an optional `<id>.demo.tsx`. Nothing about a theme is enforced at runtime; `meta.theme` only draws the back-link.
+### 頁面與分頁
 
-## Hard rules
+- **頁面有兩種。** `DocModule.default` 是 `DocEntry[]`：一個元件就是一張固定的紙；`flow()` 區段則是連續內容，由框架分頁。
+- **分頁拆成三層。** `src/app/lib/flow.ts` 是純演算法（`paginateBlocks`，有單元測試），`flow-measure.ts` 負責離屏的 DOM 量測，`use-doc-pages.ts` 把兩者組成最終的頁面清單。檢視器、縮圖與所有匯出器都讀這份清單，所以任何需要頁面的地方都要透過 `useDocPages`，不要直接讀 `doc.default`。
+- **`measuring` 是推導值，不是狀態。** `use-doc-pages.ts` 以分頁計畫的 `sections` 是否與目前的同一個參照來判斷。如果改成由 effect 設定的 `useState`，文件載入後會有一次 commit 誤判為量測完成，這時尚未分頁的 flow 區段看起來只有一頁，大綱掃描與所有無頭讀取都會因此出錯。
+- **量測以容器自己的框為準。** `flow-measure.ts` 的 `stackedHeights` 用 `getBoundingClientRect` 取位移，而不是 `offsetTop`：所有量測容器共用同一個定位宿主，`offsetTop` 是相對於宿主，容器高度卻不是，兩者混用會讓第一個容器之後、每個容器的最後一個節點量成 0。
+- **註腳在量測之前就被抽出。** `src/app/lib/footnotes.ts` 走訪 flow 區塊的元素樹，把每個 `<Footnote>` 換成標記並取出內容；`flow-measure.ts` 用實際印出註腳的元件量測，`paginateBlocks` 再把註腳高度（加上每頁一次的註腳區外框）從該頁的可用空間扣除——註腳佔用的空間本來就不能分給內文，這正是先抽出的原因。代價是藏在輔助元件內部的 `<Footnote>` 不會被找到。固定頁面則由 `DocPageProvider` 裡執行期的 `FootnoteCollector` 搭配明確放置的 `<Footnotes />` 處理；註腳內容放在 ref 而不是 state，因為 `ReactNode` 每次 render 都是新物件，放進 state 會讓每次 commit 都被視為變更。
+- **只支援 A4，尺寸只有一個來源。** `src/app/lib/sdk.ts` 的 `PAGE_SIZE_NAMES` 只有 `'A4'`，`PageSizeName` 由它推導，`ops/import.ts` 等邊界都讀這個 tuple，不另外列舉；唯一的選擇是直式或橫式（`ORIENTATIONS`）。`resolvePageGeometry(meta)` 同時產生 CSS 像素尺寸與 `@page` 描述，遇到其他尺寸（例如舊版的 B4、A3）一律退回 A4，讓舊文件仍能顯示。不要在其他地方寫死 794 × 1123，也不要加回其他紙張尺寸。
 
-- **Biome must pass before commit.** Run `pnpm check` (or `pnpm check:fix`).
-- Don't add dependencies casually. The `core` runtime ships to users; every dep inflates install size.
-- **Two kinds of skills, don't mix them.** `packages/core/skills/` ships to users (authoring documents under `docs/`). `.agents/skills/` is for working on this repo — `doc-runtime-patterns` (core implementation rules), `print-layout-review` (page/print craft bar), `viewer-ui-guidelines` (viewer chrome + a11y). `.claude/skills/` symlinks the latter.
-- Skills under `packages/core/skills/` are canonical. `mosage init` and `mosage sync:skills` copy them into a workspace — there are no other copies to keep in sync.
-- **Default to writing no comments.** Only add one when the WHY is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain WHAT the code does, don't write section-divider banners, don't leave commented-out code.
+### 掃描：大綱與編號
+
+- **大綱來自 DOM，不是解析原始碼。** `collectOutline()` 從已繪製的頁框找出標題。檢視器等字型載入完成後才掃描；每個匯出器則先掃描自己的離屏複本再讀取，讀完還原先前的結果。
+- **圖、表、註腳的編號也是掃描出來的。** `src/app/lib/labels.ts` 依文件順序找出 `data-od-label`，按種類編號；`src/app/lib/scan.ts` 讓它與 `collectOutline` 一起執行，確保兩者描述同一份複本。`<Figure>`、`<Ref>`、`<ListOf>` 與註腳標記都讀這個 store，所以第一次 render 是空白、下一次才正確，和 `<TableOfContents>` 一樣。呼叫點只有兩個——檢視器的 effect，以及所有匯出器共用的 `export-dom.ts` 裡的 `mountOffscreen`——兩者都經過 `scanDocument`／`captureScan`／`restoreScan`，不要只掃大綱或只掃編號。
+
+### 編輯一律改原始碼
+
+- **Inspect。** `src/vite/loc-tags-plugin.ts`（僅開發模式）在文件原始碼的 host JSX 加上 `data-od-loc="line:col"`；覆蓋層讀取這個屬性，`/__edit/*`（`src/vite/routes/edit.ts`）再透過 `src/editing/edit-ops.ts` 修改文字（只處理單一文字子節點，其他情況一律拒絕），或透過 `src/editing/comments.ts` 寫入 `@doc-comment` 標記。標記內容是 base64url 編碼的 JSON，留言因此可以包含引號與換行。
+- **Design 面板。** `src/vite/design-plugin.ts` 用 Babel 解析 `docs/<id>/index.tsx`，只替換 `design` 物件所在的位元組範圍後寫回。它只接受字面物件，遇到其他寫法會回報給面板，而不是覆寫。序列化的往返測試在 `design-plugin.test.ts`，修改序列化時請一併擴充。
+- **文件操作集中在 `src/ops/`。** `src/vite/routes/docs.ts` 與 CLI 呼叫同一組函式，衝突檢查與驗證規則只寫一次；`OpsError` 帶有傳輸層應回應的 HTTP 狀態碼。新的修改操作放在這裡，不要寫進路由。
+- **開發端點只在 `apply: 'serve'` 下掛載。** `api-plugin.ts` 掛載 `/__assets/*` 等路由（實作在 `src/vite/routes/`），`design-plugin.ts` 掛載 `/__design`。這些端點會寫入使用者的磁碟，每個修改資料的處理器都必須先呼叫 `validateMutationRequest`。素材的路徑安全集中在 `src/files/assets.ts`，不要自己把使用者提供的名稱接到目錄後面。
+
+### 無頭渲染、檢查與匯出
+
+- **無頭渲染驅動的是真正的檢視器。** `src/render/session.ts` 啟動 Vite 伺服器（或沿用 `ctx.serverOrigin`），用 Chromium 開啟 `/d/<id>`，透過 `window.__mosage` 溝通——這是 `src/app/lib/agent-bridge.ts` 在文件頁安裝的橋接。`mosage export` 與 `mosage check` 因此和 Download 選單使用同一份量測後的頁面清單、同一條列印流程，Node 端不重做任何版面計算。
+- **Playwright 是可選的 peer。** 它以變數形式的 specifier 載入，`render/session.ts` 用本地的結構型別描述它的 API，讓發佈的 `.d.ts` 不會引用 Playwright。
+- **版面問題從 DOM 找，不靠推論。** `src/app/lib/diagnostics.ts` 以實際紙張尺寸走訪列印複本，比對元素與頁面框的位置。它只做 DOM 運算、不了解框架，所以手寫或產生的文件都一樣抓得到。每個發現都帶有該元素的 `data-od-loc`（與 Inspect 使用的相同），報告因此能指回原始碼的行號。
+- **Word 匯出是重新排版，不是複製紙張。** `src/app/lib/export-docx.ts` 把每個 flow 區段重新排成一條連續欄位：沒有分頁、沒有重複的頁尾、也不去掉頂端邊界。其中每個區塊都放在它列印時所在那張紙的頁框裡（`FlowBlock` 的 `sheet`），所以這份複本自己的掃描會引用和 PDF 相同的頁碼。
+  - `src/app/lib/docx/extract.ts` 從這份 DOM 讀出計算後的樣式與實測間距建成模型，`src/app/lib/docx/write.ts` 再把模型寫成 WordprocessingML，用 core 已經帶著的 `fflate` 壓縮。
+  - 頁尾會以哨兵頁碼再畫一次，轉成 `PAGE`／`NUMPAGES` 欄位；flow 區段的頁尾會畫成前兩張紙，所以第一頁隱藏或不同的頁尾會成為 Word 的首頁頁尾。
+  - 分頁器的區塊提示（`flow-measure.ts` 的 `blockHints`）轉成 `keepNext`／`pageBreakBefore`，標題在 Word 裡同樣會和後文留在同一頁。
+  - Word 樣式由實際文字投票決定，段落只有在和樣式不同時才帶直接格式。寫入器是純函式並有單元測試，擷取器由 e2e 涵蓋。
+
+### 建置期處理的內容
+
+分頁依賴實際的 DOM 量測，晚一步才出現的內容會錯過分頁決定。所以文件用到的資料與圖表都在建置時處理，不在執行期非同步載入。
+
+- **CSV／TSV 是模組。** `src/vite/data-plugin.ts` 在建置時把 `.csv`／`.tsv` 轉成物件陣列，解析器 `src/data/delimited.ts` 是手寫的，沒有外部相依。
+- **圖表在建置時編譯。** `src/vite/diagram-plugin.ts` 把 `import chart from './x.mmd'` 轉成套用主題的 SVG 字串；解析、分層排版與繪製都在 `src/diagram/`，同樣沒有外部相依。繪製器輸出 `--od-*` CSS 變數而不是固定顏色，圖表才會用文件自己的配色印出，新增的繪製內容也必須這樣做。外掛裡沒有瀏覽器，文字寬度以 `measureText` 估算。
+- **Markdown 匯入產出一般的 TSX。** `src/import/markdown.ts` 是手寫解析器，`src/import/to-tsx.ts` 把區塊輸出成帶 inline style 的 JSX，使用真正的標題標籤與純 JSX 文字。匯入的文件沒有任何特殊待遇：大綱、Inspect 的文字修改與 Design 面板都能直接使用，因為它長得就像人寫的文件。
+
+### e2e
+
+e2e 使用 fixture 專案，不是範例專案。`packages/core/e2e/fixture` 是真正的 workspace 套件（`docs/`、`themes/`、`mosage.config.ts`），`e2e/scratch.mjs` 每次執行都把它複製到 `e2e/.scratch/<name>`，會寫入磁碟的測試因此不會弄髒版本控制中的檔案。`pnpm test:e2e` 會先建置 core，CI 對建置的檢查也來自這一步。縮圖也是頁框，計算紙張數量時要限定在 `[data-od-viewer]` 裡。
+
+## 必守規則
+
+- **commit 前 Biome 必須通過**（`pnpm check`，或用 `pnpm check:fix` 自動修正）。
+- **不要隨意新增相依套件。** `mosage` 會安裝進每個使用者的專案，每多一個套件都會增加安裝負擔。
+- **兩種 skills 不要混用。**
+  - `packages/core/skills/` 隨套件發佈，給使用者在 `docs/` 撰寫文件用，也是這些 skills 唯一的來源——`mosage init` 與 `mosage sync:skills` 會把它們複製到專案，沒有其他副本需要同步。
+  - `.agents/skills/` 是開發這個 repo 用的規範：`doc-runtime-patterns`（core 的實作規則）、`print-layout-review`（版面與列印品質）、`viewer-ui-guidelines`（檢視器介面與無障礙）。`.claude/skills/` 以 symlink 指向它們。
+- **預設不寫註解。** 只有在「為什麼」不明顯時才寫：隱藏的限制、微妙的不變條件、針對特定錯誤的繞道。不解釋程式在做什麼、不加分隔用的橫幅、不留下註解掉的程式碼。

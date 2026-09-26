@@ -1,119 +1,86 @@
-# Contributing to MoSage
+# 參與 MoSage 開發
 
-Thanks for your interest in improving MoSage! This guide covers the workflow for contributing to the framework itself — the `mosage` package (runtime, CLI, and project template) and the demo app.
+這份文件寫給想修改 MoSage 本身的人：也就是發佈到 npm 的 `mosage` 套件，以及開發用的範例專案。
+如果你只是用 MoSage 寫文件，不需要讀這份——在專案資料夾裡請 AI 幫忙，或直接編輯 `docs/<代號>/index.tsx` 就好。
 
-If you're authoring documents inside a scaffolded project, you don't need this file — drive your report through your coding agent or edit `docs/<id>/index.tsx` directly.
+## 回報問題、提出建議
 
-## Ways to contribute
+- **發現錯誤**：用[錯誤回報範本](./.github/ISSUE_TEMPLATE/bug_report.yml)開 issue，附上重現步驟，最好能附一個最小的專案。
+- **想要新功能**：用[功能建議範本](./.github/ISSUE_TEMPLATE/feature_request.yml)，先描述遇到的困難，再談你想到的解法。
+- **比較大的修改**：動手之前先開 issue 討論方向，免得做完才發現方向不同。
+- **安全性問題**：請不要公開回報，做法見 [SECURITY.md](SECURITY.md)。
 
-- **Report a bug** via the [bug report template](./.github/ISSUE_TEMPLATE/bug_report.yml). Include a minimal reproduction.
-- **Propose a feature** via the [feature request template](./.github/ISSUE_TEMPLATE/feature_request.yml). Describe the problem before the solution.
-- **Ask a question or share what you're building** in [GitHub Discussions](https://github.com/nickchen1998/MoSage/discussions).
-- **Send a pull request** — see below.
+## 準備開發環境
 
-For non-trivial changes, please open an issue or discussion first so we can align on direction before you invest the time.
-
-## Repo layout
-
-pnpm + Turbo monorepo.
-
-| Path | Package | Role |
-| --- | --- | --- |
-| [`packages/core`](packages/core) | `mosage` | The one published package: runtime (document browser, page viewer, outline, themes, assets panel, design panel, PDF/HTML/Word export), Vite plugins, dev API, the `mosage` CLI including `init`, the project template, canonical skills. |
-| [`apps/demo`](apps/demo) | private | Local consumer of `mosage` via `workspace:*`. The dogfood target for the framework. |
-
-## Prerequisites
-
-- **Node.js 24** and **pnpm 11** — both pinned in [`.mise.toml`](.mise.toml). `mise install` picks them up; otherwise `corepack enable` will honour the `packageManager` field in `package.json`.
-- A Unix-y shell. Windows works via WSL.
-
-## Getting set up
+需要 Node.js 24 與 pnpm 11，版本記錄在 [`.mise.toml`](.mise.toml)。
+有 [mise](https://mise.jdx.dev/) 的話執行 `mise install`；沒有的話執行 `corepack enable`，它會依 `package.json` 的 `packageManager` 準備對應的 pnpm。
+開發環境以 macOS 與 Linux 為主，Windows 請使用 WSL。
 
 ```bash
 git clone https://github.com/nickchen1998/MoSage.git
 cd MoSage
 pnpm install
+pnpm dev          # 用本機的 mosage 啟動 apps/demo
 ```
 
-Then run the demo against the local `mosage`:
+> 修改 `packages/core/src` 之後，先執行 `pnpm core build` 再看範例專案。
+> 文件引用的是建置後的 `dist`，不是原始碼，沒有重新建置就看不到修改。
+
+## 專案結構
+
+| 路徑 | 說明 |
+| --- | --- |
+| `packages/core` | 唯一發佈到 npm 的 `mosage` 套件：檢視器、Vite 外掛、開發用 API、CLI（包含 `init`）、專案範本 `template/`、隨套件發佈的 AI skills `skills/` |
+| `packages/core/e2e` | Playwright 端對端測試，以及測試用的 fixture 專案 |
+| `apps/demo` | 以 `workspace:*` 引用 `mosage` 的範例專案，不會發佈 |
+| `.agents/skills` | 開發這個 repo 時給 AI 參考的規範，不會發佈 |
+
+## 常用指令
 
 ```bash
-pnpm dev
+pnpm build        # 建置所有套件
+pnpm typecheck    # TypeScript 型別檢查
+pnpm check        # Biome：格式、lint、import 排序
+pnpm check:fix    # 自動修正 Biome 能處理的問題
+pnpm test         # Vitest 單元測試
+pnpm test:e2e     # 先建置 mosage，再用 Playwright 跑端對端測試
+pnpm core <指令>  # 只在 mosage 套件執行，例如 pnpm core build
 ```
 
-`apps/demo` is the fastest way to exercise framework changes — edit `packages/core`, the demo hot-reloads.
+第一次執行 e2e 之前，先用 `npx playwright install chromium` 安裝瀏覽器。
 
-**After changing `packages/core/src`, run `pnpm core build` before testing the demo.** Documents import the built `dist` bundle, not the source, so runtime-facing changes don't reach a document until core is rebuilt.
+## 送出 Pull Request
 
-## Useful scripts
+1. 從 `main` 開新分支，一個 PR 只處理一件事。
+2. 沿用周遭程式碼的寫法，不要順手調整無關的程式碼。
+3. 推送之前確認 `pnpm check`、`pnpm typecheck`、`pnpm test` 都通過。CI 會再跑一次，並加上 e2e。
+4. 如果修改了 `packages/core`，而且使用者會感受到差異，執行 `pnpm changeset` 加一筆變更紀錄，並選擇版本層級：
+   - `patch`：修正錯誤、內部調整
+   - `minor`：新增功能或公開 API
+   - `major`：不相容的變更
 
-```bash
-pnpm dev          # turbo: runs demo against local core
-pnpm build        # build all packages
-pnpm typecheck    # tsc across the graph
-pnpm check        # biome (format + lint + organize imports)
-pnpm check:fix    # auto-fix what biome can
-pnpm test         # vitest
-pnpm test:e2e     # playwright — builds core, then drives the e2e fixture project
-```
+   說明只要一句話，寫「使用者會看到什麼改變」，例如：「表格跨頁時，表頭會和第一列一起移到下一頁。」
+   版本號與 `CHANGELOG.md` 由 changesets 產生，請不要手動修改。只改 `apps/demo` 或開發工具時不需要 changeset。
+5. PR 說明寫清楚三件事：問題是什麼、改了什麼、怎麼驗證的。影響版面或匯出的修改，請附上修改前後的截圖或匯出檔。
 
-Filter to one package:
+合併時會 squash 成一個 commit，審查意見直接用新的 commit 回應即可。
 
-```bash
-pnpm core <script>   # e.g. pnpm core build
-```
+## 撰寫慣例
 
-## Pull request workflow
+- **Biome 必須通過**，CI 會檢查。
+- **謹慎新增相依套件。** `mosage` 會安裝進每個使用者的專案，能用幾行程式解決的事，就不要引入新套件。
+- **註解只寫「為什麼」**：隱藏的限制、不直觀的前提、針對特定錯誤的繞道。程式在做什麼，交給清楚的命名表達。
+- **紙張尺寸只有一個來源。** 頁面的像素尺寸與 `@page` 設定都由 `resolvePageGeometry()` 決定，不要在其他地方寫死。
+- **修改文件的操作放在 `src/ops/`。** 開發伺服器的路由與 CLI 呼叫同一份邏輯，驗證規則只寫一次。
+- **`packages/core/skills/` 是 skills 的唯一來源。** `mosage init` 與 `mosage sync:skills` 會把它們複製到使用者專案，不需要同步其他副本。
 
-1. **Fork & branch.** Branch off `main`. Keep branches focused — one logical change per PR.
-2. **Make your change.** Match the surrounding style. Don't reformat unrelated code.
-3. **Run the checks before pushing:**
-   ```bash
-   pnpm check       # must pass — CI enforces it
-   pnpm typecheck
-   pnpm test
-   ```
-   `pnpm check:fix` will auto-fix most formatting and lint issues.
-4. **Add a changeset if you touched `packages/core`:**
-   ```bash
-   pnpm changeset
-   ```
-   Pick the affected package(s) and the right bump:
-   - `patch` — bug fixes, internal refactors, polish.
-   - `minor` — new public API, additive features.
-   - `major` — breaking changes.
+## 測試
 
-   `apps/demo` and root tooling do **not** need a changeset.
+- 修正錯誤或新增有邏輯的程式時，在旁邊補上 `*.test.ts`。分頁演算法、Design 設定的序列化、路徑安全這類純邏輯都應該有測試。
+- e2e 會複製 `packages/core/e2e/fixture` 並啟動 `mosage dev`，涵蓋文件列表、檢視器、分頁、Inspect、Design 面板、開發 API、匯出、靜態建置與 CLI。修改這些功能時，請一起補上測試案例。
+- 檢視器和匯出走的是不同的繪製路徑，只修好其中一邊不算完成。修改畫面相關的程式時，除了在 `apps/demo` 確認，也請實際匯出 PDF、Word 與 HTML 檢查，並在 PR 說明你驗證了哪些情境。
 
-   Keep the description **short and direct** — one line, present-tense, what changed from a user's perspective. No paragraphs, no rationale, no "this PR…".
+## 發佈流程
 
-   > Good: `Keep a table header with its first body row when a flow section breaks across pages.`
-   >
-   > Bad: `This change introduces smarter pagination because the previous packer sometimes left a header stranded…`
-
-   Don't bump versions or edit `CHANGELOG.md` by hand — `changeset version` owns that.
-5. **Open the PR.** Describe the problem, the change, and how you tested it. Link related issues. For layout or export changes, attach the exported PDF (or a screenshot of the affected pages) before and after.
-6. **Address review feedback** by pushing follow-up commits. We'll squash on merge.
-
-## Style & conventions
-
-- **Biome must pass.** Formatting, lint, and import organisation are all enforced by `pnpm check`.
-- **No casual dependencies.** The `core` runtime ships to users — every dep inflates install size. Prefer a small piece of inline code over a new package.
-- **Default to writing no comments.** Only add one when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain *what* the code does; well-named identifiers handle that.
-- **Skills under `packages/core/skills/` are canonical.** `mosage init` and `mosage sync:skills` copy them into a workspace's `.agents/skills` and `.claude/skills`.
-- **Page geometry lives in one place.** `resolvePageGeometry(meta)` owns the CSS-pixel page size and the `@page` descriptor. Never hardcode sheet dimensions anywhere else.
-- **Mutations go through `src/ops/`.** The dev routes and the CLI both call it, so a validation rule is written once.
-
-## Testing
-
-- Unit tests run via `pnpm test` (Vitest). Add tests next to the code (`*.test.ts`) when fixing a bug or adding logic that warrants it. Pure logic — the flow packer, the design serializer, path safety — is expected to be covered.
-- End-to-end tests run via `pnpm test:e2e` (Playwright). They build core, boot `mosage dev` against `packages/core/e2e/fixture`, and cover the browser, the viewer, flow pagination, the inspector, the design panel, the dev API, HTML export, the static build, and the CLI. Anything touching those paths needs its case here. Run `npx playwright install chromium` once before the first run.
-- For runtime/UI changes, verify the change in `apps/demo` **and in an export** (PDF and HTML), then describe what you exercised in the PR. The viewer and the exporters render the same pages through different paths; a fix that only lands in one of them is incomplete.
-
-## Releases
-
-Releases are cut through [changesets](https://github.com/changesets/changesets). Landing a changeset on `main` opens (or updates) a "chore: release packages" PR; merging that PR builds `mosage` and publishes it to npm from CI. Contributors don't need to publish anything — just land the changeset alongside your code.
-
-## Questions
-
-Open a [discussion](https://github.com/nickchen1998/MoSage/discussions) — happy to help.
+發佈交給 [changesets](https://github.com/changesets/changesets)：帶有 changeset 的 PR 合併進 `main` 之後，會產生（或更新）一個「chore: release packages」版本 PR；合併這個版本 PR，CI 就會建置並把 `mosage` 發佈到 npm。
+貢獻者不需要自己發佈，只要把 changeset 和程式碼一起送出。

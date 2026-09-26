@@ -43,7 +43,7 @@ export default [Overflowing, Blank, Small] satisfies DocPage[];
 const READY = 'globalThis.__mosage ? globalThis.__mosage.status().ready : false';
 
 /**
- * The bridge the headless exporter and `check_layout` drive. Other specs write
+ * The bridge `mosage export` and `mosage check` drive. Other specs write
  * to the shared fixture, and the reload that broadcasts tears down the context
  * mid-call — so wait for the bridge to come back and ask again.
  */
