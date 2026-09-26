@@ -1,5 +1,25 @@
 # mosage
 
+## 0.10.0
+
+### Minor Changes
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 新增 AI 生圖：在 Settings 選擇「預留 prompt 給 Codex」或「OpenAI API」，每份文件可以個別開關。AI 撰寫時會在需要圖片的地方放 `<ImagePrompt>`；Codex 透過新的 `generate-images` skill 畫圖，OpenAI 模式則在文件的 Assets 分頁按 Generate（或執行 `mosage images generate`）。API 金鑰只存在本機的 `~/.mosage/credentials.json`，每次生圖都會記錄 input／output token 與預估花費（USD）。
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 素材分成「圖片」與「參考文獻」兩類：圖片依章節存放在 `assets/images/<章節>/`，素材頁與文件的 Assets 分頁以樹狀瀏覽，章節名稱取自文件標題；圖片以外的檔案放在 `assets/references/`，PDF、文字、CSV／TSV、音訊與影片可以直接預覽。把圖片移到其他章節、改名或重新命名章節時，文件中的 import 會自動更新。上傳的檔案一律複製進專案。
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 字級一律以偶數 px 為級距：Design 面板的字級每次調整 2px，內建配色方案、表格、Markdown 匯入與圖表文字都改用偶數字級，AI skills 也預設使用 12、14、16… 這樣的字級（除非使用者指定）。
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 匯出只保留 PDF 與 Word（DOCX）：Download 選單與 `mosage export --format` 移除 HTML、PNG、SVG，`build.allowHtmlExport` 設定也一併移除。
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 新增 Settings 頁：可以調整介面文字大小（預設放大為 110%，只影響操作介面，不影響頁面與匯出），並顯示目前版本與是否有新版。
+
+- [#22](https://github.com/nickchen1998/MoSage/pull/22) [`738cd7e`](https://github.com/nickchen1998/MoSage/commit/738cd7e88dcf64b5b46753b6fa54171c8801defe) Thanks [@nickchen1998](https://github.com/nickchen1998)! - `mosage dev` 啟動時會檢查 npm 上是否有新版，有的話在終端機輸入 `u` + Enter 即可更新並重新啟動；也新增 `mosage upgrade` 指令。更新時會一併對齊 React、React 型別與 Vite 的主版本，並同步 skills。
+
+### Patch Changes
+
+- [#21](https://github.com/nickchen1998/MoSage/pull/21) [`f79ad84`](https://github.com/nickchen1998/MoSage/commit/f79ad84fbaf04cfd56fc2cd3e080ca94573844d3) Thanks [@nickchen1998](https://github.com/nickchen1998)! - npm 套件附上完整的 MIT 授權檔（LICENSE），並移除沿用自 open-doc 的 `contributors` 欄位；原作者的版權聲明保留在 LICENSE 中。
+
 ## 0.9.1
 
 ### Patch Changes
