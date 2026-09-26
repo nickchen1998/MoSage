@@ -1,6 +1,6 @@
 {
   "name": "mosage-core",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Runtime and CLI for MoSage — write documents in docs/, we handle the pages, print layout, and export.",
   "type": "module",
   "exports": {

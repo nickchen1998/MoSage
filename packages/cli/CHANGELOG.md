@@ -1,5 +1,15 @@
 # mosage
 
+## 0.2.0
+
+### Minor Changes
+
+- [#12](https://github.com/nickchen1998/MoSage/pull/12) [`6e7d405`](https://github.com/nickchen1998/MoSage/commit/6e7d4053fe259b81f289161a4a437293b7e92935) Thanks [@nickchen1998](https://github.com/nickchen1998)! - Renamed from open-doc to MoSage: the packages are now `mosage` (the scaffolder — `npx mosage init`), `mosage-core`, and `mosage-mcp`; the command is `mosage` and the config file is `mosage.config.ts`.
+
+### Patch Changes
+
+- [#5](https://github.com/nickchen1998/MoSage/pull/5) [`fa6be37`](https://github.com/nickchen1998/MoSage/commit/fa6be37a62ce3ba6f811080ef3993068b4473570) Thanks [@nickchen1998](https://github.com/nickchen1998)! - Export a document as an editable Word file (`.docx`) from the Download menu, `mosage export --format docx`, and the `export_document` tool.
+
 ## 0.1.2
 
 ### Patch Changes
