@@ -1,0 +1,67 @@
+name: Release
+
+# Publish to npm when a version tag is pushed:
+#   npm version patch        # or minor / major — bumps package.json and tags
+#   git push --follow-tags
+#
+# Authentication: npm trusted publishing (OIDC, no secret needed) once it is
+# configured on npmjs.com; until then the NPM_TOKEN repository secret.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Run every step but do not publish
+        type: boolean
+        default: true
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # npm provenance + trusted publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm >= 11.5.1.
+      - run: npm install -g npm@latest
+      - run: npm ci
+
+      - name: Tag matches package.json version
+        if: github.event_name == 'push'
+        run: |
+          VERSION="v$(node -p "require('./package.json').version")"
+          if [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+
+      - run: npm run check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run test:e2e
+
+      - name: Publish to npm
+        if: github.event_name == 'push' || !inputs.dry-run
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Dry run
+        if: github.event_name == 'workflow_dispatch' && inputs.dry-run
+        run: npm publish --dry-run --access public
+
+      - name: GitHub release
+        if: github.event_name == 'push'
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

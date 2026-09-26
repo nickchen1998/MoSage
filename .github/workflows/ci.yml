@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint · typecheck · unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run typecheck
+      - run: npm test
+
+  e2e:
+    name: E2E (${{ matrix.os }}, Node ${{ matrix.node }})
+    needs: check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, node: 20, browser: false }
+          - { os: ubuntu-latest, node: 22, browser: true }
+          - { os: ubuntu-latest, node: 24, browser: false }
+          - { os: macos-latest, node: 22, browser: false }
+          - { os: windows-latest, node: 22, browser: false }
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Install Chromium for the browser test
+        if: matrix.browser
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Pack, npx init, CLI, dev server${{ matrix.browser && ', browser' || '' }}
+        run: npm run test:e2e
+        env:
+          MOSAGE_E2E_BROWSER: ${{ matrix.browser && '1' || '' }}
