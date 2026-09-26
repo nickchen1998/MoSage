@@ -1,6 +1,6 @@
 {
   "name": "mosage",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Scaffold a MoSage workspace with agent skills preconfigured.",
   "type": "module",
   "bin": {

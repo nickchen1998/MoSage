@@ -1,6 +1,6 @@
 {
   "name": "mosage-mcp",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "MCP server for MoSage — lets any agent framework list, read, write, and file documents over Streamable HTTP.",
   "type": "module",
   "exports": {
@@ -51,7 +51,7 @@
     "zod": "^4.4.3"
   },
   "peerDependencies": {
-    "mosage-core": "^0.6.0"
+    "mosage-core": "^0.7.0"
   },
   "devDependencies": {
     "mosage-core": "workspace:*",
