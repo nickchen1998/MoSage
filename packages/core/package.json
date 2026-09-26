@@ -101,11 +101,5 @@
     "playwright": {
       "optional": true
     }
-  },
-  "contributors": [
-    {
-      "name": "Simon Liu",
-      "url": "https://github.com/LiuYuWei"
-    }
-  ]
+  }
 }
