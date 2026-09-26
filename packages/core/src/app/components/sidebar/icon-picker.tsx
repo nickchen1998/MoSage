@@ -51,7 +51,7 @@ export function IconPicker({
             type="button"
             onClick={() => setTab(next)}
             className={cn(
-              'flex-1 rounded px-2 py-1 text-[11px] capitalize transition-colors',
+              'flex-1 rounded px-2 py-1 text-[0.6875rem] capitalize transition-colors',
               tab === next ? 'bg-background font-medium' : 'text-muted-foreground',
             )}
           >
@@ -68,7 +68,7 @@ export function IconPicker({
               type="button"
               onClick={() => onChange({ type: 'emoji', value: emoji })}
               className={cn(
-                'grid size-6 place-items-center rounded text-[13px] transition-transform hover:scale-110',
+                'grid size-6 place-items-center rounded text-[0.8125rem] transition-transform hover:scale-110',
                 value.type === 'emoji' && value.value === emoji && 'bg-accent',
               )}
               aria-label={emoji}

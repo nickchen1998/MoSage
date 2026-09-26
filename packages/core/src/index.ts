@@ -11,6 +11,8 @@ export type { FootnoteProps, FootnotesProps } from './app/components/footnote.ts
 export { Footnote, Footnotes } from './app/components/footnote.tsx';
 export type { ImagePlaceholderProps } from './app/components/image-placeholder.tsx';
 export { ImagePlaceholder } from './app/components/image-placeholder.tsx';
+export type { ImagePromptProps } from './app/components/image-prompt.tsx';
+export { ImagePrompt } from './app/components/image-prompt.tsx';
 export type { FigureProps, ListOfProps, RefProps } from './app/components/numbering.tsx';
 export { Figure, ListOf, ListOfFigures, ListOfTables, Ref } from './app/components/numbering.tsx';
 export type { TableOfContentsProps } from './app/components/table-of-contents.tsx';

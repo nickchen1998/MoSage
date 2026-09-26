@@ -490,7 +490,7 @@ export function Doc() {
               type="button"
               onClick={actualSize}
               title="Actual size (100%)"
-              className="w-11 rounded text-center font-mono text-[11px] tabular-nums transition-colors hover:bg-accent"
+              className="w-11 rounded text-center font-mono text-[0.6875rem] tabular-nums transition-colors hover:bg-accent"
             >
               {Math.round(scale * 100)}%
             </button>
@@ -605,7 +605,7 @@ export function Doc() {
                     <Icon className="size-3.5 flex-none" />
                     <span className="flex-1">
                       {label}
-                      <span className="block text-[10px] text-muted-foreground">{hint}</span>
+                      <span className="block text-[0.625rem] text-muted-foreground">{hint}</span>
                     </span>
                   </MenuItem>
                 ))}
@@ -710,7 +710,9 @@ function PageChoice({
 
   return (
     <div className="border-border border-b px-1 pt-1 pb-2">
-      <p className="px-1 pb-1 text-[10px] text-muted-foreground uppercase tracking-wide">Pages</p>
+      <p className="px-1 pb-1 text-[0.625rem] text-muted-foreground uppercase tracking-wide">
+        Pages
+      </p>
       <div className="flex gap-0.5">
         {options.map((option) => (
           <button
@@ -723,13 +725,13 @@ function PageChoice({
               );
             }}
             className={cn(
-              'flex-1 rounded px-2 py-1 text-[11px] transition-colors hover:bg-accent',
+              'flex-1 rounded px-2 py-1 text-[0.6875rem] transition-colors hover:bg-accent',
               selection.kind === option.kind && 'bg-accent text-foreground',
             )}
           >
             {option.label}
             {option.hint && (
-              <span className="ml-1 font-mono text-[10px] text-muted-foreground">
+              <span className="ml-1 font-mono text-[0.625rem] text-muted-foreground">
                 {option.hint}
               </span>
             )}
@@ -745,12 +747,12 @@ function PageChoice({
           aria-label="Pages to download"
           aria-invalid={!chosen.valid}
           className={cn(
-            'mt-1.5 w-full rounded border border-border bg-transparent px-2 py-1 text-[11px] outline-none placeholder:text-muted-foreground focus:border-foreground/40',
+            'mt-1.5 w-full rounded border border-border bg-transparent px-2 py-1 text-[0.6875rem] outline-none placeholder:text-muted-foreground focus:border-foreground/40',
             !chosen.valid && custom !== '' && 'border-foreground/40',
           )}
         />
       )}
-      <p className="px-1 pt-1.5 text-[10px] text-muted-foreground">
+      <p className="px-1 pt-1.5 text-[0.625rem] text-muted-foreground">
         {chosen.valid
           ? `${chosen.count} page${chosen.count === 1 ? '' : 's'} will be downloaded`
           : 'Type page numbers, like 1-3, 5'}

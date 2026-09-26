@@ -335,7 +335,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
             />
             <Frame anchor={selected?.anchor ?? null} container={container} variant="selected" />
           </div>
-          <div className="pointer-events-none sticky bottom-3 z-40 mx-auto w-fit rounded-full bg-foreground/90 px-3 py-1.5 text-[11px] text-background">
+          <div className="pointer-events-none sticky bottom-3 z-40 mx-auto w-fit rounded-full bg-foreground/90 px-3 py-1.5 text-[0.6875rem] text-background">
             {selected ? 'Esc to deselect' : 'Click an element · Esc to exit'}
           </div>
         </>,
@@ -352,7 +352,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
           className="flex w-72 flex-none flex-col border-border border-l bg-background"
         >
           <header className="flex h-10 flex-none items-center justify-between border-border border-b px-3">
-            <span className="font-mono text-[11px] text-muted-foreground">
+            <span className="font-mono text-[0.6875rem] text-muted-foreground">
               &lt;{selected.tag}&gt; · {target?.line ?? selected.line}:
               {target?.column ?? selected.column}
             </span>
@@ -367,7 +367,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
           </header>
 
           <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            <span className="block text-[10px] text-muted-foreground uppercase tracking-wider">
+            <span className="block text-[0.625rem] text-muted-foreground uppercase tracking-wider">
               Text
             </span>
             {target === null ? (
@@ -424,7 +424,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                           <span
                             contentEditable={false}
                             title="Markup is kept as written"
-                            className="mx-0.5 select-none rounded bg-muted px-1 py-px font-mono text-[10px] text-muted-foreground"
+                            className="mx-0.5 select-none rounded bg-muted px-1 py-px font-mono text-[0.625rem] text-muted-foreground"
                           >
                             {part.label}
                           </span>
@@ -459,7 +459,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                         )}
                         className={`mt-1 w-full resize-y rounded border border-border bg-transparent px-2 py-1.5 outline-none focus:border-foreground/40 ${
                           selected?.tag === 'pre'
-                            ? 'whitespace-pre font-mono text-[11px]'
+                            ? 'whitespace-pre font-mono text-[0.6875rem]'
                             : 'text-xs'
                         }`}
                       />
@@ -481,12 +481,12 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                 </button>
               </>
             ) : (
-              <p className="mt-1 rounded border border-border bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">
+              <p className="mt-1 rounded border border-border bg-muted px-2 py-1.5 text-[0.6875rem] text-muted-foreground">
                 {target.reason ?? 'Not editable here.'}
               </p>
             )}
 
-            <span className="mt-4 block text-[10px] text-muted-foreground uppercase tracking-wider">
+            <span className="mt-4 block text-[0.625rem] text-muted-foreground uppercase tracking-wider">
               Comment for the agent
             </span>
             <textarea
@@ -509,7 +509,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
               Mark comment
             </button>
 
-            {status && <p className="mt-2 text-[11px] text-muted-foreground">{status}</p>}
+            {status && <p className="mt-2 text-[0.6875rem] text-muted-foreground">{status}</p>}
           </div>
         </aside>
       )}

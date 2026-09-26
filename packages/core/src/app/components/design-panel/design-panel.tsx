@@ -76,12 +76,12 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             {warning && (
-              <p className="mb-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">
+              <p className="mb-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[0.6875rem] text-muted-foreground">
                 {warning}
               </p>
             )}
             {!exists && (
-              <p className="mb-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">
+              <p className="mb-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[0.6875rem] text-muted-foreground">
                 This document has no <code className="font-mono">design</code> const yet. Saving
                 writes one into <code className="font-mono">index.tsx</code>.
               </p>
@@ -110,7 +110,7 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
                         d.palette[key] = value;
                       });
                     }}
-                    className="w-20 rounded border border-border bg-transparent px-1.5 py-0.5 font-mono text-[11px]"
+                    className="w-20 rounded border border-border bg-transparent px-1.5 py-0.5 font-mono text-[0.6875rem]"
                   />
                 </Row>
               ))}
@@ -132,7 +132,7 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
                         d.fonts[slot] = value;
                       });
                     }}
-                    className="w-40 rounded border border-border bg-transparent px-1.5 py-0.5 text-[11px]"
+                    className="w-40 rounded border border-border bg-transparent px-1.5 py-0.5 text-[0.6875rem]"
                   >
                     {FONT_OPTIONS.map((option) => (
                       <option key={option.label} value={option.value}>
@@ -206,7 +206,7 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
             </Section>
 
             {draft.typeScale.body < 12 && (
-              <p className="mt-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[11px] text-muted-foreground">
+              <p className="mt-3 rounded-md border border-border bg-muted px-2 py-1.5 text-[0.6875rem] text-muted-foreground">
                 Body under 12px prints below 9pt — hard to read on paper.
               </p>
             )}
@@ -215,7 +215,7 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       <footer className="flex-none border-border border-t p-3">
-        {error && <p className="mb-2 text-[11px] text-muted-foreground">{error}</p>}
+        {error && <p className="mb-2 text-[0.6875rem] text-muted-foreground">{error}</p>}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -243,7 +243,9 @@ export function DesignPanel({ onClose }: { onClose: () => void }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-4">
-      <h3 className="mb-1.5 text-[10px] text-muted-foreground uppercase tracking-wider">{title}</h3>
+      <h3 className="mb-1.5 text-[0.625rem] text-muted-foreground uppercase tracking-wider">
+        {title}
+      </h3>
       <div className="space-y-1.5">{children}</div>
     </section>
   );
@@ -287,7 +289,7 @@ function SliderRow({
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-1 flex-1 cursor-pointer accent-foreground"
       />
-      <span className="w-12 flex-none text-right font-mono text-[11px] tabular-nums">
+      <span className="w-12 flex-none text-right font-mono text-[0.6875rem] tabular-nums">
         {value}
         {suffix}
       </span>

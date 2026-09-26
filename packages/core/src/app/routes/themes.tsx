@@ -84,7 +84,7 @@ export function ThemeDetailPage() {
         {chips.map((chip) => (
           <span
             key={chip}
-            className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground"
+            className="rounded-full border border-border px-2 py-0.5 text-[0.625rem] text-muted-foreground"
           >
             {chip}
           </span>
@@ -105,7 +105,7 @@ export function ThemeDetailPage() {
             <Link
               key={docId}
               to={`/d/${docId}`}
-              className="rounded-full border border-border px-2 py-0.5 text-[11px] transition-colors hover:bg-accent"
+              className="rounded-full border border-border px-2 py-0.5 text-[0.6875rem] transition-colors hover:bg-accent"
             >
               {docId}
             </Link>

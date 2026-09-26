@@ -211,7 +211,7 @@ export function DocSearch({
         aria-label="Find in document"
         className="w-28 bg-transparent text-xs outline-none placeholder:text-muted-foreground"
       />
-      <span className="flex-none font-mono text-[11px] text-muted-foreground tabular-nums">
+      <span className="flex-none font-mono text-[0.6875rem] text-muted-foreground tabular-nums">
         {query === '' ? '' : hits.length === 0 ? '0' : `${at}/${hits.length}`}
       </span>
       <button

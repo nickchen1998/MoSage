@@ -168,7 +168,7 @@ export async function run(argv: string[]): Promise<void> {
 
   program
     .command('export [docIds...]')
-    .description('Render documents headlessly to PDF, HTML, DOCX, or PNG')
+    .description('Render documents headlessly to PDF or DOCX')
     .addOption(new Option('-f, --format <format>', 'output format').choices(EXPORT_FORMATS))
     .option('-o, --out-dir <dir>', 'directory to write into (defaults to `out`)')
     .option('--all', 'export every document under docs/')
@@ -200,6 +200,43 @@ export async function run(argv: string[]): Promise<void> {
     .action(async (file: string, flags: ImportFlags) => {
       const { importDoc } = await import('./import.ts');
       await importDoc(file, flags);
+    });
+
+  const images = program
+    .command('images')
+    .description('Generated images: list the prompts, draw them, or place drawn ones');
+  images
+    .command('list', { isDefault: true })
+    .description('List the <ImagePrompt>s still waiting in the documents')
+    .option('--doc <id>', 'only this document')
+    .option('--json', 'machine-readable output (what the generate-images skill reads)')
+    .action(async (flags: { doc?: string; json?: boolean }) => {
+      const { listImages } = await import('./images.ts');
+      await listImages(flags);
+    });
+  images
+    .command('generate')
+    .description('Draw waiting prompts through the OpenAI API (Settings → AI images)')
+    .option('--doc <id>', 'only this document')
+    .option('--id <id>', 'only this prompt')
+    .action(async (flags: { doc?: string; id?: string }) => {
+      const { generateImages } = await import('./images.ts');
+      await generateImages(flags);
+    });
+  images
+    .command('place <docId> [id]')
+    .description('Replace prompts with the images already saved at their paths')
+    .action(async (docId: string, id: string | undefined) => {
+      const { placeImages } = await import('./images.ts');
+      await placeImages(docId, id);
+    });
+
+  program
+    .command('upgrade')
+    .description('Update this project to the latest MoSage and sync its skills')
+    .action(async () => {
+      const { upgrade } = await import('./upgrade.ts');
+      await upgrade();
     });
 
   program

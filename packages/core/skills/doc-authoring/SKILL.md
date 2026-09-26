@@ -20,7 +20,7 @@ Read the matching reference **before** using a primitive:
 | `flow()` auto-pagination | any body content (the default) | `references/pagination.md` |
 | Vertical budget (fixed pages) | laying out a cover or divider by hand | `references/pagination.md` |
 | Tables, stat rows, inline charts | rendering data of any kind | `references/tables-and-charts.md` |
-| Assets + `<ImagePlaceholder>` | importing images or leaving a placeholder | `references/assets.md` |
+| Assets, references, `<ImagePrompt>`, `<ImagePlaceholder>` | importing images, reading the user's reference files, leaving an image to be generated or supplied | `references/assets.md` |
 | Footnotes, `<Figure>`, `<Ref>`, `<DataTable>` | any note, numbered figure, cross-reference, or `.csv` | `references/long-form.md` |
 
 ## Themes
@@ -32,7 +32,7 @@ Themes are produced by the `create-theme` skill and are pure documentation: copy
 ## Hard rules
 
 - Put the document under `docs/<kebab-case-id>/`.
-- Entry is `docs/<id>/index.tsx`. Images/fonts go under `docs/<id>/assets/`.
+- Entry is `docs/<id>/index.tsx`. Images go under `docs/<id>/assets/images/<chapter>/`; the user's source files (PDFs, data, notes) are in `docs/<id>/assets/references/` — read them before writing.
 - Do **not** touch `package.json`, `mosage.config.ts`, or other documents.
 - Do not add dependencies. Only `react`, `mosage`, and standard web APIs are available.
 - A document is **one `index.tsx` plus `assets/`** — nothing else. Helper components and constants live inside `index.tsx`; no sibling `.tsx` files, no `README.md`.
@@ -355,7 +355,8 @@ A document is not a slide deck. Long-form copy is the point — but it still has
 - Home page lists every folder under `docs/` with a live thumbnail of page 1.
 - Document view: vertical scroll of real-size pages, a left rail that switches between page thumbnails, the outline, and the document's assets, zoom (actual size / fit width / fit page), page counter, and fullscreen reading (`F`).
 - Hot reload: edit `index.tsx` and the pages update live.
-- **Assets panel** (`/assets` in the dev UI): upload, rename, and delete files in the global `assets/` folder or any document's `assets/` folder, with an "unused" badge and a copy-ready import line. Files you reference in source are what it scans, so an import you write by hand shows up there immediately.
+- **Assets** (`/assets` in the dev UI, and the Assets tab of each document): images filed by chapter in a tree, and 參考文獻 (references) with a preview for PDFs, text, tables, audio, and video. Uploads are copied into the project; moving an image to another chapter or renaming it rewrites the imports that use it. An "unused" badge and a copy-ready import line come from scanning the sources, so an import you write by hand shows up there immediately.
+- **Settings** (`/settings`): the app's text size, and AI images — off, prompts left for Codex, or drawn through the OpenAI API with a key saved on this machine and the token cost recorded. Each document can switch generated images off.
 - **Inspect mode** (the "Inspect" button, dev only): click any element on a page to edit its text in place — the change is written straight back into `docs/<id>/index.tsx` — or leave a note for the agent, which is stored as a `@doc-comment` marker and processed by the `apply-comments` skill.
 - **Download menu** — PDF (true page size) and DOCX for review in Word. Those are the only two formats.
 - **Word export** — DOCX reflows the text instead of copying the sheets, so write structure, not position: real `h1`–`h3` become Word headings, `<Footnote>` a Word footnote, `<TableOfContents />` a contents field, a flow `footer` a running footer with live page numbers, and tables, lists, and links their Word equivalents. Inside a `<Figure>`, anything that is not an image or a table — a chart drawn with divs — is exported as a picture of itself.
@@ -416,7 +417,8 @@ confirms it.
 - [ ] Tables have a header row, aligned numerals (`fontVariantNumeric: 'tabular-nums'`), and fit the text block width.
 - [ ] Numbers that refer to other things — figures, tables, notes, pages — come from `<Ref>` / `<Figure>` / `<Footnote>`, never typed in.
 - [ ] Any data that exists as a file is imported, not retyped into JSX.
-- [ ] All imported assets exist on disk (`docs/<id>/assets/`, or root `assets/` via `@assets/...`).
+- [ ] All imported assets exist on disk (`docs/<id>/assets/images/…`, or root `assets/` via `@assets/...`), and each image sits in the folder of the chapter it illustrates.
+- [ ] Every `<ImagePrompt>` is in a document that has generated images switched on (`npx mosage images --json`), with a unique `id`, a `chapter` matching the heading, and a real px size.
 - [ ] Every `<ImagePlaceholder>` marks a real image the user must supply — not decorative filler.
 - [ ] Nothing outside `docs/<id>/` was edited.
 

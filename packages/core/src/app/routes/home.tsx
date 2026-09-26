@@ -170,7 +170,7 @@ function DocCard({
           {theme && (
             <Link
               to={`/themes/${theme.id}`}
-              className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-[0.625rem] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <Palette className="size-2.5" />
               {theme.name}
@@ -217,7 +217,7 @@ function DocCard({
                 </MenuItem>
 
                 <MenuSeparator />
-                <p className="px-2 py-1 text-[10px] text-muted-foreground uppercase tracking-wider">
+                <p className="px-2 py-1 text-[0.625rem] text-muted-foreground uppercase tracking-wider">
                   Move to
                 </p>
                 <MenuItem

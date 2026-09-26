@@ -57,6 +57,13 @@ test.describe('mosage CLI', () => {
     await expect(fs.access(path.join(dir, 'docs', 'plan'))).rejects.toThrow();
   });
 
+  test('upgrade leaves a workspace-linked project alone', async () => {
+    const dir = prepareScratchProject('cli-upgrade');
+    const res = await runCli(['upgrade'], dir);
+    expect(res.code).not.toBe(0);
+    expect(res.stderr).toContain('linked here');
+  });
+
   test('export only knows PDF and DOCX', async () => {
     const dir = prepareScratchProject('cli-formats');
     for (const format of ['html', 'png', 'svg']) {

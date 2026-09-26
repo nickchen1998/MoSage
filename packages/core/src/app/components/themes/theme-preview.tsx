@@ -40,7 +40,7 @@ export function ThemePreview({ theme, width, all = false }: Props) {
   if (shown.length === 0) {
     return (
       <div
-        className="grid place-items-center rounded-md border border-border border-dashed bg-muted text-[11px] text-muted-foreground"
+        className="grid place-items-center rounded-md border border-border border-dashed bg-muted text-[0.6875rem] text-muted-foreground"
         style={{ width, height: geometry.height * scale }}
       >
         {theme.hasDemo ? 'Loading…' : 'No demo'}

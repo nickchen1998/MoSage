@@ -62,6 +62,17 @@
   #root {
     height: 100%;
   }
+  /* The app's own text follows the size chosen in Settings (lib/ui-scale.ts).
+     Sheets are laid out in px and never read this, and print goes back to the
+     browser default so nothing sized in rem can reach a PDF. */
+  html {
+    font-size: calc(16px * var(--ui-scale, 1));
+  }
+  @media print {
+    html {
+      font-size: 16px;
+    }
+  }
   body {
     margin: 0;
     background: var(--background);

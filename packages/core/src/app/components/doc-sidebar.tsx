@@ -65,7 +65,7 @@ export function DocSidebar({
             type="button"
             onClick={() => setTab(value)}
             className={cn(
-              'flex-1 rounded-md px-2 py-1 text-[11px] capitalize transition-colors',
+              'flex-1 rounded-md px-2 py-1 text-[0.6875rem] capitalize transition-colors',
               tab === value
                 ? 'bg-accent font-medium text-foreground'
                 : 'text-muted-foreground hover:bg-accent/60',
@@ -77,7 +77,7 @@ export function DocSidebar({
       </div>
 
       {tab === 'assets' ? (
-        <DocAssets docId={docId} />
+        <DocAssets docId={docId} entries={entries} />
       ) : tab === 'pages' ? (
         <div ref={railRef} className="flex-1 overflow-y-auto px-3 pb-6">
           <div className="flex flex-col items-center gap-3">
@@ -116,7 +116,7 @@ export function DocSidebar({
                   </div>
                   <span
                     className={cn(
-                      'font-mono text-[10px] tabular-nums',
+                      'font-mono text-[0.625rem] tabular-nums',
                       page === currentPage ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
@@ -141,7 +141,7 @@ export function DocSidebar({
                 type="button"
                 onClick={() => onSelectEntry(entry)}
                 className={cn(
-                  'flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-accent',
+                  'flex w-full items-baseline gap-2 rounded-md px-2 py-1.5 text-left text-[0.8125rem] transition-colors hover:bg-accent',
                   entry.id === activeId
                     ? 'bg-accent font-medium text-foreground'
                     : 'text-muted-foreground',
@@ -149,7 +149,7 @@ export function DocSidebar({
                 style={{ paddingLeft: 8 + (entry.level - 1) * 12 }}
               >
                 <span className="line-clamp-2 flex-1">{entry.text}</span>
-                <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
+                <span className="font-mono text-[0.625rem] text-muted-foreground tabular-nums">
                   {entry.page}
                 </span>
               </button>
