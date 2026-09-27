@@ -1,5 +1,34 @@
 # mosage
 
+## 0.14.0
+
+### Minor Changes
+
+- [#38](https://github.com/nickchen1998/MoSage/pull/38) [`5b5caa1`](https://github.com/nickchen1998/MoSage/commit/5b5caa19f0b434a7005216e13fc21e42ce753c5a) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 內建圖表與引用文獻
+  
+  - `<Chart>`：長條圖（直式、橫式、群組、堆疊）、折線圖、圓餅圖，從 CSV 或內嵌資料畫出，顏色跟著文件配色，多系列使用色盲安全的固定順序；加上 `caption` 就編號成圖。PDF 裡是向量圖，Word 裡是圖片
+  - `<Cite>` 與 `<Bibliography>`：數字式（`[1]`、`[2，頁 12]`）或作者—年份式（（陳大文，2024））引用，參考文獻依 APA 排版，中文用全形標點；可以直接 `import refs from './refs.bib'` 匯入 Zotero、EndNote 匯出的 BibTeX
+  - `mosage check` 回報畫不出來的圖表、找不到的引用，並提醒列了但沒有引用的文獻
+  - 長的參考文獻清單在 `flow()` 裡會逐條分頁
+
+- [#37](https://github.com/nickchen1998/MoSage/pull/37) [`e732815`](https://github.com/nickchen1998/MoSage/commit/e732815eccda0f442c7232d6cbdd4c5ae184feb4) Thanks [@nickchen1998](https://github.com/nickchen1998)! - PDF 書籤、浮水印、中文排版檢查
+  
+  - `mosage export` 匯出的 PDF 帶有章節書籤，並且是 tagged PDF；書籤與檢視器的大綱一致
+  - `meta.watermark`（例如 `'草稿'`、`'機密'`）在每一頁印上淡淡的斜字，檢視器、PDF 與 Word 都有；Word 裡是原生浮水印，可以在 Word 修改或移除
+  - `mosage check` 以提醒的形式檢查中文排版：中文旁的半形標點、中文用了英文引號、台／臺混用；程式碼、圖與目錄不檢查，`data-od-typography="off"` 可以關閉某段
+
+- [#39](https://github.com/nickchen1998/MoSage/pull/39) [`1028e1e`](https://github.com/nickchen1998/MoSage/commit/1028e1ee223c1b0a4bb6b38217a5185a20cd7475) Thanks [@nickchen1998](https://github.com/nickchen1998)! - Word 匯入
+  
+  - `mosage import 報告.docx`：把 Word 檔轉成一份文件，保留標題（包含中文版 Word 的樣式）、粗體、斜體、連結、多層清單、表格（含合併儲存格與數字靠右）、圖片（附圖說）、註腳、引文與程式碼，並讀取頁面方向；Word 的目錄與頁碼欄位由 MoSage 自己產生
+  - Word 的圖表、文字方塊、方程式無法轉換，匯入後會列出數量，請用 `<Chart>`、`<Diagram>` 或文字重做
+  - 匯入的圖片（Word 與 Markdown）一律放在 `assets/images/`
+
+- [#40](https://github.com/nickchen1998/MoSage/pull/40) [`592d51a`](https://github.com/nickchen1998/MoSage/commit/592d51a46f996571d199fa983ceef4e5b2cc525e) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 檢視器新增繁體中文介面：Settings 的「語言」可選擇 English、繁體中文或跟隨瀏覽器。只翻譯操作介面，文件內容、頁面與匯出不受影響。
+
+### Patch Changes
+
+- [#36](https://github.com/nickchen1998/MoSage/pull/36) [`4b1cf49`](https://github.com/nickchen1998/MoSage/commit/4b1cf497d95c954f25eebf533438f7e8997a592b) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 更新相依套件：Vite 8.3、react-router-dom 7.18.4、@babel/parser 8.0.6
+
 ## 0.13.0
 
 ### Minor Changes
