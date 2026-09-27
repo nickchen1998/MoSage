@@ -35,6 +35,33 @@ test.describe('settings', () => {
     await expect.poll(rootSize).toBe('16px');
   });
 
+  test('the interface speaks Traditional Chinese, and the pages stay as written', async ({
+    page,
+  }) => {
+    await openDoc(page, 'alpha');
+    const sheets = await pages(page).count();
+    const text = await pages(page).first().innerText();
+
+    await page.goto('/settings');
+    await page.getByRole('button', { name: '繁體中文' }).click();
+    await expect(page.getByRole('heading', { name: '設定' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '跟隨瀏覽器' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+
+    // Kept for the next visit, and the document is what it was: same sheets, same words.
+    await openDoc(page, 'alpha');
+    await expect(page.getByRole('button', { name: '下載' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '大綱', exact: true })).toBeVisible();
+    expect(await pages(page).count()).toBe(sheets);
+    expect(await pages(page).first().innerText()).toBe(text);
+
+    await page.goto('/settings');
+    await page.getByRole('button', { name: 'English' }).click();
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  });
+
   test('the image mode and per-document switches are saved with the project', async ({ page }) => {
     await page.goto('/settings');
     await page.getByText('Leave prompts for Codex').click();
@@ -71,5 +98,19 @@ test.describe('settings', () => {
   test('a malformed key is refused', async ({ request }) => {
     const res = await request.put('/__settings/openai-key', { data: { key: 'hello' } });
     expect(res.status()).toBe(400);
+  });
+});
+
+test.describe('a Chinese browser', () => {
+  test.use({ locale: 'zh-TW' });
+
+  test('gets the Chinese interface until another language is chosen', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('button', { name: '未歸檔' })).toBeVisible();
+    await page.goto('/settings');
+    await expect(page.getByRole('button', { name: '跟隨瀏覽器' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

@@ -48,6 +48,8 @@ The chrome is everything that is **not** the sheet: the shell, the rails, the pa
 - Any motion tied to a keyboard shortcut or a high-frequency action
 - Hover-only access to a function with no keyboard or click path
 - A spinner for a wait the code knows is under ~300ms
+- A user-visible chrome string that does not go through `t()` / `t.rich()` / `msg()` (`lib/i18n.ts`), or a new key with no entry in `lib/i18n-zh-tw.ts`
+- A document component (anything exported from `src/index.ts`) importing `lib/i18n` — what prints on the page is the author's words
 - Fixed pixel widths on rails that make the page area collapse below ~900px viewport
 
 ## Output when reviewing

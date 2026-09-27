@@ -15,6 +15,7 @@ import { ALL_DOCS_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { Menu, MenuItem, MenuSeparator } from '../components/ui/menu';
 import { coverContent, pageCountLabel } from '../lib/doc-preview';
 import { docCreatedAt, docIds, docThemes } from '../lib/docs';
+import { useT } from '../lib/i18n';
 import { resolvePageGeometry } from '../lib/sdk';
 import { findTheme } from '../lib/themes';
 import { useDocModule } from '../lib/use-doc-module';
@@ -23,6 +24,7 @@ import type { HomeOutletContext } from './home-shell';
 const THUMB_WIDTH = 190;
 
 export function Home() {
+  const t = useT();
   const ctx = useOutletContext<HomeOutletContext>();
   const [error, setError] = useState<string | null>(null);
 
@@ -44,10 +46,10 @@ export function Home() {
 
   const heading =
     ctx.selectedId === ALL_DOCS_ID
-      ? 'Documents'
+      ? t('Documents')
       : ctx.selectedId === DRAFT_ID
-        ? 'Unfiled'
-        : (folder?.name ?? 'Documents');
+        ? t('Unfiled')
+        : (folder?.name ?? t('Documents'));
 
   return (
     <div>
@@ -61,16 +63,13 @@ export function Home() {
       {visibleIds.length === 0 ? (
         <div className="py-16 text-center">
           <FileText className="mx-auto size-6 text-muted-foreground" />
-          <p className="mt-3 font-medium text-sm">Nothing here yet</p>
+          <p className="mt-3 font-medium text-sm">{t('Nothing here yet')}</p>
           <p className="mt-1 text-muted-foreground text-xs">
-            {ctx.selectedId === ALL_DOCS_ID ? (
-              <>
-                Create <code className="font-mono">docs/&lt;id&gt;/index.tsx</code> and it appears
-                here.
-              </>
-            ) : (
-              'Drag a document onto this folder in the sidebar to file it here.'
-            )}
+            {ctx.selectedId === ALL_DOCS_ID
+              ? t.rich('Create {file} and it appears here.', {
+                  file: <code className="font-mono">docs/&lt;id&gt;/index.tsx</code>,
+                })
+              : t('Drag a document onto this folder in the sidebar to file it here.')}
           </p>
         </div>
       ) : (
@@ -93,6 +92,7 @@ function DocCard({
   ctx: HomeOutletContext;
   onError: (message: string | null) => void;
 }) {
+  const t = useT();
   const navigate = useNavigate();
   const state = useDocModule(docId);
   const doc = state.doc;
@@ -152,7 +152,7 @@ function DocCard({
             {title}
           </Link>
           <p className="mt-0.5 truncate text-muted-foreground text-xs">
-            {pageCountLabel(doc)} · {doc?.meta?.pageSize ?? 'A4'}
+            {pageCountLabel(doc, t)} · {doc?.meta?.pageSize ?? 'A4'}
           </p>
           {theme && (
             <Link
@@ -170,7 +170,7 @@ function DocCard({
             trigger={(props) => (
               <button
                 type="button"
-                aria-label={`${title} options`}
+                aria-label={t('{name} options', { name: title })}
                 className="flex size-6 flex-none items-center justify-center rounded text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 aria-expanded:opacity-100"
                 {...props}
               >
@@ -183,12 +183,12 @@ function DocCard({
                 <MenuItem
                   onClick={() => {
                     close();
-                    const next = window.prompt('Document title', title);
+                    const next = window.prompt(t('Document title'), title);
                     if (next && next !== title) void run(() => ctx.renameDoc(docId, next));
                   }}
                 >
                   <PencilLine className="size-3.5" />
-                  Rename
+                  {t('Rename')}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -200,12 +200,12 @@ function DocCard({
                   }}
                 >
                   <Copy className="size-3.5" />
-                  Duplicate
+                  {t('Duplicate')}
                 </MenuItem>
 
                 <MenuSeparator />
                 <p className="px-2 py-1 text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-                  Move to
+                  {t('Move to')}
                 </p>
                 <MenuItem
                   active={!currentFolder}
@@ -215,7 +215,7 @@ function DocCard({
                   }}
                 >
                   <FolderInput className="size-3.5" />
-                  Unfiled
+                  {t('Unfiled')}
                 </MenuItem>
                 {ctx.manifest.folders.map((folder) => (
                   <MenuItem
@@ -236,15 +236,16 @@ function DocCard({
                   destructive
                   onClick={() => {
                     close();
-                    if (
-                      !window.confirm(`Delete "${title}"? This removes docs/${docId}/ from disk.`)
-                    )
-                      return;
+                    const question = t('Delete “{title}”? This removes {path} from disk.', {
+                      title,
+                      path: `docs/${docId}/`,
+                    });
+                    if (!window.confirm(question)) return;
                     void run(() => ctx.deleteDoc(docId));
                   }}
                 >
                   <Trash2 className="size-3.5" />
-                  Delete document
+                  {t('Delete document')}
                 </MenuItem>
               </>
             )}

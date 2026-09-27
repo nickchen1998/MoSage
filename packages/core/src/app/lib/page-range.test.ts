@@ -9,6 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { chinese } from './i18n';
 import {
   describeSelection,
   formatPages,
@@ -128,6 +129,13 @@ describe('selectionSummary', () => {
   it('asks for page numbers when the range cannot be read', () => {
     expect(selectionSummary({ kind: 'custom', text: 'nope' }, 12, 1)).toBe(
       'Type page numbers, like 1-3, 5',
+    );
+  });
+
+  it('speaks the interface language it is given', () => {
+    expect(selectionSummary({ kind: 'current' }, 12, 8, chinese)).toBe('只下載目前檢視的第 8 頁');
+    expect(selectionSummary({ kind: 'custom', text: '1-3, 5' }, 12, 1, chinese)).toBe(
+      '將下載 4 頁：1–3, 5',
     );
   });
 });

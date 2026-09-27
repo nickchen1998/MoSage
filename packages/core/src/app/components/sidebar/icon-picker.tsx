@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { msg, useT } from '../../lib/i18n';
 import type { FolderIcon } from '../../lib/sdk';
 import { cn } from '../../lib/utils';
 
@@ -33,6 +34,8 @@ const PRESET_EMOJI = [
   '🗓️',
 ];
 
+const TAB_LABELS = { emoji: msg('Emoji'), color: msg('Color') } as const;
+
 export function IconPicker({
   value,
   onChange,
@@ -40,6 +43,7 @@ export function IconPicker({
   value: FolderIcon;
   onChange: (icon: FolderIcon) => void;
 }) {
+  const t = useT();
   const [tab, setTab] = useState<'emoji' | 'color'>(value.type);
 
   return (
@@ -51,11 +55,11 @@ export function IconPicker({
             type="button"
             onClick={() => setTab(next)}
             className={cn(
-              'flex-1 rounded px-2 py-1 text-[0.6875rem] capitalize transition-colors',
+              'flex-1 rounded px-2 py-1 text-[0.6875rem] transition-colors',
               tab === next ? 'bg-background font-medium' : 'text-muted-foreground',
             )}
           >
-            {next}
+            {t(TAB_LABELS[next])}
           </button>
         ))}
       </div>

@@ -1,6 +1,7 @@
 import { Check, Copy, Eye, FileIcon, FileText, PencilLine, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { type Asset, deleteAsset, formatBytes, importSnippet, renameAsset } from '../../lib/assets';
+import { type Translate, useT } from '../../lib/i18n';
 import { cn } from '../../lib/utils';
 
 type Actions = {
@@ -23,17 +24,21 @@ function useCopy(onError: (message: string) => void) {
   return { copied, copy };
 }
 
-async function rename(asset: Asset, { scope, onChanged, onError }: Actions) {
-  const next = window.prompt('New file name', asset.name);
+async function rename(asset: Asset, { scope, onChanged, onError }: Actions, t: Translate) {
+  const next = window.prompt(t('New file name'), asset.name);
   if (!next || next === asset.name) return;
   const result = await renameAsset(scope, asset.path, next);
   if (!result.ok) onError(`${asset.name}: ${result.error}`);
   onChanged();
 }
 
-async function remove(asset: Asset, { scope, onChanged, onError }: Actions) {
-  const warning = asset.unused ? '' : ' A document still uses it.';
-  if (!window.confirm(`Delete "${asset.name}"? This removes the file from disk.${warning}`)) return;
+async function remove(asset: Asset, { scope, onChanged, onError }: Actions, t: Translate) {
+  const question = asset.unused
+    ? t('Delete “{name}”? This removes the file from disk.', { name: asset.name })
+    : t('Delete “{name}”? This removes the file from disk. A document still uses it.', {
+        name: asset.name,
+      });
+  if (!window.confirm(question)) return;
   const result = await deleteAsset(scope, asset.path);
   if (!result.ok) onError(`${asset.name}: ${result.error}`);
   onChanged();
@@ -66,6 +71,7 @@ export function ImageCard({
   onPreview,
   ...actions
 }: Actions & { asset: Asset; onPreview: (asset: Asset) => void }) {
+  const t = useT();
   const { copied, copy } = useCopy(actions.onError);
 
   return (
@@ -73,7 +79,7 @@ export function ImageCard({
       <button
         type="button"
         onClick={() => onPreview(asset)}
-        aria-label={`Preview ${asset.name}`}
+        aria-label={t('Preview {name}', { name: asset.name })}
         className="relative grid h-36 place-items-center overflow-hidden rounded-md border border-border bg-muted transition-colors hover:border-foreground/40"
       >
         <img
@@ -83,7 +89,7 @@ export function ImageCard({
         />
         {asset.unused && (
           <span className="absolute top-1.5 left-1.5 rounded-full bg-background/90 px-1.5 py-0.5 text-[0.625rem] text-muted-foreground">
-            unused
+            {t('unused')}
           </span>
         )}
       </button>
@@ -101,12 +107,18 @@ export function ImageCard({
           className="flex flex-1 items-center justify-center gap-1 rounded-md border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? 'Copied' : 'Import'}
+          {copied ? t('Copied') : t('Import')}
         </button>
-        <IconAction label={`Rename ${asset.name}`} onClick={() => void rename(asset, actions)}>
+        <IconAction
+          label={t('Rename {name}', { name: asset.name })}
+          onClick={() => void rename(asset, actions, t)}
+        >
           <PencilLine className="size-3.5" />
         </IconAction>
-        <IconAction label={`Delete ${asset.name}`} onClick={() => void remove(asset, actions)}>
+        <IconAction
+          label={t('Delete {name}', { name: asset.name })}
+          onClick={() => void remove(asset, actions, t)}
+        >
           <Trash2 className="size-3.5" />
         </IconAction>
       </div>
@@ -120,6 +132,7 @@ export function ReferenceRow({
   compact = false,
   ...actions
 }: Actions & { asset: Asset; onPreview: (asset: Asset) => void; compact?: boolean }) {
+  const t = useT();
   const Icon =
     asset.mime === 'application/pdf' || asset.mime.startsWith('text/') ? FileText : FileIcon;
   return (
@@ -144,15 +157,24 @@ export function ReferenceRow({
         </span>
       )}
       <div className={cn('flex flex-none items-center', compact && 'hidden group-hover:flex')}>
-        <IconAction label={`Preview ${asset.name}`} onClick={() => onPreview(asset)}>
+        <IconAction
+          label={t('Preview {name}', { name: asset.name })}
+          onClick={() => onPreview(asset)}
+        >
           <Eye className="size-3.5" />
         </IconAction>
         {!compact && (
-          <IconAction label={`Rename ${asset.name}`} onClick={() => void rename(asset, actions)}>
+          <IconAction
+            label={t('Rename {name}', { name: asset.name })}
+            onClick={() => void rename(asset, actions, t)}
+          >
             <PencilLine className="size-3.5" />
           </IconAction>
         )}
-        <IconAction label={`Delete ${asset.name}`} onClick={() => void remove(asset, actions)}>
+        <IconAction
+          label={t('Delete {name}', { name: asset.name })}
+          onClick={() => void remove(asset, actions, t)}
+        >
           <Trash2 className="size-3.5" />
         </IconAction>
       </div>

@@ -14,6 +14,7 @@ import { Menu, MenuItem } from '../components/ui/menu';
 import { useAssetCount } from '../lib/assets';
 import { docIds } from '../lib/docs';
 import { useFolders } from '../lib/folders';
+import { useT } from '../lib/i18n';
 import type { FoldersManifest } from '../lib/sdk';
 import { themes } from '../lib/themes';
 
@@ -40,6 +41,7 @@ function pathToSelectedId(pathname: string, search: URLSearchParams): string {
 }
 
 export function HomeShell() {
+  const t = useT();
   const {
     manifest,
     loading,
@@ -137,7 +139,7 @@ export function HomeShell() {
               trigger={(props) => (
                 <button
                   type="button"
-                  aria-label="Menu"
+                  aria-label={t('Menu')}
                   className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground aria-expanded:bg-accent"
                   {...props}
                 >
@@ -158,7 +160,7 @@ export function HomeShell() {
                       close();
                     }}
                   >
-                    Documents
+                    {t('Documents')}
                   </MenuItem>
                   <MenuItem
                     active={selectedId === DRAFT_ID}
@@ -167,7 +169,7 @@ export function HomeShell() {
                       close();
                     }}
                   >
-                    Unfiled
+                    {t('Unfiled')}
                   </MenuItem>
                   <MenuItem
                     active={selectedId === THEMES_ID}
@@ -176,7 +178,7 @@ export function HomeShell() {
                       close();
                     }}
                   >
-                    Themes
+                    {t('Themes')}
                   </MenuItem>
                   {import.meta.env.DEV && (
                     <MenuItem
@@ -186,7 +188,7 @@ export function HomeShell() {
                         close();
                       }}
                     >
-                      Assets
+                      {t('Assets')}
                     </MenuItem>
                   )}
                   <MenuItem
@@ -196,7 +198,7 @@ export function HomeShell() {
                       close();
                     }}
                   >
-                    Settings
+                    {t('Settings')}
                   </MenuItem>
                 </>
               )}

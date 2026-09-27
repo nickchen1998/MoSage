@@ -97,12 +97,13 @@ pnpm core <指令>  # 只在 mosage 套件執行
 
 ### 素材、設定與 AI 生圖
 
-- **素材分兩類。** 每個 assets 資料夾（文件的 `docs/<id>/assets/` 與專案共用的 `assets/`）裡，圖片直接放在 `images/`，其他檔案放在 `references/`，介面上稱為「圖片」與「參考文獻」。舊版的兩種形狀照常可讀：直接放在 `assets/` 根目錄的檔案，以及以前按章節分類時的 `images/<資料夾>/`；新上傳一律不建立子資料夾。合法路徑由 `src/files/assets.ts` 的 `parseAssetPath` 判斷，路由與上傳都經過它。
+- **素材分兩類。** 每個 assets 資料夾（文件的 `docs/<id>/assets/` 與專案共用的 `assets/`）裡，圖片直接放在 `images/`，其他檔案放在 `references/`，介面上稱為 Images 與 References（中文介面為「圖片」與「參考文獻」）。舊版的兩種形狀照常可讀：直接放在 `assets/` 根目錄的檔案，以及以前按章節分類時的 `images/<資料夾>/`；新上傳一律不建立子資料夾。合法路徑由 `src/files/assets.ts` 的 `parseAssetPath` 判斷，路由與上傳都經過它。
 - **改名會改寫 import。** 素材改名時，`vite/routes/assets.ts` 會用 `rewriteAssetReferences` 改寫引用它的文件原始碼（文件範圍只改該文件，共用範圍改所有文件）。
 - **素材以開發伺服器自己的來源提供，回應標頭決定能不能在頁面內顯示。** `assetResponseHeaders` 只讓不會執行腳本的類型 inline 顯示；SVG 加上 sandbox 的 CSP；其他類型（包括上傳的 `.html`）一律當下載處理，因為在這個來源執行的頁面可以呼叫寫入專案的 API。
 - **設定分兩處。** 專案層級的選擇（生圖方式、模型、品質、各文件開關）存在 `.mosage/settings.json`，隨專案提交（`src/files/settings.ts`）。個人資料放在專案外的 `MOSAGE_HOME`（預設 `~/.mosage`，`src/files/user-data.ts`）：`credentials.json`（OpenAI 金鑰，權限 0600）與 `openai-usage.jsonl`（每次生圖的 token 與預估花費，由 `src/images/usage.ts` 讀寫）。API 永遠只回傳遮罩過的金鑰。測試一律把 `MOSAGE_HOME` 指到暫存資料夾。
 - **生成的圖片先以 `<ImagePrompt>` 佔位。** 它在頁面上佔用最後圖片的實際尺寸，所以分頁在圖片存在前就是對的。`src/images/prompts.ts` 用 Babel 找出這些元素，並在圖片存到 `assets/images/<id>.png` 後，把元素換成同尺寸、以 import 引用的 `<img>`，沒有其他 prompt 時也移除 `ImagePrompt` 的 import。`ops/images.ts` 是開發路由（`/__images`）與 CLI（`mosage images`）共用的入口；Codex 模式下由 `generate-images` skill 畫圖後呼叫 `mosage images place`。
 - **OpenAI 的呼叫與費用各自獨立。** `src/images/openai.ts` 呼叫 Images API（`MOSAGE_OPENAI_BASE_URL` 可指向測試用的假伺服器，e2e 用 `e2e/mock-openai.mjs`）；`src/images/pricing.ts` 是價格表與費用估算，價格變動時只改這裡。
+- **介面語言只翻譯操作介面。** `src/app/lib/i18n.ts` 以英文原文為鍵：元件用 `useT()` 取得 `t`，句中夾元素用 `t.rich`，常數裡的字串用 `msg()` 標記、顯示時再 `t()`。譯文在 `i18n-zh-tw.ts`，`i18n.test.ts` 會掃描 `src/app` 確認每個鍵都有譯文、沒有多餘的譯文、佔位符一致。文件元件（圖表、引用、編號、註腳等）印在紙上的是作者的文字，不能引用 i18n；也不要隨語言改 `<html lang>`——頁面沒有自己的 `lang`，它會改變 CJK 字形與分頁。
 - **介面文字大小只縮放操作介面。** 介面一律用 rem（`lib/ui-scale.ts` 設定根字級），頁面內容一律用 px，列印時根字級回到 16px，所以這個設定永遠碰不到紙張與匯出。新增介面元素時不要用 `text-[Npx]` 這類固定 px 的字級。
 - **更新檢查不能拖慢任何事。** `src/versions.ts` 的 `fetchLatestVersion` 有逾時、快取，失敗時回傳 null；`MOSAGE_NO_UPDATE_CHECK` 或 `CI` 會關閉它。`mosage dev` 在伺服器啟動後才檢查，`u` + Enter 會關閉伺服器、執行 `mosage upgrade`，再用新的程序重新啟動。`upgrade` 會把專案裡與新版 mosage 主版號不同的 React、React 型別與 Vite 一起對齊。
 

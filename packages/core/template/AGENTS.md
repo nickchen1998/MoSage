@@ -32,4 +32,4 @@ npm run build                              # static site into dist/
 
 `check` and `export` need Playwright: `npm i -D playwright && npx playwright install chromium`.
 
-In the viewer: page thumbnails, the outline, and the document's assets in the left rail; continuous, two-up, and grid layouts; zoom; **Inspect** to edit text in place or leave a note; **Design** to adjust the palette and type scale; **Download** as PDF (true page size) or DOCX (editable in Word).
+In the viewer: page thumbnails, the outline, and the document's assets in the left rail; continuous, two-up, and grid layouts; zoom; **Inspect** to edit text in place or leave a note; **Design** to adjust the palette and type scale; **Download** as PDF (true page size) or DOCX (editable in Word). **Settings** switches the interface between English and Traditional Chinese, so the user may name a control by either label (**Inspect** is 檢查, **Design** is 設計, **Download** is 下載, **Assets** is 素材); only the chrome changes, never the document.

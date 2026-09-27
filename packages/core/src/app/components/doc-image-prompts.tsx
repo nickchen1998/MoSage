@@ -1,6 +1,7 @@
 import { AlertTriangle, Check, Copy, Loader2, Sparkles } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useT } from '../lib/i18n';
 import {
   formatUsd,
   generateImage,
@@ -19,6 +20,7 @@ import { Switch } from '../routes/settings';
  * `<ImagePrompt>`s still waiting to be drawn.
  */
 export function DocImagePrompts({ docId }: { docId: string }) {
+  const t = useT();
   const settings = useLive(getSettings);
   const loadPrompts = useCallback(() => listImagePrompts(docId), [docId]);
   const prompts = useLive(loadPrompts);
@@ -48,7 +50,9 @@ export function DocImagePrompts({ docId }: { docId: string }) {
     setBusy(null);
     if (!result.ok) return setMessage(`${prompt.id}: ${result.error}`);
     const cost = result.value.costUsd;
-    if (cost !== undefined) setMessage(`${prompt.id}: done · about ${formatUsd(cost)}`);
+    if (cost !== undefined) {
+      setMessage(`${prompt.id}: ${t('done · about {cost}', { cost: formatUsd(cost) })}`);
+    }
     prompts.reload();
   };
 
@@ -58,7 +62,9 @@ export function DocImagePrompts({ docId }: { docId: string }) {
     }
   };
 
-  const codexRequest = `Use the generate-images skill to draw the images in docs/${docId}.`;
+  const codexRequest = t('Use the generate-images skill to draw the images in {path}.', {
+    path: `docs/${docId}`,
+  });
   const copyRequest = async () => {
     try {
       await navigator.clipboard.writeText(codexRequest);
@@ -73,18 +79,26 @@ export function DocImagePrompts({ docId }: { docId: string }) {
     <section className="mt-3 rounded-md border border-border p-2">
       <div className="flex items-center gap-1.5">
         <Sparkles className="size-3.5 flex-none text-muted-foreground" />
-        <span className="flex-1 font-medium text-xs">AI images</span>
-        <Switch label="Use generated images in this document" checked={enabled} onChange={toggle} />
+        <span className="flex-1 font-medium text-xs">{t('AI images')}</span>
+        <Switch
+          label={t('Use generated images in this document')}
+          checked={enabled}
+          onChange={toggle}
+        />
       </div>
 
       {!enabled ? (
         <p className="mt-1.5 text-[0.6875rem] text-muted-foreground leading-relaxed">
-          Off for this document — the agent leaves no image prompts here.
+          {t('Off for this document — the agent leaves no image prompts here.')}
         </p>
       ) : pending.length === 0 ? (
         <p className="mt-1.5 text-[0.6875rem] text-muted-foreground leading-relaxed">
-          No prompts yet. The writing agent leaves an{' '}
-          <code className="font-mono">&lt;ImagePrompt&gt;</code> where each image should go.
+          {t.rich(
+            'No prompts yet. The writing agent leaves an {prompt} where each image should go.',
+            {
+              prompt: <code className="font-mono">&lt;ImagePrompt&gt;</code>,
+            },
+          )}
         </p>
       ) : (
         <>
@@ -105,7 +119,7 @@ export function DocImagePrompts({ docId }: { docId: string }) {
                       className="flex flex-none items-center gap-1 rounded bg-primary px-1.5 py-0.5 text-[0.6875rem] text-primary-foreground disabled:opacity-60"
                     >
                       {busy === prompt.id && <Loader2 className="size-3 animate-spin" />}
-                      {prompt.ready ? 'Place' : 'Generate'}
+                      {prompt.ready ? t('Place') : t('Generate')}
                     </button>
                   ) : null}
                 </div>
@@ -123,14 +137,14 @@ export function DocImagePrompts({ docId }: { docId: string }) {
               onClick={() => void runAll()}
               className="mt-2 w-full rounded border border-border px-2 py-1 text-xs hover:bg-accent disabled:opacity-60"
             >
-              Generate all ({drawable.length})
+              {t('Generate all ({count})', { count: drawable.length })}
             </button>
           )}
 
           {image.mode === 'codex' && (
             <div className="mt-2">
               <p className="text-[0.6875rem] text-muted-foreground leading-relaxed">
-                Open Codex in this project and ask it to draw them:
+                {t('Open Codex in this project and ask it to draw them:')}
               </p>
               <button
                 type="button"
@@ -151,11 +165,13 @@ export function DocImagePrompts({ docId }: { docId: string }) {
 
       {image.mode === 'openai' && !settings.data.openai.configured && enabled && (
         <p className="mt-2 text-[0.6875rem] text-muted-foreground">
-          Add an OpenAI API key in{' '}
-          <Link to="/settings" className="underline">
-            Settings
-          </Link>{' '}
-          first.
+          {t.rich('Add an OpenAI API key in {settings} first.', {
+            settings: (
+              <Link to="/settings" className="underline">
+                {t('Settings')}
+              </Link>
+            ),
+          })}
         </p>
       )}
       {message && <p className="mt-2 text-[0.6875rem] text-muted-foreground">{message}</p>}

@@ -2,6 +2,14 @@ import { Check, KeyRound, Loader2, Trash2 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { docIds, useDocTitles } from '../lib/docs';
 import {
+  LANGUAGE_CHOICES,
+  msg,
+  setLanguage,
+  type Translator,
+  useLanguage,
+  useT,
+} from '../lib/i18n';
+import {
   formatTokens,
   formatUsd,
   getSettings,
@@ -18,27 +26,43 @@ import {
 import { setUiScale, UI_SCALES, useUiScale } from '../lib/ui-scale';
 import { cn } from '../lib/utils';
 
-const MODE_OPTIONS: Array<{ mode: ImageGenerationMode; title: string; body: ReactNode }> = [
-  { mode: 'off', title: 'Off', body: 'Documents use only the images you upload.' },
+const MODE_OPTIONS: Array<{
+  mode: ImageGenerationMode;
+  title: string;
+  body: (t: Translator) => ReactNode;
+}> = [
+  {
+    mode: 'off',
+    title: msg('Off'),
+    body: (t) => t('Documents use only the images you upload.'),
+  },
   {
     mode: 'codex',
-    title: 'Leave prompts for Codex',
-    body: (
-      <>
-        The writing agent puts an <code className="font-mono">&lt;ImagePrompt&gt;</code> where each
-        image goes. Open Codex in this project and ask it to generate the images — it uses the{' '}
-        <code className="font-mono">generate-images</code> skill and your Codex subscription.
-      </>
-    ),
+    title: msg('Leave prompts for Codex'),
+    body: (t) =>
+      t.rich(
+        'The writing agent puts an {prompt} where each image goes. Open Codex in this project and ask it to generate the images — it uses the {skill} skill and your Codex subscription.',
+        {
+          prompt: <code className="font-mono">&lt;ImagePrompt&gt;</code>,
+          skill: <code className="font-mono">generate-images</code>,
+        },
+      ),
   },
   {
     mode: 'openai',
-    title: 'OpenAI API',
-    body: 'MoSage draws each prompt itself with your API key, and records what it costs.',
+    title: msg('OpenAI API'),
+    body: (t) => t('MoSage draws each prompt itself with your API key, and records what it costs.'),
   },
 ];
 
+const QUALITY_LABELS: Record<string, string> = {
+  low: msg('Low'),
+  medium: msg('Medium'),
+  high: msg('High'),
+};
+
 export function SettingsPage() {
+  const t = useT();
   const settings = useLive(getSettings);
   const data = settings.data;
 
@@ -50,15 +74,20 @@ export function SettingsPage() {
   return (
     <div className="max-w-3xl">
       <header className="mb-8">
-        <h1 className="font-medium text-lg tracking-tight">Settings</h1>
+        <h1 className="font-medium text-lg tracking-tight">{t('Settings')}</h1>
         <p className="mt-1 text-muted-foreground text-sm">
-          Project choices are saved in <code className="font-mono">.mosage/settings.json</code>.
-          Your API key and text size stay on this machine.
+          {t.rich(
+            'Project choices are saved in {file}. Your API key, language and text size stay on this machine.',
+            { file: <code className="font-mono">.mosage/settings.json</code> },
+          )}
         </p>
       </header>
 
-      <Section title="Interface">
-        <TextSize />
+      <Section title={t('Interface')}>
+        <div className="space-y-6">
+          <Language />
+          <TextSize />
+        </div>
       </Section>
 
       {import.meta.env.DEV &&
@@ -71,8 +100,8 @@ export function SettingsPage() {
             )}
           </div>
         ) : (
-          <Section title="AI images">
-            <fieldset className="grid gap-2" aria-label="Image generation">
+          <Section title={t('AI images')}>
+            <fieldset className="grid gap-2" aria-label={t('Image generation')}>
               {MODE_OPTIONS.map((option) => (
                 <label
                   key={option.mode}
@@ -91,9 +120,9 @@ export function SettingsPage() {
                     onChange={() => void update({ mode: option.mode })}
                   />
                   <span>
-                    <span className="block font-medium text-sm">{option.title}</span>
+                    <span className="block font-medium text-sm">{t(option.title)}</span>
                     <span className="mt-0.5 block text-muted-foreground text-xs leading-relaxed">
-                      {option.body}
+                      {option.body(t)}
                     </span>
                   </span>
                 </label>
@@ -104,7 +133,7 @@ export function SettingsPage() {
               <div className="mt-6 space-y-6">
                 <ApiKey status={data.openai} onChanged={settings.reload} />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Model">
+                  <Field label={t('Model')}>
                     <select
                       value={data.settings.imageGeneration.model}
                       onChange={(e) => void update({ model: e.target.value })}
@@ -115,13 +144,15 @@ export function SettingsPage() {
                         return (
                           <option key={model} value={model}>
                             {model}
-                            {price ? ` — $${price.imageOutput}/1M output tokens` : ''}
+                            {price
+                              ? ` — ${t('{price} per 1M output tokens', { price: `$${price.imageOutput}` })}`
+                              : ''}
                           </option>
                         );
                       })}
                     </select>
                   </Field>
-                  <Field label="Quality">
+                  <Field label={t('Quality')}>
                     <select
                       value={data.settings.imageGeneration.quality}
                       onChange={(e) =>
@@ -129,11 +160,11 @@ export function SettingsPage() {
                           quality: e.target.value as ImageGenerationSettings['quality'],
                         })
                       }
-                      className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm capitalize"
+                      className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
                     >
                       {data.choices.qualities.map((quality) => (
                         <option key={quality} value={quality}>
-                          {quality}
+                          {t(QUALITY_LABELS[quality] ?? quality)}
                         </option>
                       ))}
                     </select>
@@ -153,7 +184,7 @@ export function SettingsPage() {
         ))}
 
       {import.meta.env.DEV && (
-        <Section title="About">
+        <Section title={t('About')}>
           <Version />
         </Section>
       )}
@@ -180,38 +211,83 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function TextSize() {
-  const scale = useUiScale();
+function Choice({
+  pressed,
+  onClick,
+  children,
+}: {
+  pressed: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={cn(
+        'rounded-md border px-3 py-1.5 text-sm transition-colors',
+        pressed
+          ? 'border-transparent bg-primary text-primary-foreground'
+          : 'border-border hover:bg-accent',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Language() {
+  const t = useT();
+  const language = useLanguage();
   return (
     <div>
-      <p className="mb-2 font-medium text-sm">Text size</p>
-      <fieldset aria-label="Text size" className="flex flex-wrap gap-2">
-        {UI_SCALES.map((option) => (
-          <button
+      <p className="mb-2 font-medium text-sm">{t('Language')}</p>
+      <fieldset aria-label={t('Language')} className="flex flex-wrap gap-2">
+        {LANGUAGE_CHOICES.map((option) => (
+          <Choice
             key={option.value}
-            type="button"
-            aria-pressed={scale === option.value}
-            onClick={() => setUiScale(option.value)}
-            className={cn(
-              'rounded-md border px-3 py-1.5 text-sm transition-colors',
-              scale === option.value
-                ? 'border-transparent bg-primary text-primary-foreground'
-                : 'border-border hover:bg-accent',
-            )}
+            pressed={language === option.value}
+            onClick={() => setLanguage(option.value)}
           >
-            {option.label}
-            <span className="ml-1.5 text-xs opacity-70">{Math.round(option.value * 100)}%</span>
-          </button>
+            {option.value === 'auto' ? t(option.label) : option.label}
+          </Choice>
         ))}
       </fieldset>
       <p className="mt-2 text-muted-foreground text-xs">
-        Sizes the app itself. Pages keep their real size, and exports are not affected.
+        {t('Only the app is translated. Documents keep the language they are written in.')}
+      </p>
+    </div>
+  );
+}
+
+function TextSize() {
+  const t = useT();
+  const scale = useUiScale();
+  return (
+    <div>
+      <p className="mb-2 font-medium text-sm">{t('Text size')}</p>
+      <fieldset aria-label={t('Text size')} className="flex flex-wrap gap-2">
+        {UI_SCALES.map((option) => (
+          <Choice
+            key={option.value}
+            pressed={scale === option.value}
+            onClick={() => setUiScale(option.value)}
+          >
+            {t(option.label)}
+            <span className="ml-1.5 text-xs opacity-70">{Math.round(option.value * 100)}%</span>
+          </Choice>
+        ))}
+      </fieldset>
+      <p className="mt-2 text-muted-foreground text-xs">
+        {t('Sizes the app itself. Pages keep their real size, and exports are not affected.')}
       </p>
     </div>
   );
 }
 
 function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => void }) {
+  const t = useT();
   const [value, setValue] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -227,7 +303,7 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
   };
 
   const remove = async () => {
-    if (!window.confirm('Remove the saved OpenAI API key from this machine?')) return;
+    if (!window.confirm(t('Remove the saved OpenAI API key from this machine?'))) return;
     const result = await removeApiKey();
     if (!result.ok) return setError(result.error);
     onChanged();
@@ -235,13 +311,15 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
 
   return (
     <div>
-      <p className="mb-1 font-medium text-sm">OpenAI API key</p>
+      <p className="mb-1 font-medium text-sm">{t('OpenAI API key')}</p>
       {status.configured ? (
         <div className="mb-2 flex items-center gap-2 text-sm">
           <KeyRound className="size-4 text-muted-foreground" />
           <code className="font-mono">{status.hint}</code>
           <span className="text-muted-foreground text-xs">
-            {status.source === 'env' ? 'from OPENAI_API_KEY' : 'saved on this machine'}
+            {status.source === 'env'
+              ? t('from {name}', { name: 'OPENAI_API_KEY' })
+              : t('saved on this machine')}
           </span>
           {status.source === 'saved' && (
             <button
@@ -250,14 +328,16 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
               className="ml-auto flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"
             >
               <Trash2 className="size-3.5" />
-              Remove
+              {t('Remove')}
             </button>
           )}
         </div>
       ) : (
         <p className="mb-2 text-muted-foreground text-xs">
-          No key yet. It is stored in <code className="font-mono">~/.mosage/credentials.json</code>,
-          outside the project, so it is never committed.
+          {t.rich(
+            'No key yet. It is stored in {file}, outside the project, so it is never committed.',
+            { file: <code className="font-mono">~/.mosage/credentials.json</code> },
+          )}
         </p>
       )}
       <form
@@ -270,8 +350,8 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
         <input
           type="password"
           autoComplete="off"
-          aria-label="OpenAI API key"
-          placeholder={status.configured ? 'Replace with a new key' : 'sk-…'}
+          aria-label={t('OpenAI API key')}
+          placeholder={status.configured ? t('Replace with a new key') : 'sk-…'}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 font-mono text-sm"
@@ -282,7 +362,7 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
           className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-primary-foreground text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-          Save key
+          {t('Save key')}
         </button>
       </form>
       {error && <p className="mt-2 text-muted-foreground text-xs">{error}</p>}
@@ -291,20 +371,21 @@ function ApiKey({ status, onChanged }: { status: KeyStatus; onChanged: () => voi
 }
 
 function Usage({ pricesAsOf }: { pricesAsOf: string }) {
+  const t = useT();
   const { data } = useLive(getUsage);
   if (!data) return null;
   const { totals } = data;
   return (
     <div>
-      <p className="font-medium text-sm">Usage</p>
-      <p className="mb-2 text-muted-foreground text-xs">Every project on this machine.</p>
+      <p className="font-medium text-sm">{t('Usage')}</p>
+      <p className="mb-2 text-muted-foreground text-xs">{t('Every project on this machine.')}</p>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-border border-b text-muted-foreground text-xs">
-            <th className="py-1.5 text-left font-normal">Images</th>
-            <th className="py-1.5 text-right font-normal">Input tokens</th>
-            <th className="py-1.5 text-right font-normal">Output tokens</th>
-            <th className="py-1.5 text-right font-normal">Estimated cost</th>
+            <th className="py-1.5 text-left font-normal">{t('Images')}</th>
+            <th className="py-1.5 text-right font-normal">{t('Input tokens')}</th>
+            <th className="py-1.5 text-right font-normal">{t('Output tokens')}</th>
+            <th className="py-1.5 text-right font-normal">{t('Estimated cost')}</th>
           </tr>
         </thead>
         <tbody className="tabular-nums">
@@ -318,7 +399,9 @@ function Usage({ pricesAsOf }: { pricesAsOf: string }) {
       </table>
       {data.recent.length > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-muted-foreground text-xs">Recent images</summary>
+          <summary className="cursor-pointer text-muted-foreground text-xs">
+            {t('Recent images')}
+          </summary>
           <ul className="mt-2 space-y-1 text-xs tabular-nums">
             {data.recent.map((entry) => (
               <li key={`${entry.ts}-${entry.project}-${entry.imageId}`} className="flex gap-3">
@@ -328,7 +411,10 @@ function Usage({ pricesAsOf }: { pricesAsOf: string }) {
                   {entry.quality}
                 </span>
                 <span>
-                  {formatTokens(entry.inputTokens)} in · {formatTokens(entry.outputTokens)} out
+                  {t('{input} in · {output} out', {
+                    input: formatTokens(entry.inputTokens),
+                    output: formatTokens(entry.outputTokens),
+                  })}
                 </span>
                 <span>{formatUsd(entry.costUsd)}</span>
               </li>
@@ -337,8 +423,10 @@ function Usage({ pricesAsOf }: { pricesAsOf: string }) {
         </details>
       )}
       <p className="mt-2 text-muted-foreground text-xs">
-        Costs are estimated from OpenAI's published prices ({pricesAsOf}); your OpenAI bill is the
-        exact figure.
+        {t(
+          "Costs are estimated from OpenAI's published prices ({date}); your OpenAI bill is the exact figure.",
+          { date: pricesAsOf },
+        )}
       </p>
     </div>
   );
@@ -351,16 +439,19 @@ function DocumentSwitches({
   documents: Record<string, boolean>;
   onToggle: (docId: string, enabled: boolean) => void;
 }) {
+  const t = useT();
   const titles = useDocTitles();
 
   return (
     <div className="mt-6">
-      <p className="font-medium text-sm">Documents</p>
+      <p className="font-medium text-sm">{t('Documents')}</p>
       <p className="mb-2 text-muted-foreground text-xs">
-        Which documents may use generated images. Turned off, the agent leaves no prompts there.
+        {t(
+          'Which documents may use generated images. Turned off, the agent leaves no prompts there.',
+        )}
       </p>
       {docIds.length === 0 ? (
-        <p className="text-muted-foreground text-xs">No documents yet.</p>
+        <p className="text-muted-foreground text-xs">{t('No documents yet.')}</p>
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border">
           {[...docIds].sort().map((id) => (
@@ -368,7 +459,7 @@ function DocumentSwitches({
               <span className="min-w-0 flex-1 truncate text-sm">{titles[id] ?? id}</span>
               <code className="font-mono text-muted-foreground text-xs">{id}</code>
               <Switch
-                label={`Generated images in ${id}`}
+                label={t('Generated images in {id}', { id })}
                 checked={documents[id] !== false}
                 onChange={(enabled) => onToggle(id, enabled)}
               />
@@ -412,6 +503,7 @@ export function Switch({
 }
 
 function Version() {
+  const t = useT();
   const { data } = useLive(getVersion);
   if (!data) return null;
   return (
@@ -419,15 +511,26 @@ function Version() {
       <p>
         MoSage <span className="font-mono">{data.current}</span>
         {data.latest && !data.updateAvailable && (
-          <span className="ml-2 text-muted-foreground text-xs">— up to date</span>
+          <span className="ml-2 text-muted-foreground text-xs">— {t('up to date')}</span>
         )}
       </p>
       {data.updateAvailable && (
         <p className="mt-1 text-sm">
-          Version <span className="font-mono">{data.latest}</span> is available. Run{' '}
-          <code className="rounded bg-muted px-1.5 py-0.5 font-mono">npx mosage upgrade</code> in
-          the project, or press <kbd className="font-mono">u</kbd> + <kbd>Enter</kbd> in the
-          terminal running <code className="font-mono">mosage dev</code>.
+          {t.rich(
+            'Version {version} is available. Run {command} in the project, or press {keys} in the terminal running {dev}.',
+            {
+              version: <span className="font-mono">{data.latest}</span>,
+              command: (
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono">npx mosage upgrade</code>
+              ),
+              keys: (
+                <>
+                  <kbd className="font-mono">u</kbd> + <kbd>Enter</kbd>
+                </>
+              ),
+              dev: <code className="font-mono">mosage dev</code>,
+            },
+          )}
         </p>
       )}
     </div>

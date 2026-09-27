@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DesignSystem } from '../lib/design';
+import { msg, useT } from '../lib/i18n';
 import type { OutlineEntry } from '../lib/outline';
 import type { PageGeometry } from '../lib/sdk';
 import type { ExpandedPage } from '../lib/use-doc-pages';
@@ -10,6 +11,12 @@ import { PageFrame } from './page-frame';
 const THUMB_WIDTH = 116;
 
 type Tab = 'pages' | 'outline' | 'assets';
+
+const TAB_LABELS: Record<Tab, string> = {
+  pages: msg('Pages'),
+  outline: msg('Outline'),
+  assets: msg('Assets'),
+};
 
 type Props = {
   docId: string;
@@ -36,6 +43,7 @@ export function DocSidebar({
   onSelectPage,
   onSelectEntry,
 }: Props) {
+  const t = useT();
   const [tab, setTab] = useState<Tab>('pages');
   const railRef = useRef<HTMLDivElement>(null);
   // The assets panel talks to the dev API, so it has nothing to show in a
@@ -67,13 +75,13 @@ export function DocSidebar({
             type="button"
             onClick={() => setTab(value)}
             className={cn(
-              'flex-1 rounded-md px-2 py-1 text-[0.6875rem] capitalize transition-colors',
+              'flex-1 rounded-md px-2 py-1 text-[0.6875rem] transition-colors',
               tab === value
                 ? 'bg-accent font-medium text-foreground'
                 : 'text-muted-foreground hover:bg-accent/60',
             )}
           >
-            {value}
+            {t(TAB_LABELS[value])}
           </button>
         ))}
       </div>
@@ -134,8 +142,10 @@ export function DocSidebar({
         <nav className="flex-1 overflow-y-auto px-2 pb-6">
           {entries.length === 0 ? (
             <p className="px-2 py-1 text-muted-foreground text-xs leading-relaxed">
-              No headings yet. Add an <code className="font-mono">h1</code>/
-              <code className="font-mono">h2</code> to a page and it shows up here.
+              {t.rich('No headings yet. Add an {h1}/{h2} to a page and it shows up here.', {
+                h1: <code className="font-mono">h1</code>,
+                h2: <code className="font-mono">h2</code>,
+              })}
             </p>
           ) : (
             entries.map((entry) => (

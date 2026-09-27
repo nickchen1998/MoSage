@@ -1,6 +1,7 @@
 import { Download, ExternalLink, FileIcon, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type Asset, formatBytes, previewKind } from '../lib/assets';
+import { useT } from '../lib/i18n';
 
 const TEXT_LIMIT = 200_000;
 const TABLE_ROWS = 200;
@@ -36,6 +37,7 @@ function parseRows(text: string, delimiter: string): string[][] {
 }
 
 function TextBody({ asset, table }: { asset: Asset; table: boolean }) {
+  const t = useT();
   const [text, setText] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -98,13 +100,16 @@ function TextBody({ asset, table }: { asset: Asset; table: boolean }) {
         </tbody>
       </table>
       {rows.length + 1 >= TABLE_ROWS && (
-        <p className="mt-2 text-muted-foreground text-xs">Showing the first {TABLE_ROWS} rows.</p>
+        <p className="mt-2 text-muted-foreground text-xs">
+          {t('Showing the first {count} rows.', { count: TABLE_ROWS })}
+        </p>
       )}
     </div>
   );
 }
 
 function PreviewBody({ asset }: { asset: Asset }) {
+  const t = useT();
   switch (previewKind(asset)) {
     case 'image':
       return (
@@ -137,14 +142,14 @@ function PreviewBody({ asset }: { asset: Asset }) {
         <div className="grid h-full place-items-center p-6 text-center">
           <div>
             <FileIcon className="mx-auto size-8 text-muted-foreground" />
-            <p className="mt-3 text-sm">No preview for this file type.</p>
+            <p className="mt-3 text-sm">{t('No preview for this file type.')}</p>
             <a
               href={asset.url}
               download={asset.name}
               className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent"
             >
               <Download className="size-3.5" />
-              Download
+              {t('Download')}
             </a>
           </div>
         </div>
@@ -154,6 +159,7 @@ function PreviewBody({ asset }: { asset: Asset }) {
 
 /** A file from the assets, opened over the page. Escape or the backdrop closes it. */
 export function AssetPreview({ asset, onClose }: { asset: Asset; onClose: () => void }) {
+  const t = useT();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -166,7 +172,7 @@ export function AssetPreview({ asset, onClose }: { asset: Asset; onClose: () => 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-10">
       <button
         type="button"
-        aria-label="Close preview"
+        aria-label={t('Close preview')}
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-black/50"
       />
@@ -189,11 +195,11 @@ export function AssetPreview({ asset, onClose }: { asset: Asset; onClose: () => 
             className="flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"
           >
             <ExternalLink className="size-3.5" />
-            Open
+            {t('Open')}
           </a>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t('Close')}
             onClick={onClose}
             className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
           >
