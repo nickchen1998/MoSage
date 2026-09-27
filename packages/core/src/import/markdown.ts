@@ -15,7 +15,9 @@ export type Inline =
   | { type: 'code'; value: string }
   | { type: 'link'; href: string; children: Inline[] }
   | { type: 'image'; src: string; alt: string }
-  | { type: 'break' };
+  | { type: 'break' }
+  /** Word footnotes; markdown itself has no syntax that makes one. */
+  | { type: 'footnote'; children: Inline[] };
 
 export type TableAlign = 'left' | 'center' | 'right' | null;
 

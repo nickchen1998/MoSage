@@ -9,7 +9,7 @@ This skill owns the **workflow** for drafting a new document. The technical refe
 
 You only write files under `docs/<id>/`. Never modify `package.json`, `mosage.config.ts`, or existing documents.
 
-**If the user already has the content written as Markdown, don't retype it into JSX.** `mosage import <file.md> --id <id>` produces a real document — `flow()` body, cover, contents, local images copied into the document's assets — which you then refine. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
+**If the user already has the content written as Markdown or in Word, don't retype it into JSX.** `mosage import <file.md|file.docx> --id <id>` produces a real document — `flow()` body, cover, contents, pictures copied into the document's `assets/images/`, and for Word its lists, tables, footnotes, and links — which you then refine. The command reports what Word drew that it could not bring across (charts, text boxes, equations); redo those with `<Chart>`, `<Diagram>`, or text, and tell the user. Steps 0–2 still apply for the parts the import cannot know (theme, page size, visual direction).
 
 ## Step 0 — Pick a theme
 

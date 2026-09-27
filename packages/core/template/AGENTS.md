@@ -26,6 +26,7 @@ npm run dev                                # viewer at http://localhost:5273, li
 npx mosage check                           # overflowing content, blank sheets, Chinese punctuation
 npx mosage export <id> --format pdf|docx   # into out/
 npx mosage images                          # image prompts waiting to be drawn
+npx mosage import <file.docx|file.md>      # start a document from Word or Markdown
 npm run build                              # static site into dist/
 ```
 

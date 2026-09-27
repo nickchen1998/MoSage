@@ -98,7 +98,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 ### 其他
 
 - 主題（themes）管理，文件可以用資料夾分類。`mosage init` 建立的專案內建函文、會議紀錄、橫式信封、直式信封四個主題。
-- `mosage import notes.md`：把既有的 Markdown 轉成一份文件。
+- `mosage import 報告.docx`（或 `notes.md`）：把既有的 Word 檔或 Markdown 轉成一份文件——標題、粗斜體、清單、表格、圖片、註腳與連結都會保留，Word 的圖表、文字方塊與方程式則會列出來請你重做。
 - `mosage build`：輸出靜態網站，可以直接部署。
 - **自動檢查更新**：`npm run dev` 啟動時會檢查 npm 上有沒有新版；有的話，在終端機輸入 `u` 再按 Enter 就會更新並重新啟動（也可以執行 `npx mosage upgrade`）。
 
@@ -125,7 +125,7 @@ AI 擅長寫文字和程式碼，卻很難精準操作 Word 的樣式、分頁�
 | `mosage dev` | 開啟開發伺服器與檢視器 |
 | `mosage check [文件…]` | 檢查版面問題 |
 | `mosage export [文件…]` | 匯出 PDF 或 Word（`--format pdf\|docx`、`--all`、`--out-dir`） |
-| `mosage import <檔案.md>` | 把 Markdown 轉成文件 |
+| `mosage import <檔案.docx｜檔案.md>` | 把 Word 檔或 Markdown 轉成文件 |
 | `mosage images` | 列出等待生成的 `<ImagePrompt>`（`--json` 給 AI 讀） |
 | `mosage images generate` | 用 OpenAI API 生成圖片（`--doc`、`--id`） |
 | `mosage images place <文件> [id]` | 把已存好的圖片換進頁面（Codex 畫完圖後使用） |

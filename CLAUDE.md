@@ -14,7 +14,7 @@ pnpm + Turbo 的 monorepo。
   - `src/ops/`：文件操作，CLI 與開發伺服器路由共用
   - `src/render/`：以無頭 Chromium 驅動真正的檢視器
   - `src/images/`：AI 生圖——`<ImagePrompt>` 的解析與替換、OpenAI Images API、價格表與用量紀錄
-  - 其餘：`src/import/`（Markdown 匯入）、`src/data/`、`src/diagram/`、`src/editing/`、`src/files/`（素材路徑、專案設定、使用者資料）、`src/http/`、`src/config.ts`（`mosage.config.ts` 的型別，由 `mosage-plugin.ts` 讀取）、`src/versions.ts`（版本比較與更新檢查）
+  - 其餘：`src/import/`（Word 與 Markdown 匯入）、`src/data/`、`src/diagram/`、`src/editing/`、`src/files/`（素材路徑、專案設定、使用者資料）、`src/http/`、`src/config.ts`（`mosage.config.ts` 的型別，由 `mosage-plugin.ts` 讀取）、`src/versions.ts`（版本比較與更新檢查）
   - `template/`：`mosage init` 的專案範本；`skills/`：隨套件發佈的 skills；`e2e/`：Playwright 測試與 fixture 專案
 - **`apps/demo`**：用 `workspace:*` 引用 `mosage` 的範例專案，不發佈。`pnpm dev:demo` 啟動。
 - 共用設定：`biome.json`、`turbo.json`、`pnpm-workspace.yaml`、`vitest.config.ts`，各套件各有 tsconfig。
@@ -91,7 +91,9 @@ pnpm core <指令>  # 只在 mosage 套件執行
 - **圖表是同步畫出的 SVG。** `src/app/components/chart.tsx` 在一次 render 裡畫完，沒有量測也沒有載入，分頁看到的就是最後的大小；比例尺、刻度與文字寬度估算是 `src/app/lib/chart.ts` 的純函式（文字寬度用估算而不是量測，量測要等字型，晚到的尺寸會讓圖落在錯的頁）。單一系列用 `--od-accent`，多系列依固定的色盲安全順序（可用 `--od-chart-N` 覆寫），文字一律用 `--od-text`／`--od-muted`。Word 端和 `<Diagram>` 一樣點陣化成圖片。
 - **引用文獻走掃描。** `<Bibliography>` 的第一個條目以 `data-od-bibliography` 帶著全部文獻，`scan.ts` 讀進 `lib/citations.ts` 的 store（掛在 `globalThis`），`<Cite>` 再從 store 解析，所以和 `<Ref>` 一樣第一次 render 是空白。數字式的編號是文獻在清單中的位置，不是首次引用的順序，清單因此不會在掃描後改變高度。`.bib` 由 `data-plugin.ts` 在建置時交給 `src/data/bibtex.ts` 解析。
 - **元件可以把自己拆成多個 flow 區塊。** 帶有靜態 `flowBlocks(props)` 的元件，`flow()` 會展開成它回傳的區塊（`lib/flow.ts` 的 `toBlocks`），`<Bibliography>` 靠這個讓長清單跨頁；其他長內容要跨頁時也用同樣做法，不要讓單一區塊超過一頁。
-- **Markdown 匯入產出一般的 TSX。** `src/import/markdown.ts` 是手寫解析器，`src/import/to-tsx.ts` 把區塊輸出成帶 inline style 的 JSX，使用真正的標題標籤與純 JSX 文字。匯入的文件沒有任何特殊待遇：大綱、Inspect 的文字修改與 Design 面板都能直接使用，因為它長得就像人寫的文件。
+- **匯入產出一般的 TSX。** `src/import/markdown.ts` 與 `src/import/docx.ts` 都把來源讀成同一種區塊，`src/import/to-tsx.ts` 再輸出成帶 inline style 的 JSX，使用真正的標題標籤與純 JSX 文字，圖片一律放進 `assets/images/`。匯入的文件沒有任何特殊待遇：大綱、Inspect 的文字修改與 Design 面板都能直接使用，因為它長得就像人寫的文件。
+  - Word 用 core 已有的 `fflate` 解壓，`src/import/xml.ts` 是手寫的最小 XML 讀取器。標題看樣式的英文名稱（中文 Word 的 styleId 是 `1`、名稱仍是 `heading 1`）與大綱層級，清單讀 `numbering.xml`，欄位代碼（目錄、頁碼）只取結果，Word 的目錄樣式整段略過。
+  - 圖表、文字方塊、方程式等 Word 自己畫的東西不轉換，計入 `skipped` 由 CLI 回報。兩條匯入共用 `ops/import.ts` 的 `writeImport`（驗證、代號、產生原始碼、複製圖片）。
 
 ### 素材、設定與 AI 生圖
 
