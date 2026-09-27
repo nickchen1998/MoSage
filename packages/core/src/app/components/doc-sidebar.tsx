@@ -16,6 +16,7 @@ type Props = {
   pages: ExpandedPage[];
   geometry: PageGeometry;
   design?: DesignSystem;
+  watermark?: string;
   currentPage: number;
   entries: OutlineEntry[];
   activeId: string | null;
@@ -28,6 +29,7 @@ export function DocSidebar({
   pages,
   geometry,
   design,
+  watermark,
   currentPage,
   entries,
   activeId,
@@ -109,6 +111,7 @@ export function DocSidebar({
                       geometry={geometry}
                       scale={THUMB_WIDTH / geometry.width}
                       design={design}
+                      watermark={watermark}
                       flat
                     >
                       {entry.content}

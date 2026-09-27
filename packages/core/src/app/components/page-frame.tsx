@@ -4,6 +4,7 @@ import { type DesignSystem, designToCssVars } from '../lib/design';
 import { PAGE_ATTR, PAGE_INDEX_ATTR } from '../lib/outline';
 import { DocPageProvider } from '../lib/page-context';
 import type { PageGeometry } from '../lib/sdk';
+import { WATERMARK_ATTR, watermarkVars } from '../lib/watermark';
 
 type Props = {
   index: number;
@@ -11,6 +12,8 @@ type Props = {
   geometry: PageGeometry;
   scale: number;
   design?: DesignSystem;
+  /** `meta.watermark`, drawn over the sheet by `styles.css`. */
+  watermark?: string;
   flat?: boolean;
   className?: string;
   children: ReactNode;
@@ -19,7 +22,7 @@ type Props = {
 /**
  * One sheet of paper. The inner node always lays out at the page's true pixel
  * size — authors write absolute px against A4 — and only the wrapper shrinks,
- * so a page looks identical on screen, in the PDF, and in the HTML export.
+ * so a page looks identical on screen and in the PDF.
  */
 export function PageFrame({
   index,
@@ -27,6 +30,7 @@ export function PageFrame({
   geometry,
   scale,
   design,
+  watermark,
   flat = false,
   className,
   children,
@@ -43,7 +47,11 @@ export function PageFrame({
       style={{ width: geometry.width * scale, height: geometry.height * scale }}
     >
       <div
-        {...{ [PAGE_ATTR]: '', [PAGE_INDEX_ATTR]: index }}
+        {...{
+          [PAGE_ATTR]: '',
+          [PAGE_INDEX_ATTR]: index,
+          ...(watermark ? { [WATERMARK_ATTR]: watermark } : {}),
+        }}
         style={
           {
             width: geometry.width,
@@ -58,6 +66,7 @@ export function PageFrame({
             textAlign: 'start',
             ...(designVars ?? {}),
             ...(designVars ? { background: 'var(--od-bg)', color: 'var(--od-text)' } : {}),
+            ...(watermark ? watermarkVars(watermark, geometry) : {}),
           } as CSSProperties
         }
       >

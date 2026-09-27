@@ -73,7 +73,9 @@ pnpm core <指令>  # 只在 mosage 套件執行
 
 - **無頭渲染驅動的是真正的檢視器。** `src/render/session.ts` 啟動 Vite 伺服器（或沿用 `ctx.serverOrigin`），用 Chromium 開啟 `/d/<id>`，透過 `window.__mosage` 溝通——這是 `src/app/lib/agent-bridge.ts` 在文件頁安裝的橋接。`mosage export` 與 `mosage check` 因此和 Download 選單使用同一份量測後的頁面清單、同一條列印流程，Node 端不重做任何版面計算。
 - **Playwright 是可選的 peer。** 它以變數形式的 specifier 載入，`render/session.ts` 用本地的結構型別描述它的 API，讓發佈的 `.d.ts` 不會引用 Playwright。
-- **版面問題從 DOM 找，不靠推論。** `src/app/lib/diagnostics.ts` 以實際紙張尺寸走訪列印複本，比對元素與頁面框的位置。它只做 DOM 運算、不了解框架，所以手寫或產生的文件都一樣抓得到。每個發現都帶有該元素的 `data-od-loc`（與 Inspect 使用的相同），報告因此能指回原始碼的行號。
+- **版面問題從 DOM 找，不靠推論。** `src/app/lib/diagnostics.ts` 以實際紙張尺寸走訪列印複本，比對元素與頁面框的位置。它只做 DOM 運算、不了解框架，所以手寫或產生的文件都一樣抓得到。每個發現都帶有該元素的 `data-od-loc`（與 Inspect 使用的相同），報告因此能指回原始碼的行號。中文排版規則（半形標點、英文引號、台／臺混用）是 `src/app/lib/typography.ts` 的純文字函式，診斷只負責走訪文字節點，一律是 warn，同一個原始碼位置只回報一次。
+- **PDF 書籤來自標記過的 PDF。** Chrome 用無障礙樹產生 tagged PDF 與書籤，列印複本平常帶 `aria-hidden`，所以 `export-pdf.ts` 的 `exposeForPrint` 在列印前拿掉它，並讓標題與檢視器的大綱一致（`data-od-outline="skip"` 降級、`data-od-heading` 升級）。`mosage export` 用 `page.pdf({ outline: true, tagged: true })`；Download 選單走瀏覽器的列印對話框，書籤由瀏覽器決定。
+- **浮水印是頁框的偽元素。** `meta.watermark` 讓 `PageFrame` 與匯出器的紙張帶上 `data-od-watermark`，由 `styles.css` 的 `::after` 畫出，大小與角度來自 `lib/watermark.ts`。偽元素不在 DOM 裡，大綱、檢查與 Word 擷取器都不會把它當成內文；Word 另外在每個頁首寫入原生的 VML 浮水印（`docx/write.ts`），有不同首頁的區段也會補上首頁頁首。
 - **Word 匯出是重新排版，不是複製紙張。** `src/app/lib/export-docx.ts` 把每個 flow 區段重新排成一條連續欄位：沒有分頁、沒有重複的頁尾、也不去掉頂端邊界。其中每個區塊都放在它列印時所在那張紙的頁框裡（`FlowBlock` 的 `sheet`），所以這份複本自己的掃描會引用和 PDF 相同的頁碼。
   - `src/app/lib/docx/extract.ts` 從這份 DOM 讀出計算後的樣式與實測間距建成模型，`src/app/lib/docx/write.ts` 再把模型寫成 WordprocessingML，用 core 已經帶著的 `fflate` 壓縮。
   - 頁尾會以哨兵頁碼再畫一次，轉成 `PAGE`／`NUMPAGES` 欄位；flow 區段的頁尾會畫成前兩張紙，所以第一頁隱藏或不同的頁尾會成為 Word 的首頁頁尾。

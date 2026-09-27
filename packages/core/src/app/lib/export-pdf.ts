@@ -1,4 +1,5 @@
 import { mountOffscreen } from './export-dom';
+import { HEADING_SELECTOR, outlineLevelOf } from './outline';
 import { type DocModule, resolvePageGeometry } from './sdk';
 import type { ExpandedPage } from './use-doc-pages';
 
@@ -129,6 +130,25 @@ export async function mountPrintCopy(
   );
 }
 
+/**
+ * Hands a mounted print copy to the accessibility tree just before it prints.
+ * A tagged PDF is made from that tree, and so are its bookmarks, so the copy
+ * cannot stay `aria-hidden` then. Its headings are made to match the viewer's
+ * outline: one kept out of the outline is demoted, and one marked on another
+ * element is promoted to a real heading.
+ */
+export function exposeForPrint(root: HTMLElement): void {
+  root.removeAttribute('aria-hidden');
+  for (const el of Array.from(root.querySelectorAll<HTMLElement>(HEADING_SELECTOR))) {
+    const level = outlineLevelOf(el);
+    if (level === null) el.setAttribute('role', 'none');
+    else if (!/^H[1-6]$/.test(el.tagName)) {
+      el.setAttribute('role', 'heading');
+      el.setAttribute('aria-level', String(level));
+    }
+  }
+}
+
 export async function exportDocAsPdf(
   doc: DocModule,
   docId: string,
@@ -142,6 +162,7 @@ export async function exportDocAsPdf(
 
   try {
     onProgress?.({ phase: 'printing', current: total, total, percent: 99 });
+    exposeForPrint(copy.root);
     const printDone = waitForAfterPrint();
     window.print();
     await printDone;

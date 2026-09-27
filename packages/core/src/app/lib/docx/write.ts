@@ -1,4 +1,5 @@
 import { strToU8, type Zippable, zipSync } from 'fflate';
+import { textEms, watermarkLayout } from '../watermark';
 import { eastAsiaLangFromFonts, standInFor } from './fonts';
 import type {
   Block,
@@ -25,6 +26,8 @@ const PART_NS = [
   'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"',
   'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"',
   'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"',
+  'xmlns:v="urn:schemas-microsoft-com:vml"',
+  'xmlns:o="urn:schemas-microsoft-com:office:office"',
 ].join(' ');
 
 const CJK = /[\u2E80-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFF00-\uFFEF]/;
@@ -264,13 +267,63 @@ function blocksXml(blocks: Block[], env: Env): string {
 
 type Band = 'header' | 'footer';
 
-type BandRefs = { header?: string; footer?: string; footerFirst?: string };
+type BandRefs = { header?: string; headerFirst?: string; footer?: string; footerFirst?: string };
+
+/** Word's WordArt "plain text" shape, as Word itself writes it with every watermark. */
+const TEXT_SHAPETYPE =
+  '<v:shapetype id="_x0000_t136" coordsize="21600,21600" o:spt="136" adj="10800" path="m@7,l@8,m@5,21600l@6,21600e"><v:formulas><v:f eqn="sum #0 0 10800"/><v:f eqn="prod #0 2 1"/><v:f eqn="sum 21600 0 @1"/><v:f eqn="sum 0 0 @2"/><v:f eqn="sum 21600 0 @3"/><v:f eqn="if @0 @3 0"/><v:f eqn="if @0 21600 @1"/><v:f eqn="if @0 0 @2"/><v:f eqn="if @0 @4 21600"/><v:f eqn="mid @5 @6"/><v:f eqn="mid @8 @5"/><v:f eqn="mid @7 @8"/><v:f eqn="mid @6 @7"/><v:f eqn="sum @6 0 @5"/></v:formulas><v:path textpathok="t" o:connecttype="custom" o:connectlocs="@9,0;@10,10800;@11,21600;@12,10800" o:connectangles="270,180,90,0"/><v:textpath on="t" fitshape="t"/><v:handles><v:h position="#0,bottomRight" xrange="6629,14971"/></v:handles><o:lock v:ext="edit" text="t" shapetype="t"/></v:shapetype>';
+
+/**
+ * A watermark the way Word makes one — Design → Watermark — so a reviewer can
+ * change or remove it there: WordArt on a VML shape anchored in the header,
+ * behind the text and centred on the page. Its size and angle are the viewer's.
+ * The shape stretches the text to fill it, so the box has the text's own
+ * proportions.
+ */
+function watermarkXml(text: string, page: Section['page'], serial: number): string {
+  const px = { width: page.width / 15, height: page.height / 15 };
+  const { size, angle } = watermarkLayout(text, px);
+  const height = size * 0.75;
+  const width = height * textEms(text);
+  const font = CJK.test(text) ? 'Microsoft JhengHei' : 'Calibri';
+  const style = [
+    'position:absolute',
+    'margin-left:0',
+    'margin-top:0',
+    `width:${width.toFixed(1)}pt`,
+    `height:${height.toFixed(1)}pt`,
+    `rotation:${(angle + 360) % 360}`,
+    'z-index:-251655168',
+    'mso-position-horizontal:center',
+    'mso-position-horizontal-relative:margin',
+    'mso-position-vertical:center',
+    'mso-position-vertical-relative:margin',
+  ].join(';');
+  const shape = el(
+    'v:shape',
+    {
+      id: `PowerPlusWaterMarkObject${serial}`,
+      'o:spid': `_x0000_s${2048 + serial}`,
+      type: '#_x0000_t136',
+      style,
+      'o:allowincell': 'f',
+      fillcolor: 'silver',
+      stroked: 'f',
+    },
+    el('v:fill', { opacity: '.5' }) +
+      el('v:textpath', { style: `font-family:"${font}";font-size:1pt`, string: text }),
+  );
+  return `<w:p><w:r><w:rPr><w:noProof/></w:rPr><w:pict>${TEXT_SHAPETYPE}${shape}</w:pict></w:r></w:p>`;
+}
 
 function sectPrXml(section: Section, refs: BandRefs): string {
   const { page } = section;
   return [
     '<w:sectPr>',
     refs.header ? el('w:headerReference', { 'w:type': 'default', 'r:id': refs.header }) : '',
+    refs.headerFirst
+      ? el('w:headerReference', { 'w:type': 'first', 'r:id': refs.headerFirst })
+      : '',
     refs.footer ? el('w:footerReference', { 'w:type': 'default', 'r:id': refs.footer }) : '',
     refs.footerFirst
       ? el('w:footerReference', { 'w:type': 'first', 'r:id': refs.footerFirst })
@@ -434,16 +487,30 @@ export function writeDocx(model: DocxModel, now = new Date()): Uint8Array {
   // that section names its own, so once any section has one, the sections
   // without it get an explicitly empty one.
   const used = {
-    header: model.sections.some((section) => section.header),
+    header: Boolean(model.watermark) || model.sections.some((section) => section.header),
     footer: model.sections.some((section) => section.footer),
   };
   const written = { header: 0, footer: 0 };
   const previous: Partial<Record<Band, string>> = {};
-  const bandPart = (band: Band, paragraphs: Paragraph[] | undefined): string => {
+  let watermarks = 0;
+  /** The page the watermark is laid across, for a header part; none for a footer. */
+  const bandPart = (
+    band: Band,
+    paragraphs: Paragraph[] | undefined,
+    page?: Section['page'],
+  ): string => {
     const rels = new Rels();
-    const content = paragraphs?.length
-      ? blocksXml(paragraphs, { styles, media: model.media, rels, ids })
-      : '<w:p/>';
+    const watermark =
+      band === 'header' && page && model.watermark
+        ? watermarkXml(model.watermark, page, ++watermarks)
+        : '';
+    const content =
+      watermark +
+      (paragraphs?.length
+        ? blocksXml(paragraphs, { styles, media: model.media, rels, ids })
+        : watermark
+          ? ''
+          : '<w:p/>');
     written[band] += 1;
     const name = `${band}${written[band]}.xml`;
     const root = band === 'header' ? 'w:hdr' : 'w:ftr';
@@ -455,23 +522,33 @@ export function writeDocx(model: DocxModel, now = new Date()): Uint8Array {
     if (!rels.empty) files[`word/_rels/${name}.rels`] = strToU8(rels.xml());
     return documentRels.add(band, name);
   };
-  const bandFor = (band: Band, paragraphs: Paragraph[] | undefined): string | undefined => {
+  const bandFor = (
+    band: Band,
+    paragraphs: Paragraph[] | undefined,
+    page?: Section['page'],
+  ): string | undefined => {
     if (!used[band]) return undefined;
     // The same as the section before: leaving the reference out is Word's own
     // "link to previous", so a reviewer edits one footer, not one per section.
-    const key = JSON.stringify(paragraphs ?? []);
+    // A watermark is laid out for its sheet, so a turned page breaks the link.
+    const sheet = model.watermark && page ? [page.width, page.height] : null;
+    const key = JSON.stringify([paragraphs ?? [], sheet]);
     if (previous[band] === key) return undefined;
     previous[band] = key;
-    return bandPart(band, paragraphs);
+    return bandPart(band, paragraphs, page);
   };
 
   const env: Env = { styles, media: model.media, rels: documentRels, ids };
   let body = '';
   model.sections.forEach((section, index) => {
-    const header = bandFor('header', section.header);
+    const header = bandFor('header', section.header, section.page);
     const footer = bandFor('footer', section.footer);
     const footerFirst = section.footerFirst && bandPart('footer', section.footerFirst);
-    const sectPr = sectPrXml(section, { header, footer, footerFirst });
+    // A different first page takes a first-page header too, blank until now;
+    // the watermark belongs on that page as much as any other.
+    const headerFirst =
+      footerFirst && model.watermark ? bandPart('header', undefined, section.page) : undefined;
+    const sectPr = sectPrXml(section, { header, headerFirst, footer, footerFirst });
     const blocks = section.blocks;
     const last = blocks[blocks.length - 1];
 

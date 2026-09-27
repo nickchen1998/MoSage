@@ -201,6 +201,8 @@ export type DocxModel = {
   headingSizes?: number[];
   /** Page colour, when the design's paper is not white. */
   background?: string;
+  /** `meta.watermark`: Word's own watermark, in every header. */
+  watermark?: string;
   /** Every face the runs name, with what Word should use in its place. */
   fonts?: FontDeclaration[];
 };

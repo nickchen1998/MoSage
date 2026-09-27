@@ -16,6 +16,8 @@ type HeadlessPage = {
     printBackground?: boolean;
     preferCSSPageSize?: boolean;
     scale?: number;
+    outline?: boolean;
+    tagged?: boolean;
   }): Promise<Uint8Array>;
   close(): Promise<void>;
   on(event: 'pageerror' | 'console', handler: (arg: unknown) => void): void;
@@ -151,7 +153,14 @@ export async function createRenderSession(opts: RenderSessionOptions): Promise<R
         async pdf() {
           await page.evaluate('globalThis.__mosage.preparePrint()');
           try {
-            return await page.pdf({ printBackground: true, preferCSSPageSize: true });
+            // The outline is built from the tagged structure's headings: the
+            // PDF gets bookmarks, and a screen reader gets the same headings.
+            return await page.pdf({
+              printBackground: true,
+              preferCSSPageSize: true,
+              outline: true,
+              tagged: true,
+            });
           } finally {
             await page.evaluate('globalThis.__mosage.releasePrint()');
           }

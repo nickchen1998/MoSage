@@ -60,6 +60,7 @@ export default [Cover, Body] satisfies DocPage[];
 - `export default` is a **non-empty array of entries**. An entry is either a zero-prop React component (one fixed page) or a `flow(<>…</>)` section the framework paginates by measuring. Mix them freely — the usual shape is a fixed cover, a fixed contents page, then one flow section for the body.
 - **Default to `flow()` for body content.** Hand-splitting prose into fixed pages produces documents where every heading starts a half-empty page. Read `references/pagination.md` before writing either kind.
 - Every document is **A4**: `meta.pageSize` only accepts `'A4'` (the default, so it can be left out) and `meta.orientation` is `'portrait' | 'landscape'` (default portrait). **Those two are the only sheets there are** — there is no B4, A3, Letter, or custom size, and no way to set a page's dimensions by hand. The same value drives the on-screen page and the `@page` size when printing.
+- `meta.watermark` prints faint diagonal text across every sheet — `'草稿'`, `'機密'`, `'DRAFT'`. It appears on screen, in the PDF, and in Word (as Word's own watermark, which a reviewer can change under Design → Watermark). Set it only when the user asks for one, and remove it for the final copy.
 - `meta.createdAt` is an **ISO 8601 string literal** set once when the doc is scaffolded — the home page sorts on it. **Immediately before writing the file, run `node -e "console.log(new Date().toISOString())"` and paste the exact output.** It must stay a plain string literal (no `new Date(...)`): the framework reads it with a regex at build time, it never evaluates the module.
 
 ## Two ways to fill pages
@@ -396,6 +397,13 @@ It renders each sheet at true page size and reports what a reader would call a
 mistake — content clipped by the page edge, a blank sheet, a heading stranded at
 the foot of a page, type too small to print, an image that never loaded — each
 with the `line:column` in your source.
+
+It also reads the Chinese text for Taiwanese house style, as warnings: a
+half-width `,` `;` `:` `?` `!` `.` `(` `)` beside Chinese (use `，；：？！。（）`),
+English quotation marks around Chinese (use `「」`, and `『』` inside them), and
+place names spelled with both 台 and 臺. Code, drawings, and contents lists are
+skipped; mark a passage `data-od-typography="off"` when it quotes text that must
+keep its own punctuation. Fix these unless the user's own style says otherwise.
 
 **Run it after writing a document and after any edit that changes how much text
 is on a page.** The checklist below is what you reason about; `check` is what

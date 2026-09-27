@@ -565,6 +565,7 @@ export function Doc() {
           pages={pages}
           geometry={geometry}
           design={doc.design}
+          watermark={doc.meta?.watermark}
           currentPage={currentPage}
           entries={outline}
           activeId={activeOutlineId}
@@ -597,6 +598,7 @@ export function Doc() {
                 geometry={geometry}
                 scale={scale}
                 design={doc.design}
+                watermark={doc.meta?.watermark}
                 // A bound document opens on a right-hand page, so spreads pair
                 // 2–3, 4–5 — the pairs a reader sees when the book is open.
                 className={viewMode === 'two-up' && index === 0 ? 'col-start-2' : undefined}

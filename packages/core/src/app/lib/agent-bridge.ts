@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { diagnosePages, type LayoutFinding } from './diagnostics';
 import type { FileBundle } from './export-dom';
-import { mountPrintCopy } from './export-pdf';
+import { exposeForPrint, mountPrintCopy } from './export-pdf';
 import type { DocModule, PageGeometry } from './sdk';
 import type { ExpandedPage } from './use-doc-pages';
 
@@ -113,7 +113,9 @@ export function useAgentBridge(input: BridgeInput): void {
         release();
         const { docId, doc, pages } = latest.current;
         if (!doc || pages.length === 0) return { pageCount: 0 };
-        held = await mountPrintCopy(doc, docId, pages);
+        const copy = await mountPrintCopy(doc, docId, pages);
+        exposeForPrint(copy.root);
+        held = copy;
         return { pageCount: pages.length };
       },
       releasePrint: release,

@@ -135,6 +135,7 @@ function DocCard({
               geometry={geometry}
               scale={scale}
               design={doc?.design}
+              watermark={doc?.meta?.watermark}
               flat
             >
               {cover}

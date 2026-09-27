@@ -23,7 +23,7 @@ You author **documents** here — reports, proposals, whitepapers, memos, letter
 
 ```bash
 npm run dev                                # viewer at http://localhost:5273, live reload
-npx mosage check                           # overflowing content, blank sheets, stranded headings
+npx mosage check                           # overflowing content, blank sheets, Chinese punctuation
 npx mosage export <id> --format pdf|docx   # into out/
 npx mosage images                          # image prompts waiting to be drawn
 npm run build                              # static site into dist/

@@ -106,3 +106,29 @@
   background-color: rgb(255 138 0 / 0.62);
   color: inherit;
 }
+
+/* `meta.watermark`, drawn by the sheet itself rather than an element inside it.
+   A pseudo-element is not in the DOM, so nothing that reads the page — the
+   outline, the layout checker, the Word extractor — mistakes it for content;
+   Word gets a watermark of its own in the header instead. It paints over the
+   page, faintly, because a background would vanish behind any table or picture
+   that has a fill. The fallback colour is the ink, not a chrome token: the
+   sheet is paper whatever the viewer's theme. */
+[data-od-watermark]::after {
+  content: attr(data-od-watermark);
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(var(--od-watermark-angle, -45deg));
+  font-family: var(--od-font-heading, var(--od-font-body, sans-serif));
+  font-size: var(--od-watermark-size, 96px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--od-text, #000000) 9%, transparent);
+  pointer-events: none;
+}
