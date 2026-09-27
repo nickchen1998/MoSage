@@ -269,6 +269,7 @@ export async function buildDocxBundle(
       subject: doc.meta?.subtitle,
       author: doc.meta?.author,
       created: doc.meta?.createdAt,
+      watermark: doc.meta?.watermark,
       headingSizes: scale && [scale.h1, scale.h2, scale.h3].map(halfPoints),
       ...extracted,
     });

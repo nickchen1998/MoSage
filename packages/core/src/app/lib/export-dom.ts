@@ -13,6 +13,7 @@ import { DocPageProvider } from './page-context';
 import { nextFrame, waitForDataWaitfor, waitForFonts, waitForImages } from './print-ready';
 import { captureScan, restoreScan, scanDocument } from './scan';
 import { type DocModule, resolvePageGeometry } from './sdk';
+import { WATERMARK_ATTR, watermarkVars } from './watermark';
 
 export const ASSET_EXT_RE =
   /\.(?:png|jpe?g|gif|svg|webp|avif|woff2?|ttf|otf)(?:\?[^#]*)?(?:#.*)?$/i;
@@ -152,6 +153,13 @@ export async function mountOffscreen<T>(
       textAlign: 'start',
     });
     for (const [name, value] of vars) el.style.setProperty(name, value);
+    const watermark = doc.meta?.watermark;
+    if (host.sheet && watermark) {
+      el.setAttribute(WATERMARK_ATTR, watermark);
+      for (const [name, value] of Object.entries(watermarkVars(watermark, geometry))) {
+        el.style.setProperty(name, value);
+      }
+    }
     if (host.paint) {
       // Paper and ink of its own, as the viewer's sheet has: the copy hangs off
       // <body>, and a document with no design would otherwise print in the

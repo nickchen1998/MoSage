@@ -1,5 +1,6 @@
-import { PAGE_ATTR, PAGE_INDEX_ATTR } from './outline';
+import { PAGE_ATTR, PAGE_INDEX_ATTR, TOC_ATTR } from './outline';
 import type { PageGeometry } from './sdk';
+import { around, countTaiVariants, typographyIssues } from './typography';
 
 export type LayoutRule =
   | 'unresolved-ref'
@@ -9,7 +10,10 @@ export type LayoutRule =
   | 'oversized-block'
   | 'orphan-heading'
   | 'tiny-text'
-  | 'broken-image';
+  | 'broken-image'
+  | 'cjk-punctuation'
+  | 'cjk-quotes'
+  | 'mixed-variants';
 
 export type LayoutSeverity = 'error' | 'warn';
 
@@ -208,6 +212,8 @@ export function diagnosePages(
     findings.push(...danglingHeadings(frame, frameRect, geometry, page).slice(0, perPageLimit));
   });
 
+  findings.push(...typographyFindings(frames, perPageLimit));
+
   for (const { section, block } of opts.oversized ?? []) {
     findings.push({
       page: 0,
@@ -218,6 +224,84 @@ export function diagnosePages(
   }
 
   return findings.sort((a, b) => a.page - b.page || rank(b.severity) - rank(a.severity));
+}
+
+/**
+ * Text a typography rule has no business reading: code quotes a language with
+ * its own punctuation, a drawing labels an axis, a contents list repeats the
+ * headings it lists, and an author can switch a passage off by hand.
+ */
+const NOT_PROSE = `code, pre, kbd, samp, svg, [${TOC_ATTR}], [data-od-typography="off"]`;
+
+/**
+ * Chinese typography, read from the text each sheet actually prints. A running
+ * header repeats its mistake on every page, so a finding is reported once per
+ * place in the source.
+ */
+function typographyFindings(frames: HTMLElement[], perPageLimit: number): LayoutFinding[] {
+  const out: LayoutFinding[] = [];
+  const seen = new Set<string>();
+  const variants = { plain: 0, formal: 0 };
+  const firstOf: { plain?: LayoutFinding; formal?: LayoutFinding } = {};
+
+  frames.forEach((frame, index) => {
+    const page = pageNumberOf(frame, index);
+    const perRule = new Map<string, number>();
+    const walker = document.createTreeWalker(frame, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement;
+      const text = node.textContent ?? '';
+      if (!parent || text.trim() === '' || parent.closest(NOT_PROSE)) continue;
+      const loc = locOf(parent);
+
+      for (const issue of typographyIssues(text)) {
+        const key = `${issue.rule}|${loc ?? ''}|${issue.index}|${around(text, issue.index)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const count = perRule.get(issue.rule) ?? 0;
+        if (count >= perPageLimit) continue;
+        perRule.set(issue.rule, count + 1);
+        const what =
+          issue.rule === 'cjk-quotes'
+            ? `English quotation mark ${issue.found} beside Chinese — use ${issue.suggestion}`
+            : `Half-width ${issue.found} beside Chinese — use the full-width ${issue.suggestion}`;
+        out.push({
+          page,
+          rule: issue.rule,
+          severity: 'warn',
+          message: `${what}: ${around(text, issue.index)}`,
+          element: snippet(parent),
+          loc,
+        });
+      }
+
+      const counted = countTaiVariants(text);
+      variants.plain += counted.plain;
+      variants.formal += counted.formal;
+      const here: LayoutFinding = {
+        page,
+        rule: 'mixed-variants',
+        severity: 'warn',
+        message: '',
+        element: snippet(parent),
+        loc,
+      };
+      if (counted.plain > 0) firstOf.plain ??= here;
+      if (counted.formal > 0) firstOf.formal ??= here;
+    }
+  });
+
+  if (variants.plain > 0 && variants.formal > 0) {
+    // Point at the spelling used less: that is the one to change.
+    const minority = variants.plain <= variants.formal ? firstOf.plain : firstOf.formal;
+    if (minority) {
+      out.push({
+        ...minority,
+        message: `Both 台 (${variants.plain}×) and 臺 (${variants.formal}×) spell place names — pick one, e.g. 臺灣 or 台灣 throughout.`,
+      });
+    }
+  }
+  return out;
 }
 
 function rank(severity: LayoutSeverity): number {

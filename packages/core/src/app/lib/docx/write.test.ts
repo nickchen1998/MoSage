@@ -486,6 +486,36 @@ describe('writeDocx', () => {
     expect(files['word/footer2.xml']).toContain('<w:p/>');
   });
 
+  it('puts a watermark in every header, the first-page one included', () => {
+    const line = (text: string): Paragraph => ({
+      type: 'paragraph',
+      role: 'footer',
+      inlines: [{ type: 'text', text, style: body }],
+      props: {},
+    });
+    const doc = model({
+      watermark: '草稿 "內部"',
+      sections: [
+        section([para('Cover')], { footer: [line('Page')], footerFirst: [] }),
+        section([para('Body')], { footer: [line('Page')] }),
+      ],
+    });
+    const files = unzip(writeDocx(doc));
+    const headers = Object.keys(files).filter((name) => /^word\/header\d+\.xml$/.test(name));
+    // The first section's running and first-page headers; the second links to the first.
+    expect(headers).toHaveLength(2);
+    for (const name of headers) {
+      const xml = files[name] ?? '';
+      expectWellFormed(xml);
+      expect(xml).toContain('string="草稿 &quot;內部&quot;"');
+      expect(xml).toContain('font-family:&quot;Microsoft JhengHei&quot;');
+      expect(xml).toContain('xmlns:v="urn:schemas-microsoft-com:vml"');
+    }
+    const document = files['word/document.xml'] ?? '';
+    expect(document).toMatch(/<w:headerReference w:type="first" r:id="rId\d+"\/>/);
+    expect(document.match(/<w:headerReference w:type="default"/g)).toHaveLength(1);
+  });
+
   it('shows the page colour, which Word hides unless the settings ask for it', () => {
     const files = unzip(writeDocx(model({ background: '101216' })));
     expect(files['word/document.xml']).toContain('<w:background w:color="101216"/>');

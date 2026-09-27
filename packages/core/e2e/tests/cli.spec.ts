@@ -80,6 +80,10 @@ test.describe('mosage CLI', () => {
     expect(exported.code, exported.stderr).toBe(0);
     const pdf = await fs.readFile(path.join(dir, 'out', 'alpha.pdf'));
     expect(pdf.subarray(0, 5).toString()).toBe('%PDF-');
+    // Tagged, with bookmarks built from the headings.
+    expect(pdf.includes('/StructTreeRoot')).toBe(true);
+    expect(pdf.includes('/Outlines')).toBe(true);
+    expect(pdf.includes('/Title (Alpha page one)')).toBe(true);
 
     const word = await runCli(['export', 'alpha', '--format', 'docx', '--out-dir', 'out'], dir);
     expect(word.code, word.stderr).toBe(0);

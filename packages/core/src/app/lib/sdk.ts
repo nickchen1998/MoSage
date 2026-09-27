@@ -74,6 +74,8 @@ export type DocMeta = {
   createdAt?: string;
   /** What numbered items are called — `圖`/`表` instead of `Figure`/`Table`. */
   labels?: Partial<LabelVocabulary>;
+  /** Printed faintly across every sheet, in the PDF and in Word — `草稿`, `機密`. */
+  watermark?: string;
 };
 
 export type FolderIcon = { type: 'emoji'; value: string } | { type: 'color'; value: string };

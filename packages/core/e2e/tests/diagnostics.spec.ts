@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { deleteDoc, duplicateDoc, openDoc, refreshDocsModule, writeDocSource } from './helpers.ts';
 
-type Finding = { page: number; rule: string; severity: string; loc?: string };
+type Finding = { page: number; rule: string; severity: string; message: string; loc?: string };
 type Report = { pageCount: number; findings: Finding[] };
 
 const FAULTY = `import { type DocMeta, type DocPage, Ref } from 'mosage';
@@ -38,6 +38,23 @@ const Small: DocPage = () => (
 );
 
 export default [Overflowing, Blank, Small] satisfies DocPage[];
+`;
+
+const CHINESE = `import type { DocMeta, DocPage } from 'mosage';
+
+export const meta: DocMeta = { title: '中文排版', createdAt: '2026-01-03T00:00:00.000Z' };
+
+const Page: DocPage = () => (
+  <div style={{ padding: 76, fontSize: 14, color: '#16181d', background: '#ffffff', height: '100%' }}>
+    <h1>第一章 概述</h1>
+    <p>我們今天開會,討論了"預算"問題。</p>
+    <p>臺北、臺中與臺灣，還有一處寫成台南。</p>
+    <p>會議 10:30 開始，預算共 1,000 元，詳見 v2.0 版。</p>
+    <pre>const pair = (1, 2); // 程式碼,不檢查</pre>
+  </div>
+);
+
+export default [Page] satisfies DocPage[];
 `;
 
 const READY = 'globalThis.__mosage ? globalThis.__mosage.status().ready : false';
@@ -100,6 +117,34 @@ test.describe('layout diagnostics', () => {
       expect(overflow?.loc).toMatch(/^\d+:\d+$/);
     } finally {
       await deleteDoc(request, 'layout-faults');
+    }
+  });
+
+  test('Chinese typography is flagged as warnings, leaving code and numbers alone', async ({
+    page,
+    request,
+  }) => {
+    await duplicateDoc(request, 'alpha', 'chinese-type');
+    await writeDocSource('chinese-type', CHINESE);
+    await refreshDocsModule('chinese-type');
+
+    try {
+      await openDoc(page, 'chinese-type');
+      const { findings } = await diagnose(page);
+      expect(findings.every((finding) => finding.severity === 'warn')).toBe(true);
+
+      const messages = findings.map((finding) => `${finding.rule}: ${finding.message}`);
+      expect(messages).toEqual([
+        expect.stringMatching(
+          /^cjk-punctuation: Half-width , beside Chinese — use the full-width ，: .*開會,討論/,
+        ),
+        expect.stringMatching(/^cjk-quotes: English quotation mark " beside Chinese — use 「/),
+        expect.stringMatching(/^cjk-quotes: English quotation mark " beside Chinese — use 」/),
+        expect.stringMatching(/^mixed-variants: Both 台 \(1×\) and 臺 \(3×\)/),
+      ]);
+      expect(findings.every((finding) => /^\d+:\d+$/.test(finding.loc ?? ''))).toBe(true);
+    } finally {
+      await deleteDoc(request, 'chinese-type');
     }
   });
 });
