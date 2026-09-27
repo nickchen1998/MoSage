@@ -6,7 +6,7 @@ export type ImportImage = {
   source: string;
   /** Local identifier the generated module imports it as. */
   ident: string;
-  /** Filename inside `docs/<id>/assets/`. */
+  /** Filename inside `docs/<id>/assets/images/`. */
   filename: string;
 };
 
@@ -53,7 +53,12 @@ export function collectImageSources(blocks: Block[]): string[] {
   const walkInline = (nodes: Inline[]) => {
     for (const node of nodes) {
       if (node.type === 'image') out.push(node.src);
-      else if (node.type === 'strong' || node.type === 'em' || node.type === 'link') {
+      else if (
+        node.type === 'strong' ||
+        node.type === 'em' ||
+        node.type === 'link' ||
+        node.type === 'footnote'
+      ) {
         walkInline(node.children);
       }
     }
@@ -110,6 +115,8 @@ function renderInline(nodes: Inline[], images: Map<string, ImportImage> | undefi
           return `<img src=${imageSrc(node.src, images)} alt=${attr(node.alt)} style={inlineImg} />`;
         case 'break':
           return '<br />';
+        case 'footnote':
+          return `<Footnote>${renderInline(node.children, images)}</Footnote>`;
         default:
           return '';
       }
@@ -397,6 +404,7 @@ export function generateDocumentSource(
 
   const images = opts.images;
   const imports = images ? [...images.values()] : [];
+  const footnotes = JSON.stringify(blocks).includes('"type":"footnote"');
 
   const runtimeImports = [
     'type DesignSystem',
@@ -404,6 +412,7 @@ export function generateDocumentSource(
     'type DocMeta',
     ...(cover || opts.contents ? ['type DocPage'] : []),
     ...(opts.contents ? ['TableOfContents'] : []),
+    ...(footnotes ? ['Footnote'] : []),
     'flow',
     'useDocPageCount',
     'useDocPageNumber',
@@ -412,7 +421,7 @@ export function generateDocumentSource(
   const head = [
     `import type { ReactNode } from 'react';`,
     `import {\n${runtimeImports.map((name) => `  ${name},`).join('\n')}\n} from 'mosage';`,
-    ...imports.map((image) => `import ${image.ident} from './assets/${image.filename}';`),
+    ...imports.map((image) => `import ${image.ident} from './assets/images/${image.filename}';`),
   ].join('\n');
 
   const styles = STYLES.replace('{DOC_TITLE}', jsxText(title));

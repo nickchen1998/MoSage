@@ -70,7 +70,7 @@ describe('generateDocumentSource', () => {
       '![Topology](./img/topo.png)\n\n![Remote](https://example.com/x.png)\n',
       { images },
     );
-    expect(source).toContain("import figure1 from './assets/topo.png';");
+    expect(source).toContain("import figure1 from './assets/images/topo.png';");
     expect(source).toContain('<img src={figure1}');
     expect(source).toContain('<img src="https://example.com/x.png"');
   });

@@ -26,8 +26,11 @@ export {
 } from './documents.ts';
 export { EXPORT_FORMATS, type ExportFormat } from './formats.ts';
 export {
+  type ImportDocxOptions,
+  type ImportDocxResult,
   type ImportMarkdownOptions,
   type ImportResult,
+  importDocx,
   importMarkdown,
   slugify,
 } from './import.ts';

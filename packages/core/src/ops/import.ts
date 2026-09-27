@@ -3,7 +3,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { isOrientation, isPageSizeName, ORIENTATIONS, PAGE_SIZE_NAMES } from '../app/lib/sdk.ts';
 import { validateAssetName } from '../files/assets.ts';
-import { parseMarkdown } from '../import/markdown.ts';
+import { parseDocx } from '../import/docx.ts';
+import { type ParsedMarkdown, parseMarkdown } from '../import/markdown.ts';
 import { collectImageSources, generateDocumentSource, type ImportImage } from '../import/to-tsx.ts';
 import { DOC_ID_RE } from '../vite/mosage-plugin.ts';
 import type { ApiContext } from '../vite/routes/context.ts';
@@ -32,7 +33,7 @@ export type ImportResult = {
   entry: string;
   title: string;
   blocks: number;
-  /** Local images copied into `docs/<id>/assets/`. */
+  /** Local images copied into `docs/<id>/assets/images/`. */
   assets: string[];
   /** Image references that could not be resolved and were left as written. */
   missingAssets: string[];
@@ -65,34 +66,27 @@ function identFor(index: number): string {
   return `figure${index + 1}`;
 }
 
+/** Where a picture comes from: a file beside the markdown, or bytes out of a Word package. */
+type StagedImage = { filename: string; from: string } | { filename: string; bytes: Uint8Array };
+
+type Prepared = {
+  parsed: ParsedMarkdown;
+  fallbackName: string;
+  images: Map<string, ImportImage>;
+  staged: StagedImage[];
+  missing: string[];
+};
+
 /**
- * Reads markdown and writes a real MoSage document: `flow()` body, inline
- * styles, a cover, and any local images copied into the document's own assets
- * folder. Nothing about the result is special-cased — it is the same shape an
- * agent would have written by hand, and every editing surface works on it.
+ * What every import shares once its source is parsed: the checks on page
+ * setup, a free document id, the generated module, and the pictures copied
+ * into the document's own `assets/images/`.
  */
-export async function importMarkdown(
+async function writeImport(
   ctx: ApiContext,
-  opts: ImportMarkdownOptions,
+  { parsed, fallbackName, images, staged, missing }: Prepared,
+  opts: Omit<ImportMarkdownOptions, 'markdown' | 'file'>,
 ): Promise<ImportResult> {
-  const sourceFile = opts.file ? path.resolve(ctx.userCwd, opts.file) : null;
-  if (sourceFile && !sourceFile.startsWith(ctx.userCwd + path.sep)) {
-    throw new OpsError(400, `file must sit inside the workspace: ${opts.file}`);
-  }
-
-  let markdown = opts.markdown;
-  if (markdown === undefined) {
-    if (!sourceFile) throw new OpsError(400, 'pass either `markdown` or `file`');
-    try {
-      markdown = await fs.readFile(sourceFile, 'utf8');
-    } catch {
-      throw new OpsError(404, `file not found: ${opts.file}`);
-    }
-  }
-  if (markdown.trim() === '') throw new OpsError(422, 'the markdown is empty');
-
-  const parsed = parseMarkdown(markdown);
-
   const pageSize = opts.pageSize ?? parsed.frontmatter.pageSize;
   if (pageSize !== undefined && !isPageSizeName(pageSize)) {
     throw new OpsError(
@@ -108,36 +102,11 @@ export async function importMarkdown(
     );
   }
 
-  const fallbackName = sourceFile ? path.basename(sourceFile).replace(/\.mdx?$/i, '') : 'document';
   const requestedId = opts.docId ?? slugify(opts.title ?? parsed.frontmatter.title ?? fallbackName);
   if (opts.docId && !DOC_ID_RE.test(opts.docId)) {
     throw new OpsError(400, `invalid document id: ${opts.docId}`);
   }
   const docId = opts.docId ?? uniqueId(requestedId, new Set(await listDocIds(ctx)));
-
-  const baseDir = sourceFile ? path.dirname(sourceFile) : ctx.userCwd;
-  const images = new Map<string, ImportImage>();
-  const missing: string[] = [];
-  const staged: Array<{ from: string; filename: string }> = [];
-  const usedNames = new Set<string>();
-
-  for (const src of new Set(collectImageSources(parsed.blocks))) {
-    if (REMOTE_RE.test(src)) continue;
-    const from = path.resolve(baseDir, src.split(/[?#]/)[0]);
-    if (!from.startsWith(ctx.userCwd + path.sep) || !existsSync(from)) {
-      missing.push(src);
-      continue;
-    }
-    const safe = validateAssetName(path.basename(from));
-    if (!safe) {
-      missing.push(src);
-      continue;
-    }
-    const filename = usedNames.has(safe) ? `${images.size + 1}-${safe}` : safe;
-    usedNames.add(filename);
-    images.set(src, { source: src, ident: identFor(images.size), filename });
-    staged.push({ from, filename });
-  }
 
   const generated = generateDocumentSource(parsed, {
     docId,
@@ -156,10 +125,12 @@ export async function importMarkdown(
   const created = await createDocument(ctx, docId, generated.source);
 
   if (staged.length > 0) {
-    const assetsDir = path.join(ctx.docsRoot, docId, 'assets');
-    await fs.mkdir(assetsDir, { recursive: true });
-    for (const { from, filename } of staged) {
-      await fs.copyFile(from, path.join(assetsDir, filename));
+    const imagesDir = path.join(ctx.docsRoot, docId, 'assets', 'images');
+    await fs.mkdir(imagesDir, { recursive: true });
+    for (const image of staged) {
+      const dest = path.join(imagesDir, image.filename);
+      if ('bytes' in image) await fs.writeFile(dest, image.bytes);
+      else await fs.copyFile(image.from, dest);
     }
   }
 
@@ -168,7 +139,129 @@ export async function importMarkdown(
     entry: created.entry,
     title: generated.title,
     blocks: generated.blockCount,
-    assets: staged.map((asset) => asset.filename),
+    assets: staged.map((image) => image.filename),
     missingAssets: missing,
   };
+}
+
+function resolveSourceFile(ctx: ApiContext, file: string | undefined): string | null {
+  const sourceFile = file ? path.resolve(ctx.userCwd, file) : null;
+  if (sourceFile && !sourceFile.startsWith(ctx.userCwd + path.sep)) {
+    throw new OpsError(400, `file must sit inside the workspace: ${file}`);
+  }
+  return sourceFile;
+}
+
+/** A file name the assets folder accepts, unique among the ones already taken. */
+function claimName(name: string, taken: Set<string>): string | null {
+  const safe = validateAssetName(name);
+  if (!safe) return null;
+  const filename = taken.has(safe) ? `${taken.size + 1}-${safe}` : safe;
+  taken.add(filename);
+  return filename;
+}
+
+/**
+ * Reads markdown and writes a real MoSage document: `flow()` body, inline
+ * styles, a cover, and any local images copied into the document's own assets
+ * folder. Nothing about the result is special-cased — it is the same shape an
+ * agent would have written by hand, and every editing surface works on it.
+ */
+export async function importMarkdown(
+  ctx: ApiContext,
+  opts: ImportMarkdownOptions,
+): Promise<ImportResult> {
+  const sourceFile = resolveSourceFile(ctx, opts.file);
+
+  let markdown = opts.markdown;
+  if (markdown === undefined) {
+    if (!sourceFile) throw new OpsError(400, 'pass either `markdown` or `file`');
+    try {
+      markdown = await fs.readFile(sourceFile, 'utf8');
+    } catch {
+      throw new OpsError(404, `file not found: ${opts.file}`);
+    }
+  }
+  if (markdown.trim() === '') throw new OpsError(422, 'the markdown is empty');
+
+  const parsed = parseMarkdown(markdown);
+  const baseDir = sourceFile ? path.dirname(sourceFile) : ctx.userCwd;
+  const images = new Map<string, ImportImage>();
+  const missing: string[] = [];
+  const staged: StagedImage[] = [];
+  const taken = new Set<string>();
+
+  for (const src of new Set(collectImageSources(parsed.blocks))) {
+    if (REMOTE_RE.test(src)) continue;
+    const from = path.resolve(baseDir, src.split(/[?#]/)[0]);
+    const filename =
+      from.startsWith(ctx.userCwd + path.sep) && existsSync(from)
+        ? claimName(path.basename(from), taken)
+        : null;
+    if (!filename) {
+      missing.push(src);
+      continue;
+    }
+    images.set(src, { source: src, ident: identFor(images.size), filename });
+    staged.push({ from, filename });
+  }
+
+  const fallbackName = sourceFile ? path.basename(sourceFile).replace(/\.mdx?$/i, '') : 'document';
+  return writeImport(ctx, { parsed, fallbackName, images, staged, missing }, opts);
+}
+
+export type ImportDocxOptions = Omit<ImportMarkdownOptions, 'markdown' | 'file'> & {
+  /** Path to a `.docx` file, relative to the workspace root. */
+  file: string;
+};
+
+export type ImportDocxResult = ImportResult & {
+  /** What Word drew that could not come across, by kind — charts, text boxes, equations. */
+  skipped: Record<string, number>;
+};
+
+/**
+ * Reads a Word document and writes it as a MoSage document the same way a
+ * markdown import does, with its pictures copied into `assets/images/`.
+ */
+export async function importDocx(
+  ctx: ApiContext,
+  opts: ImportDocxOptions,
+): Promise<ImportDocxResult> {
+  const sourceFile = resolveSourceFile(ctx, opts.file);
+  if (!sourceFile) throw new OpsError(400, 'pass the `.docx` file to import');
+  let bytes: Uint8Array;
+  try {
+    bytes = new Uint8Array(await fs.readFile(sourceFile));
+  } catch {
+    throw new OpsError(404, `file not found: ${opts.file}`);
+  }
+
+  let parsed: ReturnType<typeof parseDocx>;
+  try {
+    parsed = parseDocx(bytes);
+  } catch (err) {
+    throw new OpsError(422, (err as Error).message);
+  }
+  if (parsed.blocks.length === 0)
+    throw new OpsError(422, 'the Word document has no text to import');
+
+  const images = new Map<string, ImportImage>();
+  const staged: StagedImage[] = [];
+  const missing: string[] = [];
+  const taken = new Set<string>();
+  for (const src of new Set(collectImageSources(parsed.blocks))) {
+    const media = parsed.media.get(src);
+    const filename = media ? claimName(media.filename, taken) : null;
+    if (!media || !filename) {
+      missing.push(src);
+      continue;
+    }
+    images.set(src, { source: src, ident: identFor(images.size), filename });
+    staged.push({ filename, bytes: media.bytes });
+  }
+
+  const fallbackName = path.basename(sourceFile).replace(/\.docx$/i, '');
+  const result = await writeImport(ctx, { parsed, fallbackName, images, staged, missing }, opts);
+  return { ...result, skipped: parsed.skipped };
 }

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import chalk from 'chalk';
-import { importMarkdown } from '../ops/index.ts';
+import { type ImportResult, importDocx, importMarkdown } from '../ops/index.ts';
 import { cliContext } from './context.ts';
 
 export interface ImportOptions {
@@ -18,7 +18,7 @@ export async function importDoc(file: string, opts: ImportOptions = {}): Promise
   const ctx = await cliContext();
   const relative = path.relative(ctx.userCwd, path.resolve(ctx.userCwd, file));
 
-  const result = await importMarkdown(ctx, {
+  const options = {
     file: relative,
     ...(opts.id !== undefined ? { docId: opts.id } : {}),
     ...(opts.title !== undefined ? { title: opts.title } : {}),
@@ -28,7 +28,20 @@ export async function importDoc(file: string, opts: ImportOptions = {}): Promise
     ...(opts.orientation !== undefined ? { orientation: opts.orientation } : {}),
     ...(opts.cover !== undefined ? { cover: opts.cover } : {}),
     ...(opts.contents !== undefined ? { contents: opts.contents } : {}),
-  });
+  };
+  const word = /\.docx$/i.test(file);
+  if (/\.doc$/i.test(file)) {
+    throw new Error('An old .doc file cannot be read — save it from Word as .docx first.');
+  }
+  let skipped: Record<string, number> = {};
+  let result: ImportResult;
+  if (word) {
+    const imported = await importDocx(ctx, options);
+    skipped = imported.skipped;
+    result = imported;
+  } else {
+    result = await importMarkdown(ctx, options);
+  }
 
   process.stdout.write(
     `${chalk.green('✓')} ${chalk.bold(result.title)} → ${result.entry} ${chalk.dim(`(${result.blocks} blocks)`)}\n`,
@@ -38,5 +51,12 @@ export async function importDoc(file: string, opts: ImportOptions = {}): Promise
   }
   for (const missing of result.missingAssets) {
     process.stdout.write(chalk.yellow(`  ! image not found, left as written: ${missing}\n`));
+  }
+  for (const [kind, count] of Object.entries(skipped)) {
+    process.stdout.write(
+      chalk.yellow(
+        `  ! ${count} ${kind}${count === 1 ? '' : 's'} not imported — redo with <Chart>, <Diagram>, or text\n`,
+      ),
+    );
   }
 }

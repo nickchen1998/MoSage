@@ -45,7 +45,7 @@ mosage.config.ts   專案設定
 | `npm run dev` | 開啟檢視器，檔案一改就即時更新 |
 | `npx mosage check` | 找出超出紙張的內容、空白頁、落在頁尾的標題等問題 |
 | `npx mosage export <文件> --format docx` | 匯出 Word；`--format pdf`（預設）匯出 PDF |
-| `npx mosage import notes.md` | 把 Markdown 轉成一份文件 |
+| `npx mosage import 報告.docx` | 把 Word 檔（或 Markdown）轉成一份文件 |
 | `npx mosage images` | 列出等待生成的圖片；`images generate` 用 OpenAI API 生成 |
 | `npx mosage upgrade` | 更新到最新版的 MoSage（`npm run dev` 時按 `u` + Enter 也可以） |
 | `npm run build` | 輸出靜態網站 |
