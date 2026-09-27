@@ -15,7 +15,7 @@ npm run dev        # http://localhost:5273
 
 - **CLI**：`mosage init`（建立專案）、`dev`、`check`（版面檢查）、`export`（PDF／Word）、`import`（Markdown 轉文件）、`images`（AI 生圖）、`upgrade`（更新）、`build`、`preview`、`sync:skills`
 - **檢視器**：真實尺寸的頁面、縮圖與大綱、單頁／雙頁／格狀檢視、Inspect（直接改字或留言給 AI）、Design 面板
-- **文件元件**：`flow()` 自動分頁、`TableOfContents`、`Footnote`、`Figure`／`Ref` 編號與交互參照、`DataTable`（讀 CSV）、`ImagePrompt`（待生成的圖片）、頁碼 hooks
+- **文件元件**：`flow()` 自動分頁、`TableOfContents`、`Footnote`、`Figure`／`Ref` 編號與交互參照、`DataTable`（讀 CSV）、`Chart`（長條、折線、圓餅圖）、`Cite`／`Bibliography`（引用與參考文獻，可讀 `.bib`）、`ImagePrompt`（待生成的圖片）、頁碼 hooks
 - **AI skills**：`create-doc`、`doc-authoring`、`current-doc`、`apply-comments`、`create-theme`、`generate-images`
 - **素材與設定**：圖片與參考文獻分開存放、參考文獻可預覽、介面文字大小、AI 生圖（Codex 或 OpenAI API，記錄 token 與花費）
 

@@ -1,3 +1,7 @@
+export type { ChartProps, ChartType } from './app/components/chart.tsx';
+export { Chart } from './app/components/chart.tsx';
+export type { BibliographyProps, CiteProps } from './app/components/citation.tsx';
+export { Bibliography, Cite } from './app/components/citation.tsx';
 export type {
   DataAlign,
   DataColumn,
@@ -17,6 +21,7 @@ export type { FigureProps, ListOfProps, RefProps } from './app/components/number
 export { Figure, ListOf, ListOfFigures, ListOfTables, Ref } from './app/components/numbering.tsx';
 export type { TableOfContentsProps } from './app/components/table-of-contents.tsx';
 export { TableOfContents } from './app/components/table-of-contents.tsx';
+export type { CitationFormat, Source, SourceType } from './app/lib/citations.ts';
 export type {
   DesignFonts,
   DesignPalette,

@@ -11,6 +11,9 @@ export type LayoutRule =
   | 'orphan-heading'
   | 'tiny-text'
   | 'broken-image'
+  | 'bad-chart'
+  | 'unresolved-cite'
+  | 'uncited-source'
   | 'cjk-punctuation'
   | 'cjk-quotes'
   | 'mixed-variants';
@@ -209,10 +212,25 @@ export function diagnosePages(
       });
     }
 
+    for (const el of Array.from(frame.querySelectorAll<HTMLElement>('[data-od-chart-error]')).slice(
+      0,
+      perPageLimit,
+    )) {
+      findings.push({
+        page,
+        rule: 'bad-chart',
+        severity: 'error',
+        message: `Chart cannot be drawn: ${el.getAttribute('data-od-chart-error')}.`,
+        element: snippet(el),
+        loc: locOf(el),
+      });
+    }
+
     findings.push(...danglingHeadings(frame, frameRect, geometry, page).slice(0, perPageLimit));
   });
 
   findings.push(...typographyFindings(frames, perPageLimit));
+  findings.push(...citationFindings(frames));
 
   for (const { section, block } of opts.oversized ?? []) {
     findings.push({
@@ -229,9 +247,10 @@ export function diagnosePages(
 /**
  * Text a typography rule has no business reading: code quotes a language with
  * its own punctuation, a drawing labels an axis, a contents list repeats the
- * headings it lists, and an author can switch a passage off by hand.
+ * headings it lists, a marker the framework prints is its own report, and an
+ * author can switch a passage off by hand.
  */
-const NOT_PROSE = `code, pre, kbd, samp, svg, [${TOC_ATTR}], [data-od-typography="off"]`;
+const NOT_PROSE = `code, pre, kbd, samp, svg, [${TOC_ATTR}], [data-od-typography="off"], [data-od-chart-error], [data-od-ref-unresolved]`;
 
 /**
  * Chinese typography, read from the text each sheet actually prints. A running
@@ -301,6 +320,46 @@ function typographyFindings(frames: HTMLElement[], perPageLimit: number): Layout
       });
     }
   }
+  return out;
+}
+
+/**
+ * A citation no bibliography lists is a broken document; a listed source no
+ * sentence cites is padding a reader will look for in the text and not find.
+ */
+function citationFindings(frames: HTMLElement[]): LayoutFinding[] {
+  const out: LayoutFinding[] = [];
+  const cited = new Set<string>();
+  frames.forEach((frame, index) => {
+    const page = pageNumberOf(frame, index);
+    for (const el of Array.from(frame.querySelectorAll<HTMLElement>('[data-od-cite]'))) {
+      for (const id of (el.getAttribute('data-od-cite') ?? '').split(',')) cited.add(id);
+      const missing = el.getAttribute('data-od-cite-unresolved');
+      if (!missing) continue;
+      out.push({
+        page,
+        rule: 'unresolved-cite',
+        severity: 'error',
+        message: `Citation names "${missing}", which no <Bibliography> on these pages lists.`,
+        element: snippet(el),
+        loc: locOf(el),
+      });
+    }
+  });
+  frames.forEach((frame, index) => {
+    for (const el of Array.from(frame.querySelectorAll<HTMLElement>('[data-od-source]'))) {
+      const id = el.getAttribute('data-od-source') ?? '';
+      if (cited.has(id)) continue;
+      out.push({
+        page: pageNumberOf(frame, index),
+        rule: 'uncited-source',
+        severity: 'warn',
+        message: `The bibliography lists "${id}", but no <Cite> in the text names it.`,
+        element: snippet(el),
+        loc: locOf(el),
+      });
+    }
+  });
   return out;
 }
 

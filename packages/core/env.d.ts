@@ -52,6 +52,10 @@ declare module '*.otf' {
 }
 
 // Parsed by the `mosage:data` Vite plugin — the default export is the rows.
+declare module '*.bib' {
+  const sources: import('mosage').Source[];
+  export default sources;
+}
 declare module '*.csv' {
   type CellValue = string | number | null;
   export const columns: string[];

@@ -88,6 +88,9 @@ pnpm core <指令>  # 只在 mosage 套件執行
 
 - **CSV／TSV 是模組。** `src/vite/data-plugin.ts` 在建置時把 `.csv`／`.tsv` 轉成物件陣列，解析器 `src/data/delimited.ts` 是手寫的，沒有外部相依。
 - **圖表在建置時編譯。** `src/vite/diagram-plugin.ts` 把 `import chart from './x.mmd'` 轉成套用主題的 SVG 字串；解析、分層排版與繪製都在 `src/diagram/`，同樣沒有外部相依。繪製器輸出 `--od-*` CSS 變數而不是固定顏色，圖表才會用文件自己的配色印出，新增的繪製內容也必須這樣做。外掛裡沒有瀏覽器，文字寬度以 `measureText` 估算。
+- **圖表是同步畫出的 SVG。** `src/app/components/chart.tsx` 在一次 render 裡畫完，沒有量測也沒有載入，分頁看到的就是最後的大小；比例尺、刻度與文字寬度估算是 `src/app/lib/chart.ts` 的純函式（文字寬度用估算而不是量測，量測要等字型，晚到的尺寸會讓圖落在錯的頁）。單一系列用 `--od-accent`，多系列依固定的色盲安全順序（可用 `--od-chart-N` 覆寫），文字一律用 `--od-text`／`--od-muted`。Word 端和 `<Diagram>` 一樣點陣化成圖片。
+- **引用文獻走掃描。** `<Bibliography>` 的第一個條目以 `data-od-bibliography` 帶著全部文獻，`scan.ts` 讀進 `lib/citations.ts` 的 store（掛在 `globalThis`），`<Cite>` 再從 store 解析，所以和 `<Ref>` 一樣第一次 render 是空白。數字式的編號是文獻在清單中的位置，不是首次引用的順序，清單因此不會在掃描後改變高度。`.bib` 由 `data-plugin.ts` 在建置時交給 `src/data/bibtex.ts` 解析。
+- **元件可以把自己拆成多個 flow 區塊。** 帶有靜態 `flowBlocks(props)` 的元件，`flow()` 會展開成它回傳的區塊（`lib/flow.ts` 的 `toBlocks`），`<Bibliography>` 靠這個讓長清單跨頁；其他長內容要跨頁時也用同樣做法，不要讓單一區塊超過一頁。
 - **Markdown 匯入產出一般的 TSX。** `src/import/markdown.ts` 是手寫解析器，`src/import/to-tsx.ts` 把區塊輸出成帶 inline style 的 JSX，使用真正的標題標籤與純 JSX 文字。匯入的文件沒有任何特殊待遇：大綱、Inspect 的文字修改與 Design 面板都能直接使用，因為它長得就像人寫的文件。
 
 ### 素材、設定與 AI 生圖

@@ -19,9 +19,9 @@ Read the matching reference **before** using a primitive:
 | `design` const + `var(--od-*)` tokens | writing any new document | `references/design-system.md` |
 | `flow()` auto-pagination | any body content (the default) | `references/pagination.md` |
 | Vertical budget (fixed pages) | laying out a cover or divider by hand | `references/pagination.md` |
-| Tables, stat rows, inline charts | rendering data of any kind | `references/tables-and-charts.md` |
+| Tables, stat rows, `<Chart>` | rendering data of any kind | `references/tables-and-charts.md` |
 | Assets, references, `<ImagePrompt>`, `<ImagePlaceholder>` | importing images, reading the user's reference files, leaving an image to be generated or supplied | `references/assets.md` |
-| Footnotes, `<Figure>`, `<Ref>`, `<DataTable>` | any note, numbered figure, cross-reference, or `.csv` | `references/long-form.md` |
+| Footnotes, `<Figure>`, `<Ref>`, `<DataTable>`, `<Cite>`, `<Bibliography>` | any note, numbered figure, cross-reference, `.csv`, or cited source | `references/long-form.md` |
 
 ## Themes
 
@@ -142,7 +142,7 @@ The framework builds the document outline by scanning rendered pages for `h1`, `
 
 ## Footnotes, numbering, and data
 
-Four primitives resolve themselves from the rendered pages, the same way the
+These primitives resolve themselves from the rendered pages, the same way the
 contents list does. Read `references/long-form.md` before using any of them.
 
 - **`<Footnote>`** — numbered by position, printed at the foot of the page its
@@ -155,6 +155,11 @@ contents list does. Read `references/long-form.md` before using any of them.
 - **`<DataTable rows={…}>`** — a print-shaped table from an imported `.csv`.
 - **`<Diagram chart={…} caption>`** — an architecture or flow drawing from an
   imported `.mmd`. Given a caption it numbers as a figure, like `<Figure>`.
+- **`<Chart type data x y caption>`** — a bar, line, or pie chart of rows, in
+  the document's colours; numbered as a figure when captioned
+  (`references/tables-and-charts.md`).
+- **`<Cite id>` and `<Bibliography sources>`** — citations, numeric or
+  author–date, against a list written inline or imported from a `.bib` file.
 
 `meta.labels` sets what they are called (`圖`, `表`) — the numbering itself is
 structural.

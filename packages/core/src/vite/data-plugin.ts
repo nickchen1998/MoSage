@@ -1,11 +1,13 @@
 import fs from 'node:fs/promises';
 import type { Plugin } from 'vite';
+import { parseBibtex } from '../data/bibtex.ts';
 import { parseDelimited } from '../data/delimited.ts';
 
-const DATA_RE = /\.(csv|tsv)$/i;
+const DATA_RE = /\.(csv|tsv|bib)$/i;
 
 /**
- * Makes `import rows from './data/q3.csv'` an array of objects at build time.
+ * Makes `import rows from './data/q3.csv'` an array of objects at build time,
+ * and `import refs from './refs.bib'` the sources a bibliography lists.
  *
  * Fetching data at render time is not an option here: the flow packer measures
  * the real DOM to decide where pages break, and both exporters serialize what
@@ -30,6 +32,11 @@ export function dataPlugin(): Plugin {
         text = await fs.readFile(file, 'utf8');
       } catch {
         return null;
+      }
+
+      // A reference list, exported from Zotero or EndNote, as `<Bibliography>` sources.
+      if (/\.bib$/i.test(file)) {
+        return `export default ${JSON.stringify(parseBibtex(text))};`;
       }
 
       const table = parseDelimited(text, {

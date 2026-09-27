@@ -95,49 +95,34 @@ Every stat needs a comparison (target, prior period) — a number with nothing t
 
 ## Charts
 
-No chart library is available, and none is needed. Write **inline SVG** sized in absolute px:
+Use **`<Chart>`** for a bar, line, or pie chart of numbers. It draws plain SVG in
+the document's own ink and accent, in one render, so the page it lands on is
+decided with it at full size; it prints sharp in the PDF and goes into Word as a
+picture. Give it a caption and it numbers as a figure, like `<Diagram>`.
 
 ```tsx
-const Bars = () => {
-  const data = [
-    { label: 'Jan', value: 38 },
-    { label: 'Feb', value: 52 },
-    { label: 'Mar', value: 47 },
-  ];
-  const w = 642;
-  const h = 180;
-  const max = 60;
-  const gap = 12;
-  const barW = (w - gap * (data.length - 1)) / data.length;
+import { Chart } from 'mosage';
+import sales from './assets/references/sales.csv';
 
-  return (
-    <svg width={w} height={h} role="img" aria-label="Monthly incidents">
-      <title>Monthly incidents</title>
-      {data.map((d, i) => {
-        const barH = (d.value / max) * (h - 24);
-        return (
-          <g key={d.label}>
-            <rect x={i * (barW + gap)} y={h - 24 - barH} width={barW} height={barH} fill="var(--od-accent)" rx={2} />
-            <text x={i * (barW + gap) + barW / 2} y={h - 8} textAnchor="middle" fontSize={10} fill="var(--od-muted)">
-              {d.label}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-};
+<Chart type="bar" data={sales} x="月份" y="營收" unit=" 萬元" caption="每月營收" />
+<Chart type="bar" data={sales} x="月份" y={['營收', '成本']} caption="營收與成本" />
+<Chart type="bar" data={sales} x="月份" y={['成本', '毛利']} stacked caption="營收組成" />
+<Chart type="line" data={sales} x="月份" y={['營收', '成本']} caption="趨勢" />
+<Chart type="bar" horizontal data={channels} x="通路" y="占比" unit="%" caption="各通路占比" />
+<Chart type="pie" data={channels} x="通路" y="占比" otherLabel="其他" caption="通路組成" />
 ```
 
-Rules:
+- `data` is rows — a `.csv` import or objects written inline; `x` names the category column, `y` the number column(s). Numbers written as `"1,200"` are read.
+- One series is drawn in `--od-accent`; several take a fixed, colour-blind-safe order (restyle a slot with `--od-chart-1` … `--od-chart-8`). Eight series is the ceiling — past it, fold the rest into one or split the chart.
+- Pick the form by the question: compare amounts → `bar` (go `horizontal` for long names or many categories); change over time → `line`; parts of a whole → `stacked` bar, or `pie` for a glance at ≤ 6 parts (more fold into `otherLabel`). Never a pie of two slices — write the number.
+- A single series prints its values on the marks; several get a legend instead. `labels` turns values on or off; `unit` or `format` shapes them; `names` renames series in the legend.
+- `width` (default 640, the A4 text block) and `height` (default 280) are px, like everything on the page. Axes always include zero — a truncated axis in a report is a credibility problem.
+- A column `y` names that the data lacks, or empty data, prints `[? Chart: …]` and fails `mosage check`.
+- If the numbers must come from the user, don't fabricate them: leave `<ImagePlaceholder hint="Bar chart: monthly incidents, Jan–Sep, from the ops dashboard" height={180} />` and flag it at hand-off.
 
-- Size the SVG to the text block width (A4 @ 76px margins → 642) so it aligns with the prose.
-- Vector only. SVG stays sharp in the PDF; a rasterized chart does not.
-- Label directly on the chart — a separate legend forces the reader to look twice. If you must have a legend, put it on one line above the plot.
-- Start bar axes at zero. Truncated axes in a report are a credibility problem, not a style choice.
-- Two decimals maximum, units in the axis label or the caption.
-- `data.map` inside one SVG is fine — the "explicit instance" rule is about repeated *page elements*, not path geometry.
-- If the chart needs data the user has to supply, don't fabricate plausible numbers. Use `<ImagePlaceholder hint="Bar chart: monthly incidents, Jan–Sep, from the ops dashboard" height={180} />` and flag it at hand-off.
+For a drawing `<Chart>` does not make — an annotated timeline, a map — write
+inline SVG sized in absolute px to the text block (642 at A4's 76px margins),
+colour it with `var(--od-*)`, label it directly, and keep it vector.
 
 ## Callouts
 
