@@ -15,6 +15,13 @@ function toBlocks(node: ReactNode): ReactNode[] {
       out.push(...toBlocks((child.props as { children?: ReactNode }).children));
       continue;
     }
+    // A component that can hand over its parts — a bibliography's entries — is
+    // laid out as those parts, so a long one breaks across pages.
+    const split = (child.type as { flowBlocks?: (props: unknown) => ReactNode }).flowBlocks;
+    if (typeof split === 'function') {
+      out.push(...toBlocks(split(child.props)));
+      continue;
+    }
     out.push(child);
   }
   return out;

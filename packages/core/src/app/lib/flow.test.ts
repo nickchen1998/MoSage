@@ -1,5 +1,6 @@
+import { createElement, Fragment } from 'react';
 import { describe, expect, it } from 'vitest';
-import { type BlockMetrics, paginateBlocks } from './flow.ts';
+import { type BlockMetrics, flow, paginateBlocks } from './flow.ts';
 
 const b = (height: number, extra: Partial<BlockMetrics> = {}): BlockMetrics => ({
   height,
@@ -106,5 +107,22 @@ describe('paginateBlocks with footnotes', () => {
   it('leaves documents without notes packing exactly as before', () => {
     const blocks = [block(400), block(400), block(400)];
     expect(paginateBlocks(blocks, 1000, { footnoteOverhead: 20 }).pages).toEqual([[0, 1], [2]]);
+  });
+});
+
+describe('flow', () => {
+  it('lays out a component that hands over its parts as those parts', () => {
+    const Parts = (_: { count: number }) => null;
+    Parts.flowBlocks = ({ count }: { count: number }) =>
+      Array.from({ length: count }, (_, i) => createElement('p', { key: i }, `entry ${i}`));
+    const section = flow(
+      createElement(
+        Fragment,
+        null,
+        createElement('h2', null, 'References'),
+        createElement(Parts, { count: 3 }),
+      ),
+    );
+    expect(section.blocks).toHaveLength(4);
   });
 });

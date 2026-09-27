@@ -2,7 +2,7 @@ import type { PageGeometry } from './sdk';
 
 export const WATERMARK_ATTR = 'data-od-watermark';
 
-const WIDE = /[⺀-鿿가-힯豈-﫿＀-￯]/;
+const WIDE = /[\u2E80-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF\uFF00-\uFFEF]/;
 /** The drawn letter spacing, in em — the width estimate has to include it. */
 const TRACKING = 0.1;
 

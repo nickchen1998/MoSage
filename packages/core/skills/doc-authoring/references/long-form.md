@@ -129,3 +129,27 @@ import services from './data/services.csv';
 
 **Retyping numbers into JSX is the thing this replaces.** If the user has the
 data in a file, import the file.
+
+## Citations and the bibliography
+
+Cite sources with `<Cite>` and list them once with `<Bibliography>`. Both
+resolve after layout, like `<Ref>`:
+
+```tsx
+import { Bibliography, Cite } from 'mosage';
+import refs from './assets/references/refs.bib';
+
+<p>雲端支出持續成長 <Cite id="chen2024" />，實務上也有類似觀察 <Cite id="chen2023" page="12" />。</p>
+<p>多篇研究都有相同結論 <Cite id={['chen2024', 'who2022']} />。</p>
+
+<h2>參考文獻</h2>
+<Bibliography sources={refs} />
+```
+
+- **Sources** come from a `.bib` file the user exported from Zotero, EndNote, or Google Scholar (`import refs from './assets/references/refs.bib'`), or are written inline as `{ id, author, title, year, container, volume, issue, pages, publisher, url, doi }`. Write people as `Family, Given`; a Chinese name or an organisation as written.
+- **`format="numeric"`** (the default) prints `[1]`, `[1–3]`, `[2，頁 12]`, numbered by each source's place in the list — **order the list by first citation**. **`format="author-date"`** prints `(Chen & Lin, 2024)` or `（陳大文等人，2023）` and sorts the list by author.
+- `page` adds a locator (`p. 12` / `頁 12`); `narrative` gives `Chen (2024)` / `陳大文（2023）` for use inside a sentence.
+- Entries follow APA: Chinese sources in full-width punctuation with titles in bold, Latin ones with titles in italics. Inside `flow()` every entry is its own block, so a long list breaks across pages.
+- `mosage check` fails on a `<Cite>` no bibliography lists (`[?id]` on the page) and warns about a listed source nothing cites.
+- Never invent a source. Cite only what the user supplied — their `references/` folder or a list they gave you.
+
