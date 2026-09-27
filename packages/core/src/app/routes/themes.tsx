@@ -3,22 +3,26 @@ import { Link, useParams } from 'react-router-dom';
 import { Markdown } from '../components/themes/markdown';
 import { ThemePreview } from '../components/themes/theme-preview';
 import { docsByTheme } from '../lib/docs';
+import { useT } from '../lib/i18n';
 import { findTheme, themes } from '../lib/themes';
 
 const GALLERY_WIDTH = 200;
 const DETAIL_WIDTH = 260;
 
 export function ThemesGalleryPage() {
+  const t = useT();
   return (
     <div>
-      <h1 className="sr-only">Themes</h1>
+      <h1 className="sr-only">{t('Themes')}</h1>
       {themes.length === 0 ? (
         <div className="py-16 text-center">
           <Palette className="mx-auto size-6 text-muted-foreground" />
-          <p className="mt-3 font-medium text-sm">No themes yet</p>
+          <p className="mt-3 font-medium text-sm">{t('No themes yet')}</p>
           <p className="mt-1 text-muted-foreground text-xs">
-            Ask your agent for the <code className="font-mono">create-theme</code> skill, or add{' '}
-            <code className="font-mono">themes/&lt;id&gt;.md</code>.
+            {t.rich('Ask your agent for the {skill} skill, or add {file}.', {
+              skill: <code className="font-mono">create-theme</code>,
+              file: <code className="font-mono">themes/&lt;id&gt;.md</code>,
+            })}
           </p>
         </div>
       ) : (
@@ -43,15 +47,16 @@ export function ThemesGalleryPage() {
 }
 
 export function ThemeDetailPage() {
+  const t = useT();
   const { themeId } = useParams<{ themeId: string }>();
   const theme = findTheme(themeId);
 
   if (!theme) {
     return (
       <div className="px-8 py-16 text-center">
-        <p className="font-medium text-sm">Theme “{themeId}” not found.</p>
+        <p className="font-medium text-sm">{t('Theme “{id}” not found.', { id: themeId ?? '' })}</p>
         <Link to="/themes" className="mt-3 inline-block text-muted-foreground text-xs underline">
-          Back to themes
+          {t('Back to themes')}
         </Link>
       </div>
     );
@@ -67,7 +72,7 @@ export function ThemeDetailPage() {
         className="inline-flex items-center gap-1.5 text-muted-foreground text-xs hover:text-foreground"
       >
         <ArrowLeft className="size-3" />
-        Themes
+        {t('Themes')}
       </Link>
 
       <div className="mt-4 flex flex-wrap items-baseline gap-3">
@@ -92,7 +97,7 @@ export function ThemeDetailPage() {
 
       {usedBy.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center gap-2">
-          <span className="text-muted-foreground text-xs">Used by</span>
+          <span className="text-muted-foreground text-xs">{t('Used by')}</span>
           {usedBy.map((docId) => (
             <Link
               key={docId}

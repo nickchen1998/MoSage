@@ -1,3 +1,5 @@
+import { english, type Translate } from './i18n';
+
 /**
  * Which pages a download covers.
  *
@@ -101,19 +103,25 @@ export function selectionSummary(
   selection: PageSelection,
   total: number,
   currentPage: number,
+  t: Translate = english,
 ): string {
   const pages = resolveSelection(selection, total, currentPage);
-  if (!pages) return 'Type page numbers, like 1-3, 5';
+  if (!pages) return t('Type page numbers, like 1-3, 5');
   if (selection.kind === 'all') {
     return total === 1
-      ? "The document's only page will be downloaded"
-      : `All ${total} pages will be downloaded`;
+      ? t("The document's only page will be downloaded")
+      : t('All {count} pages will be downloaded', { count: total });
   }
   if (selection.kind === 'current') {
-    return `Only page ${pages[0] + 1}, the one you're viewing, will be downloaded`;
+    return t("Only page {page}, the one you're viewing, will be downloaded", {
+      page: pages[0] + 1,
+    });
   }
-  if (pages.length === 1) return `Page ${pages[0] + 1} will be downloaded`;
-  return `${pages.length} pages will be downloaded: ${formatPages(pages)}`;
+  if (pages.length === 1) return t('Page {page} will be downloaded', { page: pages[0] + 1 });
+  return t('{count} pages will be downloaded: {pages}', {
+    count: pages.length,
+    pages: formatPages(pages),
+  });
 }
 
 function clamp(value: number, min: number, max: number): number {

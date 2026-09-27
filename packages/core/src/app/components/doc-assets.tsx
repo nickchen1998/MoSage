@@ -11,6 +11,7 @@ import {
   uploadAsset,
   useAssets,
 } from '../lib/assets';
+import { type Translate, useT } from '../lib/i18n';
 import { cn } from '../lib/utils';
 import { AssetPreview } from './asset-preview';
 import { ReferenceRow } from './assets/asset-items';
@@ -24,6 +25,7 @@ type Picked = { scope: string; asset: Asset };
  * import line to paste into the source.
  */
 export function DocAssets({ docId }: { docId: string }) {
+  const t = useT();
   const own = useAssets(docId);
   const shared = useAssets(GLOBAL_SCOPE);
   const [picked, setPicked] = useState<Picked | null>(null);
@@ -67,7 +69,7 @@ export function DocAssets({ docId }: { docId: string }) {
           onError={setError}
         />
 
-        <Collapsible title="Project (shared)" defaultOpen={false}>
+        <Collapsible title={t('Project (shared)')} defaultOpen={false}>
           <ScopeImages
             scope={GLOBAL_SCOPE}
             list={shared.list}
@@ -170,11 +172,16 @@ function UploadButton({ label, onFiles }: { label: string; onFiles: (files: File
   );
 }
 
-async function uploadAll(scope: string, files: FileList, onError: (message: string) => void) {
+async function uploadAll(
+  scope: string,
+  files: FileList,
+  onError: (message: string) => void,
+  t: Translate,
+) {
   for (const file of Array.from(files)) {
     let result = await uploadAsset(scope, file);
     if (!result.ok && result.error === 'asset exists') {
-      if (!window.confirm(`"${file.name}" already exists. Replace it?`)) continue;
+      if (!window.confirm(t('“{name}” already exists. Replace it?', { name: file.name }))) continue;
       result = await uploadAsset(scope, file, { overwrite: true });
     }
     if (!result.ok) onError(`${file.name}: ${result.error}`);
@@ -198,21 +205,22 @@ function ScopeImages({
   onError: (message: string) => void;
   compactHeading?: boolean;
 }) {
+  const t = useT();
   const images = list.assets.filter((a) => a.kind === 'image');
   return (
     <Collapsible
-      title={KIND_LABEL.image}
+      title={t(KIND_LABEL.image)}
       count={images.length}
       defaultOpen={!compactHeading}
       action={
         <UploadButton
-          label={`Upload to ${KIND_LABEL.image}`}
-          onFiles={(files) => void uploadAll(scope, files, onError).then(onChanged)}
+          label={t('Upload to {folder}', { folder: t(KIND_LABEL.image) })}
+          onFiles={(files) => void uploadAll(scope, files, onError, t).then(onChanged)}
         />
       }
     >
       {images.length === 0 ? (
-        <p className="px-1 pb-1 text-muted-foreground text-xs">No images yet.</p>
+        <p className="px-1 pb-1 text-muted-foreground text-xs">{t('No images yet.')}</p>
       ) : (
         <div className="grid grid-cols-2 gap-1.5">
           {images.map((asset) => (
@@ -256,21 +264,22 @@ function ScopeReferences({
   onError: (message: string) => void;
   compactHeading?: boolean;
 }) {
+  const t = useT();
   const references = list.assets.filter((a) => a.kind === 'reference');
   return (
     <Collapsible
-      title={KIND_LABEL.reference}
+      title={t(KIND_LABEL.reference)}
       count={references.length}
       defaultOpen={!compactHeading}
       action={
         <UploadButton
-          label={`Upload to ${KIND_LABEL.reference}`}
-          onFiles={(files) => void uploadAll(scope, files, onError).then(onChanged)}
+          label={t('Upload to {folder}', { folder: t(KIND_LABEL.reference) })}
+          onFiles={(files) => void uploadAll(scope, files, onError, t).then(onChanged)}
         />
       }
     >
       {references.length === 0 ? (
-        <p className="px-1 pb-1 text-muted-foreground text-xs">No files yet.</p>
+        <p className="px-1 pb-1 text-muted-foreground text-xs">{t('No files yet.')}</p>
       ) : (
         references.map((asset) => (
           <ReferenceRow
@@ -303,6 +312,7 @@ function PickedImage({
   onError: (message: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -314,8 +324,10 @@ function PickedImage({
   };
 
   const remove = async () => {
-    const warning = asset.unused ? '' : ' A document still uses it.';
-    if (!window.confirm(`Delete "${asset.name}"?${warning}`)) return;
+    const question = asset.unused
+      ? t('Delete “{name}”?', { name: asset.name })
+      : t('Delete “{name}”? A document still uses it.', { name: asset.name });
+    if (!window.confirm(question)) return;
     const result = await deleteAsset(scope, asset.path);
     if (!result.ok) onError(result.error);
     onClose();
@@ -327,7 +339,7 @@ function PickedImage({
       <p className="truncate font-medium text-xs">{asset.name}</p>
       <p className="mt-0.5 text-[0.625rem] text-muted-foreground">
         {formatBytes(asset.size)}
-        {asset.unused ? ' · unused' : ''}
+        {asset.unused ? ` · ${t('unused')}` : ''}
       </p>
       <code className="mt-1.5 block truncate rounded bg-muted px-1.5 py-1 font-mono text-[0.625rem]">
         {asset.importPath}
@@ -339,11 +351,11 @@ function PickedImage({
           className="flex flex-1 items-center justify-center gap-1 rounded border border-border px-2 py-1 text-xs transition-colors hover:bg-accent"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? 'Copied' : 'Copy import'}
+          {copied ? t('Copied') : t('Copy import')}
         </button>
         <button
           type="button"
-          aria-label="Preview"
+          aria-label={t('Preview')}
           onClick={onPreview}
           className="flex size-7 items-center justify-center rounded border border-border hover:bg-accent"
         >
@@ -351,7 +363,7 @@ function PickedImage({
         </button>
         <button
           type="button"
-          aria-label={`Delete ${asset.name}`}
+          aria-label={t('Delete {name}', { name: asset.name })}
           onClick={() => void remove()}
           className="flex size-7 items-center justify-center rounded border border-border hover:bg-accent"
         >

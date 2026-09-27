@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { msg } from './i18n';
 
 /**
  * How large the app's own text is, as a multiple of the browser default. Only
@@ -6,11 +7,11 @@ import { useEffect, useState } from 'react';
  * in px, and print resets the root size (styles.css) before a PDF is made.
  */
 export const UI_SCALES = [
-  { value: 0.9, label: 'Compact' },
-  { value: 1, label: 'Default' },
-  { value: 1.1, label: 'Large' },
-  { value: 1.25, label: 'Larger' },
-  { value: 1.5, label: 'Largest' },
+  { value: 0.9, label: msg('Compact') },
+  { value: 1, label: msg('Default') },
+  { value: 1.1, label: msg('Large') },
+  { value: 1.25, label: msg('Larger') },
+  { value: 1.5, label: msg('Largest') },
 ] as const;
 
 export const DEFAULT_UI_SCALE = 1.1;

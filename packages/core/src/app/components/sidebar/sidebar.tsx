@@ -1,6 +1,7 @@
 import config from 'virtual:mosage/config';
 import { Plus, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '../../lib/i18n';
 import type { Folder, FolderIcon } from '../../lib/sdk';
 import { cn } from '../../lib/utils';
 import { ThemeToggle } from '../theme-toggle';
@@ -48,6 +49,7 @@ export function Sidebar({
   onDropToDraft,
   onReorder,
 }: Props) {
+  const t = useT();
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ id: string; before: boolean } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -123,7 +125,7 @@ export function Sidebar({
 
       <div className="mt-5 flex items-center gap-2 px-4 pb-1">
         <span className="text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-          Folders
+          {t('Folders')}
         </span>
         <span className="h-px flex-1 bg-border" aria-hidden />
       </div>
@@ -221,7 +223,7 @@ export function Sidebar({
                     setNewName('');
                   }
                 }}
-                placeholder="Folder name"
+                placeholder={t('Folder name')}
                 maxLength={40}
                 className="min-w-0 flex-1 bg-transparent text-[0.8125rem] outline-none placeholder:text-muted-foreground/60"
               />
@@ -233,7 +235,7 @@ export function Sidebar({
               className="mt-1 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
               <Plus className="size-3.5" />
-              New folder
+              {t('New folder')}
             </button>
           ))}
 
@@ -256,7 +258,7 @@ export function Sidebar({
           )}
         >
           <Settings className="size-3.5" />
-          Settings
+          {t('Settings')}
         </button>
       </div>
       <div className="px-4 py-3 text-[0.6875rem] text-muted-foreground">

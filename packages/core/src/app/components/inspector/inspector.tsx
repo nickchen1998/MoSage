@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { msg, useT } from '../../lib/i18n';
 import { candidateLocs, formatLocs } from '../../lib/inspector/fiber';
 import { TOC_ENTRY_ATTR } from '../table-of-contents';
 
@@ -135,6 +136,7 @@ type Props = {
 };
 
 export function Inspector({ docId, containerRef, onExit }: Props) {
+  const t = useT();
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [hover, setHover] = useState<InspectorTarget | null>(null);
   const [selected, setSelected] = useState<InspectorTarget | null>(null);
@@ -244,13 +246,17 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
           runs.every((part) => part.kind === 'text' && shownText.includes(normalize(part.value)));
         setTarget(
           body.editable && !belongs
-            ? { ...body, editable: false, reason: 'source text does not match this element' }
+            ? {
+                ...body,
+                editable: false,
+                reason: msg('The source text does not match this element.'),
+              }
             : body,
         );
         setDrafts({});
       })
       .catch(() => {
-        if (!cancelled) setStatus('could not read source');
+        if (!cancelled) setStatus(msg('Could not read the source.'));
       });
     return () => {
       cancelled = true;
@@ -284,11 +290,11 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
         });
         const body = (await res.json()) as { ok?: boolean; error?: string };
         if (!res.ok || !body.ok) {
-          setStatus(body.error ?? 'Save failed');
+          setStatus(body.error ?? msg('Save failed'));
           return;
         }
       }
-      setStatus('Saved to source');
+      setStatus(msg('Saved to source'));
       // Editing shifts what follows, so the captured location is good for one
       // write. Reselect to edit again.
       setSelected(null);
@@ -315,9 +321,9 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
       const body = (await res.json()) as { ok?: boolean; error?: string };
       if (res.ok && body.ok) {
         setNote('');
-        setStatus('Marked in source — run /apply-comments');
+        setStatus(msg('Marked in source — run /apply-comments'));
       } else {
-        setStatus(body.error ?? 'Could not add comment');
+        setStatus(body.error ?? msg('Could not add comment'));
       }
     } finally {
       setBusy(false);
@@ -336,7 +342,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
             <Frame anchor={selected?.anchor ?? null} container={container} variant="selected" />
           </div>
           <div className="pointer-events-none sticky bottom-3 z-40 mx-auto w-fit rounded-full bg-foreground/90 px-3 py-1.5 text-[0.6875rem] text-background">
-            {selected ? 'Esc to deselect' : 'Click an element · Esc to exit'}
+            {selected ? t('Esc to deselect') : t('Click an element · Esc to exit')}
           </div>
         </>,
         container,
@@ -358,7 +364,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
             </span>
             <button
               type="button"
-              aria-label="Close"
+              aria-label={t('Close')}
               onClick={() => setSelected(null)}
               className="flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
             >
@@ -368,7 +374,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
 
           <div className="min-h-0 flex-1 overflow-y-auto p-3">
             <span className="block text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-              Text
+              {t('Text')}
             </span>
             {target === null ? (
               <div className="grid h-16 place-items-center">
@@ -395,7 +401,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                     suppressContentEditableWarning
                     role="textbox"
                     tabIndex={0}
-                    aria-label="Text"
+                    aria-label={t('Text')}
                     onInput={() => {
                       const host = editorRef.current;
                       if (!host) return;
@@ -423,7 +429,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                           <wbr />
                           <span
                             contentEditable={false}
-                            title="Markup is kept as written"
+                            title={t('Markup is kept as written')}
                             className="mx-0.5 select-none rounded bg-muted px-1 py-px font-mono text-[0.625rem] text-muted-foreground"
                           >
                             {part.label}
@@ -477,17 +483,19 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                   ) : (
                     <Check className="size-3" />
                   )}
-                  {dirty.length > 1 ? `Save ${dirty.length} edits` : 'Save text'}
+                  {dirty.length > 1
+                    ? t('Save {count} edits', { count: dirty.length })
+                    : t('Save text')}
                 </button>
               </>
             ) : (
               <p className="mt-1 rounded border border-border bg-muted px-2 py-1.5 text-[0.6875rem] text-muted-foreground">
-                {target.reason ?? 'Not editable here.'}
+                {t(target.reason ?? msg('Not editable here.'))}
               </p>
             )}
 
             <span className="mt-4 block text-[0.625rem] text-muted-foreground uppercase tracking-wider">
-              Comment for the agent
+              {t('Comment for the agent')}
             </span>
             <textarea
               value={note}
@@ -496,7 +504,7 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
                 if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void saveComment();
               }}
               rows={3}
-              placeholder="make this bold, shorten to one line…"
+              placeholder={t('make this bold, shorten to one line…')}
               className="mt-1 w-full resize-y rounded border border-border bg-transparent px-2 py-1.5 text-xs outline-none placeholder:text-muted-foreground/60 focus:border-foreground/40"
             />
             <button
@@ -506,10 +514,10 @@ export function Inspector({ docId, containerRef, onExit }: Props) {
               className="mt-1.5 flex w-full items-center justify-center gap-1.5 rounded border border-border px-2 py-1.5 text-xs transition-colors hover:bg-accent disabled:opacity-50"
             >
               <MessageSquarePlus className="size-3" />
-              Mark comment
+              {t('Mark comment')}
             </button>
 
-            {status && <p className="mt-2 text-[0.6875rem] text-muted-foreground">{status}</p>}
+            {status && <p className="mt-2 text-[0.6875rem] text-muted-foreground">{t(status)}</p>}
           </div>
         </aside>
       )}

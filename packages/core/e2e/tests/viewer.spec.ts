@@ -135,7 +135,7 @@ test.describe('document viewer', () => {
 
   test('the outline lists headings with their page numbers', async ({ page }) => {
     await openDoc(page, 'alpha');
-    await page.getByRole('button', { name: 'outline', exact: true }).click();
+    await page.getByRole('button', { name: 'Outline', exact: true }).click();
     const outline = page.getByRole('navigation');
     await expect(outline.getByText('Alpha page one')).toBeVisible();
     await expect(outline.getByText('Alpha page two')).toBeVisible();

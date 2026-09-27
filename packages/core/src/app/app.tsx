@@ -1,5 +1,6 @@
 import config from 'virtual:mosage/config';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { useT } from './lib/i18n';
 import { AssetsPage } from './routes/assets';
 import { Doc } from './routes/doc';
 import { Home } from './routes/home';
@@ -30,13 +31,14 @@ export function App() {
 }
 
 function NotFound() {
+  const t = useT();
   return (
     <div className="grid h-screen place-items-center bg-background px-6 text-center text-foreground">
       <div>
         <p className="font-mono text-muted-foreground text-xs uppercase tracking-widest">404</p>
-        <h1 className="mt-2 font-medium text-xl tracking-tight">Nothing here</h1>
+        <h1 className="mt-2 font-medium text-xl tracking-tight">{t('Nothing here')}</h1>
         <Link to="/" className="mt-4 inline-block text-muted-foreground text-xs underline">
-          Back to documents
+          {t('Back to documents')}
         </Link>
       </div>
     </div>

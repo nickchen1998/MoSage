@@ -64,7 +64,7 @@ test.describe('generated images', () => {
     await expect(box).toBeVisible();
     expect(await box.evaluate((el) => (el as HTMLElement).style.height)).toBe('300px');
 
-    await page.getByRole('button', { name: 'assets', exact: true }).click();
+    await page.getByRole('button', { name: 'Assets', exact: true }).click();
     await page.getByRole('button', { name: 'Generate', exact: true }).click();
     await expect(page.getByText(/harbour: done · about \$/)).toBeVisible({ timeout: 20_000 });
 

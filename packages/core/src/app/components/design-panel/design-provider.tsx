@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { type DesignSystem, defaultDesign, designToCssVars } from '../../lib/design';
 import { shuffleDesign } from '../../lib/design-presets';
+import { msg } from '../../lib/i18n';
 import { useDesign as useDesignFetch } from './use-design';
 
 type DesignCtx = {
@@ -71,7 +72,7 @@ export function DesignProvider({ docId, children }: { docId: string; children: R
     setCommitting(true);
     const result = await save(draft);
     setCommitting(false);
-    setError(result.ok ? null : (result.error ?? 'Failed to save'));
+    setError(result.ok ? null : (result.error ?? msg('Failed to save')));
   }, [draft, save]);
 
   const discard = useCallback(() => {

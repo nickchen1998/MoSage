@@ -1,6 +1,7 @@
 import { createElement, type ReactNode } from 'react';
 import { FlowPage } from '../components/flow-page';
 import { type DocEntry, isFlowSection } from './flow';
+import { english, type Translate } from './i18n';
 import type { DocModule } from './sdk';
 
 /**
@@ -19,11 +20,12 @@ export function coverContent(doc: DocModule | null | undefined): ReactNode {
 }
 
 /** "9 pages" for fixed docs; flow docs read "3 sections" until they are opened. */
-export function pageCountLabel(doc: DocModule | null | undefined): string {
+export function pageCountLabel(doc: DocModule | null | undefined, t: Translate = english): string {
   const entries = (doc?.default as DocEntry[] | undefined) ?? [];
-  if (entries.length === 0) return '0 pages';
   const flowCount = entries.filter(isFlowSection).length;
-  if (flowCount === 0) return `${entries.length} pages`;
+  if (flowCount === 0) {
+    return entries.length === 1 ? t('1 page') : t('{count} pages', { count: entries.length });
+  }
   const fixed = entries.length - flowCount;
-  return fixed > 0 ? `${fixed} + flow` : 'flow';
+  return fixed > 0 ? t('{count} + flow', { count: fixed }) : t('flow');
 }

@@ -18,6 +18,7 @@ import {
   useAssets,
 } from '../lib/assets';
 import { docIds, useDocTitles } from '../lib/docs';
+import { useT } from '../lib/i18n';
 import { cn } from '../lib/utils';
 
 /** What the right-hand pane shows. */
@@ -27,6 +28,7 @@ const sameSelection = (a: Selection, b: Selection) =>
   a.scope === b.scope && a.collection === b.collection;
 
 export function AssetsPage() {
+  const t = useT();
   const scopes = useMemo(() => [GLOBAL_SCOPE, ...[...docIds].sort()], []);
   const titles = useDocTitles();
   const [selection, setSelection] = useState<Selection>({
@@ -34,14 +36,14 @@ export function AssetsPage() {
     collection: 'images',
   });
   const labelOf = (scope: string) =>
-    scope === GLOBAL_SCOPE ? 'Project (shared)' : (titles[scope] ?? scope);
+    scope === GLOBAL_SCOPE ? t('Project (shared)') : (titles[scope] ?? scope);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <h1 className="sr-only">Assets</h1>
+      <h1 className="sr-only">{t('Assets')}</h1>
       <div className="flex min-h-0 flex-1">
         <nav
-          aria-label="Asset folders"
+          aria-label={t('Asset folders')}
           className="w-64 flex-none overflow-y-auto border-border border-r bg-background px-2 py-3"
         >
           {scopes.map((scope) => (
@@ -84,6 +86,7 @@ function TreeRow({
   onToggle?: () => void;
   onSelect: () => void;
 }) {
+  const t = useT();
   return (
     <div
       className={cn(
@@ -95,7 +98,9 @@ function TreeRow({
       {onToggle ? (
         <button
           type="button"
-          aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
+          aria-label={
+            open ? t('Collapse {name}', { name: label }) : t('Expand {name}', { name: label })
+          }
           onClick={onToggle}
           className="flex size-5 flex-none items-center justify-center rounded hover:bg-background"
         >
@@ -132,6 +137,7 @@ function ScopeBranch({
   onSelect: (selection: Selection) => void;
   defaultOpen: boolean;
 }) {
+  const t = useT();
   const { list } = useAssets(scope);
   const [open, setOpen] = useState(defaultOpen);
   const images = list?.assets.filter((a) => a.kind === 'image') ?? [];
@@ -156,7 +162,7 @@ function ScopeBranch({
         <>
           <TreeRow
             depth={1}
-            label={KIND_LABEL.image}
+            label={t(KIND_LABEL.image)}
             count={images.length}
             icon={<ImageIcon className="size-3.5 flex-none" />}
             selected={is({ scope, collection: 'images' })}
@@ -164,7 +170,7 @@ function ScopeBranch({
           />
           <TreeRow
             depth={1}
-            label={KIND_LABEL.reference}
+            label={t(KIND_LABEL.reference)}
             count={references.length}
             icon={<Library className="size-3.5 flex-none" />}
             selected={is({ scope, collection: 'references' })}
@@ -177,6 +183,7 @@ function ScopeBranch({
 }
 
 function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabel: string }) {
+  const t = useT();
   const { scope } = selection;
   const { list, error: listError, reload } = useAssets(scope);
   const [error, setError] = useState<string | null>(null);
@@ -192,7 +199,8 @@ function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabe
       for (const file of Array.from(files)) {
         let result = await uploadAsset(scope, file);
         if (!result.ok && result.error === 'asset exists') {
-          if (!window.confirm(`"${file.name}" already exists here. Replace it?`)) continue;
+          if (!window.confirm(t('“{name}” already exists here. Replace it?', { name: file.name })))
+            continue;
           result = await uploadAsset(scope, file, { overwrite: true });
         }
         if (!result.ok) setError(`${file.name}: ${result.error}`);
@@ -200,7 +208,7 @@ function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabe
       reload();
       setBusy(false);
     },
-    [scope, reload],
+    [scope, reload, t],
   );
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -211,7 +219,7 @@ function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabe
 
   const crumbs = [
     scopeLabel,
-    selection.collection === 'images' ? KIND_LABEL.image : KIND_LABEL.reference,
+    t(selection.collection === 'images' ? KIND_LABEL.image : KIND_LABEL.reference),
   ];
 
   return (
@@ -232,10 +240,12 @@ function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabe
         )}
       >
         <div className="text-sm">
-          <p className="font-medium">Drop files to upload</p>
+          <p className="font-medium">{t('Drop files to upload')}</p>
           <p className="mt-0.5 text-muted-foreground text-xs">
-            Images go to {KIND_LABEL.image}; other files go to {KIND_LABEL.reference}. Up to 25 MB
-            each.
+            {t('Images go to {images}; other files go to {references}. Up to 25 MB each.', {
+              images: t(KIND_LABEL.image),
+              references: t(KIND_LABEL.reference),
+            })}
           </p>
         </div>
         <button
@@ -245,7 +255,7 @@ function FolderPane({ selection, scopeLabel }: { selection: Selection; scopeLabe
           className="flex flex-none items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-primary-foreground text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-          Choose files
+          {t('Choose files')}
         </button>
         <input
           ref={inputRef}
@@ -301,9 +311,12 @@ type ListProps = {
 };
 
 function Images({ list, ...props }: ListProps) {
+  const t = useT();
   const images = list.assets.filter((a) => a.kind === 'image');
   if (images.length === 0) {
-    return <p className="py-16 text-center text-muted-foreground text-sm">No images here yet.</p>;
+    return (
+      <p className="py-16 text-center text-muted-foreground text-sm">{t('No images here yet.')}</p>
+    );
   }
   return (
     <div className="mt-6 grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))]">
@@ -315,11 +328,12 @@ function Images({ list, ...props }: ListProps) {
 }
 
 function References({ list, ...props }: ListProps) {
+  const t = useT();
   const references = list.assets.filter((a) => a.kind === 'reference');
   if (references.length === 0) {
     return (
       <p className="py-16 text-center text-muted-foreground text-sm">
-        No {KIND_LABEL.reference} yet — papers, data, and notes the document draws on go here.
+        {t('No references yet — papers, data, and notes the document draws on go here.')}
       </p>
     );
   }

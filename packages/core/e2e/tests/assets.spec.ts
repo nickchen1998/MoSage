@@ -12,7 +12,7 @@ test.describe('assets', () => {
     await request.delete(url('alpha', CSV));
   });
 
-  test('an uploaded image lands in 圖片, marked unused', async ({ page, request }) => {
+  test('an uploaded image lands in Images, marked unused', async ({ page, request }) => {
     const uploaded = await request.post(url('@global', IMAGE), {
       data: TINY_PNG,
       headers: { 'content-type': 'image/png' },
@@ -22,7 +22,7 @@ test.describe('assets', () => {
     await page.goto('/assets');
     await expect(page.getByRole('heading', { name: 'Assets' })).toBeVisible();
     const tree = page.getByRole('navigation', { name: 'Asset folders' });
-    await tree.getByRole('button', { name: '圖片' }).first().click();
+    await tree.getByRole('button', { name: 'Images' }).first().click();
     await expect(page.getByText('e2e-panel-pixel.png')).toBeVisible();
     await expect(page.getByRole('combobox')).toHaveCount(0);
     // Nothing imports it, which is exactly what the badge is for.
@@ -34,7 +34,7 @@ test.describe('assets', () => {
     const tree = page.getByRole('navigation', { name: 'Asset folders' });
     await expect(tree.getByRole('button', { name: 'Project (shared)', exact: true })).toBeVisible();
     await tree.getByRole('button', { name: 'Alpha Report', exact: true }).click();
-    await expect(tree.getByRole('button', { name: '參考文獻' })).toHaveCount(2);
+    await expect(tree.getByRole('button', { name: 'References' })).toHaveCount(2);
   });
 
   test('a reference opens in a preview', async ({ page, request }) => {
@@ -45,7 +45,7 @@ test.describe('assets', () => {
     await page.goto('/assets');
     const tree = page.getByRole('navigation', { name: 'Asset folders' });
     await tree.getByRole('button', { name: 'Alpha Report', exact: true }).click();
-    await tree.getByRole('button', { name: '參考文獻' }).nth(1).click();
+    await tree.getByRole('button', { name: 'References' }).nth(1).click();
     await page.getByRole('button', { name: 'Preview e2e-panel.csv' }).first().click();
 
     const dialog = page.getByRole('dialog', { name: 'e2e-panel.csv' });

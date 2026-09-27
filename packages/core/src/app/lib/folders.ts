@@ -1,5 +1,6 @@
 import buildManifest from 'virtual:mosage/folders';
 import { useCallback, useEffect, useState } from 'react';
+import { msg, t } from './i18n';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
 const EMPTY: FoldersManifest = { folders: [], assignments: {} };
@@ -24,7 +25,7 @@ async function expectOk(res: Response, label: string): Promise<void> {
     const body = (await res.json()) as { error?: string };
     if (body.error) detail = body.error;
   } catch {}
-  throw new Error(`${label}: ${detail}`);
+  throw new Error(`${t(label)}: ${detail}`);
 }
 
 const jsonInit = (method: string, body: unknown): RequestInit => ({
@@ -85,7 +86,7 @@ export function useFolders(): UseFoldersResult {
   const create = useCallback(
     async (name: string, icon: FolderIcon) => {
       const res = await fetch('/__folders', jsonInit('POST', { name, icon }));
-      await expectOk(res, 'Create folder failed');
+      await expectOk(res, msg('Create folder failed'));
       const folder = (await res.json()) as Folder;
       await refresh();
       return folder;
@@ -97,7 +98,7 @@ export function useFolders(): UseFoldersResult {
     async (id: string, patch: { name?: string; icon?: FolderIcon }) => {
       await expectOk(
         await fetch(`/__folders/${id}`, jsonInit('PATCH', patch)),
-        'Update folder failed',
+        msg('Update folder failed'),
       );
       await refresh();
     },
@@ -106,7 +107,10 @@ export function useFolders(): UseFoldersResult {
 
   const remove = useCallback(
     async (id: string) => {
-      await expectOk(await fetch(`/__folders/${id}`, { method: 'DELETE' }), 'Delete folder failed');
+      await expectOk(
+        await fetch(`/__folders/${id}`, { method: 'DELETE' }),
+        msg('Delete folder failed'),
+      );
       await refresh();
     },
     [refresh],
@@ -122,7 +126,7 @@ export function useFolders(): UseFoldersResult {
       try {
         await expectOk(
           await fetch('/__folders/reorder', jsonInit('PUT', { ids })),
-          'Reorder failed',
+          msg('Reorder failed'),
         );
       } catch (err) {
         setManifest(prev);
@@ -136,7 +140,7 @@ export function useFolders(): UseFoldersResult {
     async (docId: string, folderId: string | null) => {
       await expectOk(
         await fetch('/__folders/assign', jsonInit('PUT', { docId, folderId })),
-        'Move failed',
+        msg('Move failed'),
       );
       await refresh();
     },
@@ -147,7 +151,7 @@ export function useFolders(): UseFoldersResult {
     async (docId: string, title: string) => {
       await expectOk(
         await fetch(`/__docs/${docId}`, jsonInit('PATCH', { title })),
-        'Rename failed',
+        msg('Rename failed'),
       );
       await refresh();
     },
@@ -159,7 +163,7 @@ export function useFolders(): UseFoldersResult {
       const init: RequestInit =
         newId === undefined ? { method: 'POST' } : jsonInit('POST', { newId });
       const res = await fetch(`/__docs/${docId}/duplicate`, init);
-      await expectOk(res, 'Duplicate failed');
+      await expectOk(res, msg('Duplicate failed'));
       const body = (await res.json()) as { docId?: unknown };
       await refresh();
       if (typeof body.docId !== 'string') throw new Error('duplicate response missing docId');
@@ -170,7 +174,7 @@ export function useFolders(): UseFoldersResult {
 
   const deleteDoc = useCallback(
     async (docId: string) => {
-      await expectOk(await fetch(`/__docs/${docId}`, { method: 'DELETE' }), 'Delete failed');
+      await expectOk(await fetch(`/__docs/${docId}`, { method: 'DELETE' }), msg('Delete failed'));
       await refresh();
     },
     [refresh],

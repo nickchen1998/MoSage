@@ -28,6 +28,7 @@ import { ThemeToggle } from '../components/theme-toggle';
 import { Menu, MenuItem } from '../components/ui/menu';
 import { useAgentBridge } from '../lib/agent-bridge';
 import { exportDocAsPdf } from '../lib/export-pdf';
+import { msg, useT } from '../lib/i18n';
 import { type OutlineEntry, useDocOutline } from '../lib/outline';
 import {
   describeSelection,
@@ -53,8 +54,13 @@ import {
 type DownloadFormat = 'pdf' | 'docx';
 
 const DOWNLOAD_FORMATS = [
-  { format: 'pdf' as const, label: 'PDF', hint: 'True page size, print-ready', icon: FileText },
-  { format: 'docx' as const, label: 'DOCX', hint: 'Editable in Word, reflows', icon: FilePen },
+  {
+    format: 'pdf' as const,
+    label: 'PDF',
+    hint: msg('True page size, print-ready'),
+    icon: FileText,
+  },
+  { format: 'docx' as const, label: 'DOCX', hint: msg('Editable in Word, reflows'), icon: FilePen },
 ];
 
 const GUTTER = 48;
@@ -69,9 +75,9 @@ const SPREAD_GAP = 4;
 const GRID_SCALE = 0.3;
 
 const VIEW_MODE_OPTIONS: Record<ViewMode, { label: string; icon: LucideIcon }> = {
-  continuous: { label: 'Continuous', icon: GalleryVertical },
-  'two-up': { label: 'Two-up', icon: BookOpen },
-  grid: { label: 'Grid', icon: LayoutGrid },
+  continuous: { label: msg('Continuous'), icon: GalleryVertical },
+  'two-up': { label: msg('Two-up'), icon: BookOpen },
+  grid: { label: msg('Grid'), icon: LayoutGrid },
 };
 
 const SCROLL_KEYS = new Set(['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' ']);
@@ -91,22 +97,24 @@ const BACK_CLASS =
  * host that mounts the viewer this way is providing its own way back.
  */
 const HeaderBackLink = () => {
+  const t = useT();
   if (appConfig.home !== undefined) {
     return (
-      <a href={appConfig.home} className={BACK_CLASS} aria-label="Back to workspace">
+      <a href={appConfig.home} className={BACK_CLASS} aria-label={t('Back to workspace')}>
         <ArrowLeft className="size-4" />
       </a>
     );
   }
   if (!appConfig.build.showDocBrowser) return null;
   return (
-    <Link to="/" className={BACK_CLASS} aria-label="Back to documents">
+    <Link to="/" className={BACK_CLASS} aria-label={t('Back to documents')}>
       <ArrowLeft className="size-4" />
     </Link>
   );
 };
 
 export function Doc() {
+  const t = useT();
   const { docId } = useParams<{ docId: string }>();
   const state = useDocModule(docId);
   const doc = state.doc;
@@ -393,7 +401,7 @@ export function Doc() {
   if (state.status === 'error') {
     return (
       <Centered>
-        <p className="font-medium text-sm">Could not load “{docId}”.</p>
+        <p className="font-medium text-sm">{t('Could not load “{id}”.', { id: docId ?? '' })}</p>
         <p className="mt-1 text-muted-foreground text-xs">{state.error.message}</p>
         <BackLink />
       </Centered>
@@ -431,13 +439,13 @@ export function Doc() {
 
           {/* Narrower than this, the header has no room left for the group and
               two sheets side by side are too small to read anyway. */}
-          <fieldset aria-label="View mode" className={cn('hidden lg:flex', TOOL_GROUP_CLASS)}>
+          <fieldset aria-label={t('View mode')} className={cn('hidden lg:flex', TOOL_GROUP_CLASS)}>
             {VIEW_MODES.map((mode) => {
               const { label, icon: Icon } = VIEW_MODE_OPTIONS[mode];
               return (
                 <IconButton
                   key={mode}
-                  label={label}
+                  label={t(label)}
                   onClick={() => changeViewMode(mode)}
                   active={viewMode === mode}
                 >
@@ -448,22 +456,22 @@ export function Doc() {
           </fieldset>
 
           <div className={cn('flex', TOOL_GROUP_CLASS)}>
-            <IconButton label="Zoom out" onClick={() => zoom(-0.1)}>
+            <IconButton label={t('Zoom out')} onClick={() => zoom(-0.1)}>
               <Minus className="size-3.5" />
             </IconButton>
             <button
               type="button"
               onClick={actualSize}
-              title="Actual size (100%)"
+              title={t('Actual size (100%)')}
               className="w-11 rounded text-center font-mono text-[0.6875rem] tabular-nums transition-colors hover:bg-accent"
             >
               {Math.round(scale * 100)}%
             </button>
-            <IconButton label="Zoom in" onClick={() => zoom(0.1)}>
+            <IconButton label={t('Zoom in')} onClick={() => zoom(0.1)}>
               <Plus className="size-3.5" />
             </IconButton>
             <IconButton
-              label="Fit width"
+              label={t('Fit width')}
               onClick={fitWidth}
               active={manualScale === null && zoomMode === 'fit-width'}
             >
@@ -480,14 +488,14 @@ export function Doc() {
             <button
               type="button"
               onClick={() => setInspecting((on) => !on)}
-              title="Inspect and edit on the page"
+              title={t('Inspect and edit on the page')}
               className={cn(
                 'flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-accent',
                 inspecting && 'border-transparent bg-[#3b82f6] text-white hover:bg-[#3b82f6]',
               )}
             >
               <MousePointerClick className="size-3.5" />
-              Inspect
+              {t('Inspect')}
             </button>
           )}
           {import.meta.env.DEV && (
@@ -500,7 +508,7 @@ export function Doc() {
               )}
             >
               <Palette className="size-3.5" />
-              Design
+              {t('Design')}
             </button>
           )}
           <Menu
@@ -520,7 +528,7 @@ export function Doc() {
                 )}
                 {download
                   ? `${DOWNLOAD_FORMATS.find((entry) => entry.format === download.format)?.label} ${Math.round(download.percent)}%`
-                  : 'Download'}
+                  : t('Download')}
               </button>
             )}
           >
@@ -549,7 +557,7 @@ export function Doc() {
                     <Icon className="size-3.5 flex-none" />
                     <span className="flex-1">
                       {label}
-                      <span className="block text-[0.625rem] text-muted-foreground">{hint}</span>
+                      <span className="block text-[0.625rem] text-muted-foreground">{t(hint)}</span>
                     </span>
                   </MenuItem>
                 ))}
@@ -643,10 +651,11 @@ function PageChoice({
   onSelection: (selection: PageSelection) => void;
   onCustom: (text: string) => void;
 }) {
+  const t = useT();
   const options = [
-    { kind: 'all' as const, label: 'All' },
-    { kind: 'current' as const, label: 'Current' },
-    { kind: 'custom' as const, label: 'Custom' },
+    { kind: 'all' as const, label: t('All') },
+    { kind: 'current' as const, label: t('Current') },
+    { kind: 'custom' as const, label: t('Custom') },
   ];
   const chosen = describeSelection(
     selection.kind === 'custom' ? { kind: 'custom', text: custom } : selection,
@@ -657,7 +666,7 @@ function PageChoice({
   return (
     <div className="border-border border-b px-1 pt-1 pb-2">
       <p className="px-1 pb-1 text-[0.625rem] text-muted-foreground uppercase tracking-wide">
-        Pages
+        {t('Pages')}
       </p>
       <div className="flex gap-0.5">
         {options.map((option) => (
@@ -684,8 +693,8 @@ function PageChoice({
           value={custom}
           onChange={(event) => onCustom(event.target.value)}
           onClick={(event) => event.stopPropagation()}
-          placeholder="e.g. 1-3, 5"
-          aria-label="Pages to download"
+          placeholder={t('e.g. 1-3, 5')}
+          aria-label={t('Pages to download')}
           aria-invalid={!chosen.valid}
           className={cn(
             'mt-1.5 w-full rounded border border-border bg-transparent px-2 py-1 text-[0.6875rem] outline-none placeholder:text-muted-foreground focus:border-foreground/40',
@@ -698,6 +707,7 @@ function PageChoice({
           selection.kind === 'custom' ? { kind: 'custom', text: custom } : selection,
           total,
           currentPage,
+          t,
         )}
       </p>
     </div>
@@ -719,6 +729,7 @@ function PageJump({
   total: number;
   onJump: (page: number) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState<string | null>(null);
 
   const commit = (raw: string) => {
@@ -748,8 +759,8 @@ function PageJump({
             event.currentTarget.blur();
           }
         }}
-        aria-label={`Page number, ${total} pages`}
-        title="Go to page"
+        aria-label={t('Page number, {total} pages', { total })}
+        title={t('Go to page')}
         inputMode="numeric"
         className="w-7 rounded bg-transparent text-right outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-foreground"
       />
@@ -796,14 +807,15 @@ function Centered({ children }: { children: React.ReactNode }) {
 }
 
 function BackLink() {
+  const t = useT();
   const className = 'mt-4 inline-block text-muted-foreground text-xs underline';
   return appConfig.home === undefined ? (
     <Link to="/" className={className}>
-      Back to documents
+      {t('Back to documents')}
     </Link>
   ) : (
     <a href={appConfig.home} className={className}>
-      Back to workspace
+      {t('Back to workspace')}
     </a>
   );
 }

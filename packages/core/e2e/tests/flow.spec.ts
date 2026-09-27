@@ -47,7 +47,7 @@ test.describe('flow pagination', () => {
 
   test('the outline picks up the flow heading', async ({ page }) => {
     await openDoc(page, 'flow-report');
-    await page.getByRole('button', { name: 'outline', exact: true }).click();
+    await page.getByRole('button', { name: 'Outline', exact: true }).click();
     await expect(page.getByRole('navigation').getByText('Measured body')).toBeVisible();
   });
 });

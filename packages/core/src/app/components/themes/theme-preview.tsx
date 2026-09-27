@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../../lib/i18n';
 import { type DocPage, isOrientation, isPageSizeName, resolvePageGeometry } from '../../lib/sdk';
 import { loadThemeDemo, type ThemeDemoModule, type ThemeMeta } from '../../lib/themes';
 import { PageFrame } from '../page-frame';
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function ThemePreview({ theme, width, all = false }: Props) {
+  const t = useT();
   const [demo, setDemo] = useState<ThemeDemoModule | null>(null);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function ThemePreview({ theme, width, all = false }: Props) {
         className="grid place-items-center rounded-md border border-border border-dashed bg-muted text-[0.6875rem] text-muted-foreground"
         style={{ width, height: geometry.height * scale }}
       >
-        {theme.hasDemo ? 'Loading…' : 'No demo'}
+        {theme.hasDemo ? t('Loading…') : t('No demo')}
       </div>
     );
   }

@@ -17,7 +17,7 @@ npm run dev        # http://localhost:5273
 - **檢視器**：真實尺寸的頁面、縮圖與大綱、單頁／雙頁／格狀檢視、Inspect（直接改字或留言給 AI）、Design 面板
 - **文件元件**：`flow()` 自動分頁、`TableOfContents`、`Footnote`、`Figure`／`Ref` 編號與交互參照、`DataTable`（讀 CSV）、`Chart`（長條、折線、圓餅圖）、`Cite`／`Bibliography`（引用與參考文獻，可讀 `.bib`）、`ImagePrompt`（待生成的圖片）、頁碼 hooks
 - **AI skills**：`create-doc`、`doc-authoring`、`current-doc`、`apply-comments`、`create-theme`、`generate-images`
-- **素材與設定**：圖片與參考文獻分開存放、參考文獻可預覽、介面文字大小、AI 生圖（Codex 或 OpenAI API，記錄 token 與花費）
+- **素材與設定**：圖片與參考文獻分開存放、參考文獻可預覽、介面語言（English／繁體中文）與文字大小、AI 生圖（Codex 或 OpenAI API，記錄 token 與花費）
 
 `mosage check` 與 `mosage export` 會用無頭 Chromium 渲染，第一次使用前請安裝 Playwright：
 

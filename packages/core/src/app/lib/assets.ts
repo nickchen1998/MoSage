@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { msg } from './i18n';
 
 export const GLOBAL_SCOPE = '@global';
 
@@ -28,7 +29,10 @@ export type AssetUsages = {
 
 export type ApiResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
-export const KIND_LABEL: Record<AssetKind, string> = { image: '圖片', reference: '參考文獻' };
+export const KIND_LABEL: Record<AssetKind, string> = {
+  image: msg('Images'),
+  reference: msg('References'),
+};
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|svg|webp|avif)$/i;
 
