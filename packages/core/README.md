@@ -1,5 +1,7 @@
 # mosage
 
+> 致謝：MoSage 延伸自 Simon Liu 的 [open-doc](https://github.com/simonliu-ai-product/open-doc)（MIT 授權），open-doc 的架構則源自 Yiwei Ho 的 [open-slide](https://github.com/open-slide/open-slide)。感謝兩位作者的開源貢獻。
+
 MoSage（墨閣）讓 AI coding agent 幫你做出要印出來、要交出去的文件：報告、企劃書、白皮書、手冊。
 Agent 把內容寫成頁面，MoSage 負責紙張尺寸、分頁、目錄與頁碼，並匯出 PDF 或可編輯的 Word。
 
@@ -27,4 +29,4 @@ npm i -D playwright && npx playwright install chromium
 
 完整說明與範例：<https://github.com/nickchen1998/MoSage>
 
-MoSage 以 [open-doc](https://github.com/simonliu-ai-product/open-doc)（Simon Liu，MIT）為基礎開發。授權：MIT。
+授權：MIT。

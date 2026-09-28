@@ -8,6 +8,10 @@
 [![npm](https://img.shields.io/npm/v/mosage?style=flat)](https://www.npmjs.com/package/mosage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](LICENSE)
 
+> [!NOTE]
+> **致謝**：MoSage 延伸自 Simon Liu 的 [open-doc](https://github.com/simonliu-ai-product/open-doc)（MIT 授權），open-doc 的架構則源自 Yiwei Ho 的 [open-slide](https://github.com/open-slide/open-slide)。
+> 感謝兩位作者的開源貢獻。原作者的著作權聲明保留在 [LICENSE](LICENSE) 中，MoSage 在這個基礎上獨立開發與維護，詳見文末的[致謝](#致謝)。
+
 **讓 AI 幫你做出「要印出來、要交出去」的文件。**
 報告、企劃書、白皮書、操作手冊、研究成果——用說的描述你要什麼，Claude Code 或 Codex 會把內容寫成頁面；
 MoSage 負責把頁面排進真實的紙張、自動分頁、維護目錄與頁碼，最後輸出成 PDF 或可編輯的 Word。
@@ -188,7 +192,7 @@ pnpm test:e2e     # Playwright
 
 MoSage 以 Simon Liu 的 [open-doc](https://github.com/simonliu-ai-product/open-doc)（MIT 授權）為基礎開發，
 open-doc 的架構則源自 Yiwei Ho 的 [open-slide](https://github.com/open-slide/open-slide)。
-MoSage 在此基礎上加入 Word 匯出與多頁檢視模式，整合為單一套件，並獨立維護。
+MoSage 在此基礎上加入 Word 匯出與匯入、多頁檢視模式、圖表與引用文獻、AI 生圖與繁體中文介面，整合為單一套件，並獨立維護。
 
 ## 授權
 
