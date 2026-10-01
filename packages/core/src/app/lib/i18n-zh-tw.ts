@@ -81,7 +81,6 @@ export const ZH_TW: Record<string, string> = {
   'Failed to save': '儲存失敗',
   Find: '搜尋',
   'Find in document': '在文件中搜尋',
-  'Fit width': '符合寬度',
   flow: '自動分頁',
   'Folder name': '資料夾名稱',
   Folders: '資料夾',

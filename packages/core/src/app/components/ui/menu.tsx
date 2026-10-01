@@ -109,18 +109,23 @@ export function MenuItem({
   children,
   destructive = false,
   active = false,
+  checked,
   disabled = false,
 }: {
   onClick: () => void;
   children: ReactNode;
   destructive?: boolean;
   active?: boolean;
+  /** Makes the item one choice of several, announced as chosen or not. */
+  checked?: boolean;
   disabled?: boolean;
 }) {
   return (
     <button
       type="button"
-      role="menuitem"
+      {...(checked === undefined
+        ? { role: 'menuitem' }
+        : { role: 'menuitemradio', 'aria-checked': checked })}
       disabled={disabled}
       onClick={(e) => {
         e.stopPropagation();
@@ -128,7 +133,7 @@ export function MenuItem({
       }}
       className={cn(
         'flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent',
-        active && 'bg-accent',
+        (active || checked) && 'bg-accent',
         destructive && 'text-red-600 dark:text-red-400',
         disabled && 'pointer-events-none opacity-40',
       )}
