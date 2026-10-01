@@ -1,5 +1,13 @@
 # mosage
 
+## 0.14.1
+
+### Patch Changes
+
+- [#42](https://github.com/nickchen1998/MoSage/pull/42) [`d973265`](https://github.com/nickchen1998/MoSage/commit/d9732654bba8e6f173f9d7aadb81d696cd0cd3a7) Thanks [@nickchen1998](https://github.com/nickchen1998)! - README 開頭註明 MoSage 延伸自 open-doc 與 open-slide，並致謝原作者
+
+- [#43](https://github.com/nickchen1998/MoSage/pull/43) [`c4e241a`](https://github.com/nickchen1998/MoSage/commit/c4e241af87f721dbdccfadf32b53c4169b77ff4f) Thanks [@nickchen1998](https://github.com/nickchen1998)! - 整理檢視器標題列：中文介面的「檢查」「設計」「下載」在空間不足時不再斷成上下兩行（改由文件標題縮短）；連續／雙頁／格狀收成縮放旁的一個下拉選單；移除「符合寬度」按鈕。
+
 ## 0.14.0
 
 ### Minor Changes
