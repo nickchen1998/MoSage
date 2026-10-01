@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   BookOpen,
   Check,
+  ChevronDown,
   Download,
   FilePen,
   FileText,
@@ -12,7 +13,6 @@ import {
   type LucideIcon,
   Minus,
   MousePointerClick,
-  MoveHorizontal,
   Palette,
   Plus,
 } from 'lucide-react';
@@ -122,7 +122,6 @@ export function Doc() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pagesRef = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState({ width: 0, height: 0 });
-  const [zoomMode, setZoomMode] = useState<'auto' | 'fit-width'>('auto');
   const [manualScale, setManualScale] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [download, setDownload] = useState<{ format: DownloadFormat; percent: number } | null>(
@@ -150,13 +149,9 @@ export function Doc() {
   const columnGap = viewMode === 'two-up' ? SPREAD_GAP : PAGE_GAP;
   const widthFit = (available.width - (across - 1) * columnGap) / (geometry.width * across);
   const fitWidthScale = available.width ? clamp(widthFit) : 1;
-  // Auto keeps a page at its true size unless the window is too narrow to hold
-  // it, and opens a grid zoomed out; fit width may go past 100%.
-  const scale =
-    manualScale ??
-    (zoomMode === 'fit-width'
-      ? fitWidthScale
-      : Math.min(viewMode === 'grid' ? GRID_SCALE : 1, fitWidthScale));
+  // A page opens at its true size unless the window is too narrow to hold it,
+  // and a grid opens zoomed out.
+  const scale = manualScale ?? Math.min(viewMode === 'grid' ? GRID_SCALE : 1, fitWidthScale);
   const columns =
     viewMode === 'grid'
       ? gridColumns(geometry.width * scale, available.width, columnGap, pages.length)
@@ -365,15 +360,7 @@ export function Doc() {
     );
   };
 
-  const fitWidth = () => {
-    setManualScale(null);
-    setZoomMode('fit-width');
-  };
-
-  const actualSize = () => {
-    setZoomMode('auto');
-    setManualScale(1);
-  };
+  const actualSize = () => setManualScale(1);
 
   // Each layout opens at its own natural zoom: a scale picked for one column is
   // the wrong size for a spread, and a grid is a zoom-out by definition.
@@ -381,7 +368,6 @@ export function Doc() {
     if (mode === viewMode) return;
     setViewMode(mode);
     setManualScale(null);
-    setZoomMode('auto');
   };
 
   // Tell the dev server where the reader is, so an agent can resolve "this
@@ -423,39 +409,29 @@ export function Doc() {
           drop it — the control cluster is many times wider than the back link.
           The control rail keeps its automatic minimum — no `min-w-0` — so when
           it outgrows its share the title truncates and slides instead of being
-          overlapped by it. */}
+          overlapped by it. That minimum only holds without wrapping: a CJK
+          label may break between any two characters, so its min-content is a
+          single glyph and the rail would stack it rather than claim room. */}
       <header className="grid h-12 flex-none grid-cols-[1fr_minmax(0,auto)_1fr] items-center gap-3 border-b border-border px-3">
-        <div className="flex min-w-0 items-center">
+        <div className="flex items-center">
           <HeaderBackLink />
         </div>
 
         <h1 className="truncate text-center font-medium text-sm">{doc.meta?.title ?? docId}</h1>
 
-        <div className="flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 whitespace-nowrap">
           <span className="hidden items-center gap-1.5 sm:flex">
             <PageJump page={currentPage} total={pages.length} onJump={scrollToPage} />
             <DocSearch scrollRef={scrollRef} pagesRef={pagesRef} onFoundPage={choosePage} />
           </span>
 
-          {/* Narrower than this, the header has no room left for the group and
-              two sheets side by side are too small to read anyway. */}
-          <fieldset aria-label={t('View mode')} className={cn('hidden lg:flex', TOOL_GROUP_CLASS)}>
-            {VIEW_MODES.map((mode) => {
-              const { label, icon: Icon } = VIEW_MODE_OPTIONS[mode];
-              return (
-                <IconButton
-                  key={mode}
-                  label={t(label)}
-                  onClick={() => changeViewMode(mode)}
-                  active={viewMode === mode}
-                >
-                  <Icon className="size-3.5" />
-                </IconButton>
-              );
-            })}
-          </fieldset>
-
           <div className={cn('flex', TOOL_GROUP_CLASS)}>
+            {/* Narrower than this, two sheets side by side are too small to
+                read anyway. */}
+            <div className="hidden items-center gap-0.5 lg:flex">
+              <ViewModeMenu mode={viewMode} onChange={changeViewMode} />
+              <span aria-hidden className="mx-0.5 h-4 w-px bg-border" />
+            </div>
             <IconButton label={t('Zoom out')} onClick={() => zoom(-0.1)}>
               <Minus className="size-3.5" />
             </IconButton>
@@ -469,13 +445,6 @@ export function Doc() {
             </button>
             <IconButton label={t('Zoom in')} onClick={() => zoom(0.1)}>
               <Plus className="size-3.5" />
-            </IconButton>
-            <IconButton
-              label={t('Fit width')}
-              onClick={fitWidth}
-              active={manualScale === null && zoomMode === 'fit-width'}
-            >
-              <MoveHorizontal className="size-3.5" />
             </IconButton>
           </div>
 
@@ -770,28 +739,69 @@ function PageJump({
   );
 }
 
+/**
+ * 版面是讀者選一次就記住的設定（每份文件各自保存），不需要三個按鈕常駐在標題列，
+ * 收成一個顯示目前版面的選單。
+ */
+function ViewModeMenu({ mode, onChange }: { mode: ViewMode; onChange: (mode: ViewMode) => void }) {
+  const t = useT();
+  const Current = VIEW_MODE_OPTIONS[mode].icon;
+
+  return (
+    <Menu
+      placement="bottom-start"
+      trigger={(props) => (
+        <button
+          type="button"
+          aria-label={t('View mode')}
+          aria-haspopup="menu"
+          title={t('View mode')}
+          className="flex h-6 items-center gap-0.5 rounded px-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
+          {...props}
+        >
+          <Current className="size-3.5" />
+          <ChevronDown className="size-3" />
+        </button>
+      )}
+    >
+      {(close) =>
+        VIEW_MODES.map((option) => {
+          const { label, icon: Icon } = VIEW_MODE_OPTIONS[option];
+          return (
+            <MenuItem
+              key={option}
+              checked={option === mode}
+              onClick={() => {
+                onChange(option);
+                close();
+              }}
+            >
+              <Icon className="size-3.5" />
+              {t(label)}
+            </MenuItem>
+          );
+        })
+      }
+    </Menu>
+  );
+}
+
 function IconButton({
   label,
   onClick,
-  active = false,
   children,
 }: {
   label: string;
   onClick: () => void;
-  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
-      aria-pressed={active}
       title={label}
       onClick={onClick}
-      className={cn(
-        'flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-        active && 'bg-accent text-foreground',
-      )}
+      className="flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
     >
       {children}
     </button>

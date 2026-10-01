@@ -9,6 +9,17 @@ async function sheetBoxes(page: Page) {
   return [one, two, three] as const;
 }
 
+async function chooseViewMode(page: Page, name: string) {
+  await page.getByRole('button', { name: 'View mode' }).click();
+  await page.getByRole('menuitemradio', { name }).click();
+}
+
+async function expectViewMode(page: Page, name: string) {
+  await page.getByRole('button', { name: 'View mode' }).click();
+  await expect(page.getByRole('menuitemradio', { name, checked: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+}
+
 test.describe('document viewer', () => {
   test('renders one sheet per fixed page', async ({ page }) => {
     await openDoc(page, 'alpha');
@@ -65,8 +76,8 @@ test.describe('document viewer', () => {
 
   test('two-up opens on a right-hand page and pairs the rest side by side', async ({ page }) => {
     await openDoc(page, 'alpha');
-    await page.getByRole('button', { name: 'Two-up' }).click();
-    await expect(page.getByRole('button', { name: 'Two-up', pressed: true })).toBeVisible();
+    await chooseViewMode(page, 'Two-up');
+    await expectViewMode(page, 'Two-up');
 
     const [one, two, three] = await sheetBoxes(page);
     expect(two.y).toBeCloseTo(three.y, 0);
@@ -79,7 +90,7 @@ test.describe('document viewer', () => {
   test('grid zooms out and wraps the sheets into rows', async ({ page }) => {
     await openDoc(page, 'alpha');
     const single = await pages(page).first().boundingBox();
-    await page.getByRole('button', { name: 'Grid' }).click();
+    await chooseViewMode(page, 'Grid');
 
     await expect
       .poll(async () => (await pages(page).first().boundingBox())?.width ?? 0)
@@ -95,7 +106,7 @@ test.describe('document viewer', () => {
      would answer 2 for a jump to 3. */
   test('a jump in two-up lands on the page asked for, not its neighbour', async ({ page }) => {
     await openDoc(page, 'alpha');
-    await page.getByRole('button', { name: 'Two-up' }).click();
+    await chooseViewMode(page, 'Two-up');
     await page.locator('[data-thumb-page="3"]').click();
     await expect(page.getByLabel('Page number, 3 pages')).toHaveValue('3');
   });
@@ -105,26 +116,26 @@ test.describe('document viewer', () => {
     await page.locator('[data-thumb-page="3"]').click();
     await expect(page.getByLabel('Page number, 3 pages')).toHaveValue('3');
 
-    await page.getByRole('button', { name: 'Grid' }).click();
+    await chooseViewMode(page, 'Grid');
     await expect(page.getByLabel('Page number, 3 pages')).toHaveValue('3');
 
     // The grid is one short row, so a scroll offset carried back unchanged
     // would land on page 1.
-    await page.getByRole('button', { name: 'Continuous' }).click();
+    await chooseViewMode(page, 'Continuous');
     await expect(page.getByLabel('Page number, 3 pages')).toHaveValue('3');
     await expect(pages(page).nth(2)).toBeInViewport();
   });
 
   test('the view mode is remembered per document', async ({ page }) => {
     await openDoc(page, 'alpha');
-    await page.getByRole('button', { name: 'Grid' }).click();
+    await chooseViewMode(page, 'Grid');
 
     await page.reload();
     await expect(pages(page).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Grid', pressed: true })).toBeVisible();
+    await expectViewMode(page, 'Grid');
 
     await openDoc(page, 'edit-target');
-    await expect(page.getByRole('button', { name: 'Continuous', pressed: true })).toBeVisible();
+    await expectViewMode(page, 'Continuous');
   });
 
   test('the thumbnail rail jumps to a page', async ({ page }) => {
@@ -148,5 +159,33 @@ test.describe('document viewer', () => {
     await openDoc(page, 'alpha');
     await page.getByRole('link', { name: 'Back to documents' }).click();
     await expect(page).toHaveURL(/\/$/);
+  });
+});
+
+test.describe('the header in a Chinese browser', () => {
+  test.use({ locale: 'zh-TW' });
+
+  /* A CJK label may break between any two characters, so a tight header would
+     stack 檢查 into a column rather than make room for it. */
+  test('keeps every label on one line when space runs short', async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await openDoc(page, 'alpha');
+    await expect(page.getByRole('button', { name: '下載' })).toBeVisible();
+
+    const labels = await page.locator('header button').evaluateAll((buttons) =>
+      buttons.flatMap((button) =>
+        Array.from(button.childNodes)
+          .filter((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())
+          .map((node) => {
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            return { label: node.textContent, lines: range.getClientRects().length };
+          }),
+      ),
+    );
+    expect(labels.map(({ label }) => label)).toEqual(
+      expect.arrayContaining(['檢查', '設計', '下載']),
+    );
+    expect(labels).toEqual(labels.map(({ label }) => ({ label, lines: 1 })));
   });
 });
